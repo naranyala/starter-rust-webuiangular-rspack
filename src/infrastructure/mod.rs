@@ -5,3 +5,4 @@ pub mod config;
 pub mod database;
 pub mod di;
 pub mod logging;
+pub mod event_bus;

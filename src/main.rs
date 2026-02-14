@@ -168,6 +168,8 @@ fn main() {
     presentation::ui_handlers::setup_counter_handlers(&mut my_window);
     presentation::db_handlers::setup_db_handlers(&mut my_window);
     presentation::sysinfo_handlers::setup_sysinfo_handlers(&mut my_window);
+    presentation::logging_handlers::setup_logging_handlers(&mut my_window);
+    presentation::event_bus_handlers::setup_event_bus_handlers(&mut my_window);
 
     // Get window settings from config
     let window_title = config.get_window_title();

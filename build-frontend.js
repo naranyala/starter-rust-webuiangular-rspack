@@ -1,157 +1,473 @@
 #!/usr/bin/env bun
 
 import fs from 'fs/promises';
-import { execSync } from 'child_process';
+import { execSync, spawn } from 'child_process';
+import path from 'path';
 
-async function buildFrontend() {
-  console.log('Building frontend...');
+const VERBOSE = process.argv.includes('--verbose') || process.argv.includes('-v');
+const QUIET = process.argv.includes('--quiet') || process.argv.includes('-q');
 
-  const originalDir = process.cwd();
-  const frontendDir = './frontend';
-  
-  // Only change directory if we're not already in the frontend directory
-  if (!process.cwd().endsWith('frontend')) {
-    process.chdir(frontendDir);
+const colors = {
+  reset: '\x1b[0m',
+  bright: '\x1b[1m',
+  dim: '\x1b[2m',
+  red: '\x1b[31m',
+  green: '\x1b[32m',
+  yellow: '\x1b[33m',
+  blue: '\x1b[34m',
+  magenta: '\x1b[35m',
+  cyan: '\x1b[36m',
+  white: '\x1b[37m',
+  gray: '\x1b[90m'
+};
+
+class BuildLogger {
+  constructor() {
+    this.steps = [];
+    this.currentStep = null;
+    this.startTime = Date.now();
+    this.warnings = [];
+    this.errors = [];
+    this.logs = [];
   }
 
-  try {
-    // Install dependencies if needed
-    console.log('Checking frontend dependencies...');
-    try {
-      await fs.access('node_modules');
-      console.log('Frontend dependencies already installed.');
-    } catch {
-      console.log('Installing frontend dependencies...');
-      execSync('bun install', { stdio: 'inherit' });
-    }
+  get timestamp() {
+    return new Date().toISOString();
+  }
 
-    // Run rspack production build
-    console.log('Running rspack production build...');
-    execSync('bun run build:incremental', { stdio: 'inherit' });
-
-    // Note: With Rspack, files are already in the correct location: dist/static/js and dist/static/css
-    // No flattening needed as with the previous build system
-    console.log('Rspack output is already in correct structure');
-
-    // Determine the correct paths based on current directory
-    const isFromRoot = !process.cwd().endsWith('frontend');
-    const distPath = isFromRoot ? './frontend/dist' : './dist';
-    const staticDestPath = isFromRoot ? './static' : '../static';
-
-    // Read the generated index.html to find the injected script tag with hashed filename
-    const generatedHtml = await fs.readFile(`${distPath}/index.html`, 'utf8');
-    const scriptMatch = generatedHtml.match(/<script[^>]+src="([^"]+index\.[a-f0-9]+\.js)"/);
-    const hashedJsFile = scriptMatch ? scriptMatch[1].split('/').pop() : null;
-    console.log(`Rspack generated JS file: ${hashedJsFile}`);
-
-    // Copy static files to root for WebUI server
-    console.log('Copying static files to root...');
-    await fs.mkdir(`${staticDestPath}/js`, { recursive: true });
-    await fs.mkdir(`${staticDestPath}/css`, { recursive: true });
-
-    // Copy JS files
-    const distJsFiles = await fs.readdir(`${distPath}/static/js/`);
-    for (const file of distJsFiles) {
-      const srcPath = `${distPath}/static/js/${file}`;
-      const destPath = `${staticDestPath}/js/${file}`;
-      if ((await fs.stat(srcPath)).isFile()) {
-        await fs.copyFile(srcPath, destPath);
-        console.log(`  Copied to root: ${file}`);
-      }
-    }
-
-    // If rspack injected a hashed filename, also create plain index.js
-    if (hashedJsFile) {
-      const hashedSrcPath = `${distPath}/static/js/${hashedJsFile}`;
-      const plainDestPath = `${staticDestPath}/js/index.js`;
-      await fs.copyFile(hashedSrcPath, plainDestPath);
-      console.log(`  Created plain index.js (from ${hashedJsFile})`);
-    }
-
-    // Copy CSS files and also create plain index.css
-    try {
-      const rootCssFiles = await fs.readdir(`${distPath}/static/css/`);
-      for (const file of rootCssFiles) {
-        const srcPath = `${distPath}/static/css/${file}`;
-        const destPath = `${staticDestPath}/css/${file}`;
-        if ((await fs.stat(srcPath)).isFile()) {
-          await fs.copyFile(srcPath, destPath);
-          console.log(`  Copied to root: ${file}`);
-
-          // Also copy main index CSS without hash
-          if (file.startsWith('index.') && file.endsWith('.css')) {
-            await fs.copyFile(srcPath, `${staticDestPath}/css/index.css`);
-            console.log(`  Created plain index.css`);
-          }
-        }
-      }
-    } catch (error) {
-      if (error.code !== 'ENOENT') {
-        throw error;
-      }
-      console.log('No CSS files to copy.');
-    }
-
-    // Update index.html to use plain filenames
-    console.log('Updating index.html paths...');
-    let originalIndexHtml = await fs.readFile(`${distPath}/index.html`, 'utf8');
-
-    // Update the title and class for the original content (separate for each target)
-    let distIndexHtml = originalIndexHtml;
-    distIndexHtml = distIndexHtml.replace(
-      /<title>[^<]*<\/title>/,
-      '<title>Rust WebUI Application</title>'
-    );
-    distIndexHtml = distIndexHtml.replace(
-      /<div id="app"><\/div>/,
-      '<div class="app"></div>'
-    );
-    // Change paths to ../static/ for dist location
-    distIndexHtml = distIndexHtml.replace(
-      /"(\.\/static\/)/g,
-      '"../static/'
-    );
-
-    // Write updated index.html (for frontend/dist location with ../static paths)
-    await fs.writeFile(`${distPath}/index.html`, distIndexHtml);
+  log(level, message, meta = {}) {
+    const entry = { timestamp: this.timestamp, level, message, meta };
+    this.logs.push(entry);
     
-    // Create root index.html with correct paths (starting fresh from original)
-    let rootIndexHtml = originalIndexHtml;
-    rootIndexHtml = rootIndexHtml.replace(
-      /<title>[^<]*<\/title>/,
-      '<title>Rust WebUI Application</title>'
-    );
-    rootIndexHtml = rootIndexHtml.replace(
-      /<div id="app"><\/div>/,
-      '<div class="app"></div>'
-    );
-    // Use plain filenames (index.js, index.css) instead of hashed versions
-    rootIndexHtml = rootIndexHtml.replace(
-      /index\.[a-f0-9]+\.js/g,
-      'index.js'
-    );
-    rootIndexHtml = rootIndexHtml.replace(
-      /index\.[a-f0-9]+\.css/g,
-      'index.css'
-    );
-    // Paths should already be ./static/ for root location, but ensure they are not ../static/
-    rootIndexHtml = rootIndexHtml.replace(
-      /"(\.\.\/static\/)/g,
-      '"./static/'
-    );
+    if (!QUIET) {
+      const color = this.getLevelColor(level);
+      const prefix = this.getLevelPrefix(level);
+      console.log(`${color}${prefix}${colors.reset} ${message}`);
+      if (VERBOSE && Object.keys(meta).length > 0) {
+        console.log(`  ${colors.gray}${JSON.stringify(meta)}${colors.reset}`);
+      }
+    }
+  }
 
-    // Write the root index.html with correct paths
-    await fs.writeFile('../index.html', rootIndexHtml);
-    console.log('Also created root index.html with correct paths');
+  getLevelColor(level) {
+    const colorsByLevel = {
+      DEBUG: colors.gray,
+      INFO: colors.blue,
+      WARN: colors.yellow,
+      ERROR: colors.red,
+      SUCCESS: colors.green,
+      STEP: colors.cyan
+    };
+    return colorsByLevel[level] || colors.white;
+  }
 
-    console.log('Frontend build completed successfully!');
-    console.log('Output: frontend/dist/');
+  getLevelPrefix(level) {
+    const prefixes = {
+      DEBUG: '[DEBUG]',
+      INFO: '[INFO]',
+      WARN: '[WARN]',
+      ERROR: '[ERROR]',
+      SUCCESS: '[✓]',
+      STEP: '[STEP]'
+    };
+    return prefixes[level] || '[LOG]';
+  }
+
+  debug(message, meta = {}) { this.log('DEBUG', message, meta); }
+  info(message, meta = {}) { this.log('INFO', message, meta); }
+  warn(message, meta = {}) { this.log('WARN', message, meta); }
+  error(message, meta = {}) { this.log('ERROR', message, meta); }
+  success(message, meta = {}) { this.log('SUCCESS', message, meta); }
+
+  startStep(name, description = '') {
+    const step = {
+      name,
+      description,
+      startTime: Date.now(),
+      endTime: null,
+      duration: null,
+      status: 'running',
+      logs: [],
+      warnings: [],
+      errors: []
+    };
+    this.currentStep = step;
+    this.steps.push(step);
+    this.log('STEP', `Starting: ${name}${description ? ` - ${description}` : ''}`, { step: name });
+    return step;
+  }
+
+  stepLog(message, level = 'INFO') {
+    if (this.currentStep) {
+      const entry = { timestamp: Date.now(), level, message };
+      this.currentStep.logs.push(entry);
+      
+      if (level === 'WARN') this.warnings.push({ step: this.currentStep.name, message });
+      if (level === 'ERROR') this.errors.push({ step: this.currentStep.name, message });
+      
+      this.log(level, `  ${message}`);
+    }
+  }
+
+  endStep(success = true, error = null) {
+    if (this.currentStep) {
+      this.currentStep.endTime = Date.now();
+      this.currentStep.duration = this.currentStep.endTime - this.currentStep.startTime;
+      this.currentStep.status = success ? 'success' : 'failed';
+      
+      const statusText = success ? 'completed' : 'failed';
+      const duration = this.formatDuration(this.currentStep.duration);
+      const meta = { step: this.currentStep.name, duration: this.currentStep.duration };
+      
+      if (success) {
+        this.log('SUCCESS', `Finished: ${this.currentStep.name} (${duration})`, meta);
+      } else {
+        this.log('ERROR', `Failed: ${this.currentStep.name} - ${error?.message || 'Unknown error'}`, meta);
+      }
+      
+      this.currentStep = null;
+    }
+  }
+
+  formatDuration(ms) {
+    if (ms < 1000) return `${ms}ms`;
+    if (ms < 60000) return `${(ms / 1000).toFixed(2)}s`;
+    return `${Math.floor(ms / 60000)}m ${((ms % 60000) / 1000).toFixed(0)}s`;
+  }
+
+  printSummary() {
+    const totalDuration = Date.now() - this.startTime;
+    const successfulSteps = this.steps.filter(s => s.status === 'success').length;
+    const failedSteps = this.steps.filter(s => s.status === 'failed').length;
+    const totalWarnings = this.warnings.length;
+    const totalErrors = this.errors.length;
+
+    console.log('\n' + colors.bright + '='.repeat(60) + colors.reset);
+    console.log(colors.bright + 'BUILD SUMMARY' + colors.reset);
+    console.log(colors.bright + '='.repeat(60) + colors.reset);
+    console.log(`  Total Duration: ${this.formatDuration(totalDuration)}`);
+    console.log(`  Steps: ${successfulSteps} successful, ${failedSteps} failed, ${this.steps.length} total`);
+    console.log(`  Warnings: ${totalWarnings}`);
+    console.log(`  Errors: ${totalErrors}`);
+    
+    if (VERBOSE) {
+      console.log('\n' + colors.dim + 'Step Details:' + colors.reset);
+      this.steps.forEach(step => {
+        const statusColor = step.status === 'success' ? colors.green : colors.red;
+        const icon = step.status === 'success' ? '✓' : '✗';
+        console.log(`  ${statusColor}${icon}${colors.reset} ${step.name}: ${this.formatDuration(step.duration)}`);
+      });
+    }
+
+    if (this.warnings.length > 0 && !QUIET) {
+      console.log('\n' + colors.yellow + 'Warnings:' + colors.reset);
+      this.warnings.forEach(w => console.log(`  ${colors.yellow}!${colors.reset} [${w.step}] ${w.message}`));
+    }
+
+    if (this.errors.length > 0) {
+      console.log('\n' + colors.red + 'Errors:' + colors.reset);
+      this.errors.forEach(e => console.log(`  ${colors.red}x${colors.reset} [${e.step}] ${e.message}`));
+    }
+
+    console.log(colors.bright + '='.repeat(60) + colors.reset + '\n');
+
+    return {
+      success: failedSteps === 0,
+      totalDuration,
+      steps: this.steps,
+      warnings: this.warnings,
+      errors: this.errors
+    };
+  }
+
+  exportLogs(format = 'json') {
+    const data = {
+      timestamp: this.timestamp,
+      totalDuration: Date.now() - this.startTime,
+      steps: this.steps,
+      warnings: this.warnings,
+      errors: this.errors,
+      logs: this.logs
+    };
+
+    if (format === 'json') return JSON.stringify(data, null, 2);
+    
+    if (format === 'text') {
+      let text = `Build Log - ${this.timestamp}\n${'='.repeat(60)}\n\n`;
+      this.steps.forEach(step => {
+        text += `[${step.status.toUpperCase()}] ${step.name} (${step.duration}ms)\n`;
+        step.logs.forEach(l => text += `  ${l.level}: ${l.message}\n`);
+        text += '\n';
+      });
+      return text;
+    }
+    
+    return JSON.stringify(data);
+  }
+
+  saveLogs(filename = 'build.log') {
+    fs.writeFile(filename, this.exportLogs('json'));
+  }
+}
+
+const logger = new BuildLogger();
+
+async function buildWebUI() {
+  logger.startStep('webui-build', 'Building WebUI bridge library');
+  
+  const originalDir = process.cwd();
+  const projectRoot = path.resolve(__dirname);
+  const bridgeDir = path.join(projectRoot, 'thirdparty/webui-c-src/bridge');
+  const staticJsPath = path.join(projectRoot, 'static/js');
+  
+  try {
+    await fs.mkdir(staticJsPath, { recursive: true });
+    
+    logger.stepLog('Checking for esbuild...');
+    try {
+      execSync('esbuild --version', { stdio: 'pipe' });
+    } catch {
+      logger.stepLog('Installing esbuild globally...');
+      execSync('npm install -g esbuild', { stdio: VERBOSE ? 'inherit' : 'pipe' });
+    }
+    
+    logger.stepLog('Transpiling webui.ts to webui.js...');
+    execSync(
+      `esbuild --bundle --target="chrome90,firefox90,safari15" --format=esm --tree-shaking=false --minify-syntax --minify-whitespace --outfile="${staticJsPath}/webui.js" "${bridgeDir}/webui.ts"`,
+      { stdio: VERBOSE ? 'inherit' : 'pipe' }
+    );
+    
+    logger.stepLog('Created static/js/webui.js');
+    logger.endStep(true);
+    
   } catch (error) {
-    console.error('Error during frontend build:', error);
-    process.exit(1);
+    logger.stepLog(`Failed to build webui.js: ${error.message}`, 'ERROR');
+    logger.endStep(false, error);
+    throw error;
   } finally {
     process.chdir(originalDir);
   }
+}
+
+async function patchIndexHtml() {
+  logger.startStep('patch-index', 'Patching index.html with webui.js');
+  
+  const originalDir = process.cwd();
+  const projectRoot = path.resolve(__dirname);
+  const rootIndexHtml = path.join(projectRoot, 'index.html');
+  const distIndexHtml = path.join(projectRoot, 'frontend/dist/index.html');
+  
+  try {
+    const htmlContent = await fs.readFile(rootIndexHtml, 'utf8');
+    
+    const hasWebuiScript = htmlContent.includes('webui.js');
+    
+    if (!hasWebuiScript) {
+      logger.stepLog('Adding webui.js script tag to index.html');
+      
+      const patchedHtml = htmlContent.replace(
+        '</body>',
+        '  <script src="./static/js/webui.js"></script>\n</body>'
+      );
+      
+      await fs.writeFile(rootIndexHtml, patchedHtml);
+      logger.stepLog('Patched root index.html with webui.js');
+      
+      if (await pathExists(distIndexHtml)) {
+        const distHtml = await fs.readFile(distIndexHtml, 'utf8');
+        const patchedDistHtml = distHtml.replace(
+          '</body>',
+          '  <script src="../static/js/webui.js"></script>\n</body>'
+        );
+        await fs.writeFile(distIndexHtml, patchedDistHtml);
+        logger.stepLog('Patched dist/index.html with webui.js');
+      }
+    } else {
+      logger.stepLog('webui.js already present in index.html');
+    }
+    
+    logger.endStep(true);
+    
+  } catch (error) {
+    logger.stepLog(`Failed to patch index.html: ${error.message}`, 'ERROR');
+    logger.endStep(false, error);
+    throw error;
+  } finally {
+    process.chdir(originalDir);
+  }
+}
+
+async function pathExists(p) {
+  try {
+    await fs.access(p);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function buildFrontend() {
+  logger.info('Starting frontend build pipeline', { 
+    version: '2.0',
+    verbose: VERBOSE,
+    quiet: QUIET,
+    timestamp: logger.timestamp 
+  });
+
+  const originalDir = process.cwd();
+  const frontendDir = './frontend';
+  const isFromRoot = !process.cwd().endsWith('frontend');
+  
+  // Set initial paths
+  let distPath = isFromRoot ? './frontend/dist' : './dist';
+  let staticDestPath = isFromRoot ? './static' : '../static';
+
+  if (isFromRoot) {
+    process.chdir(frontendDir);
+    // After chdir to frontend, adjust paths
+    distPath = './dist';
+    staticDestPath = '../static';
+  }
+
+  try {
+    const step = logger.startStep('dependencies', 'Installing frontend dependencies');
+    
+    try {
+      await fs.access('node_modules');
+      logger.stepLog('Dependencies already installed');
+    } catch {
+      logger.stepLog('Installing dependencies with bun...');
+      try {
+        execSync('bun install', { stdio: VERBOSE ? 'inherit' : 'pipe' });
+        logger.stepLog('Dependencies installed successfully');
+      } catch (installError) {
+        logger.stepLog(`Failed to install dependencies: ${installError.message}`, 'ERROR');
+        throw new Error(`Dependency installation failed: ${installError.message}`);
+      }
+    }
+    logger.endStep(true);
+
+    logger.startStep('rspack-build', 'Running Rspack production build');
+    logger.stepLog('Executing rspack build...');
+    
+    try {
+      const buildStart = Date.now();
+      execSync('bun run build:incremental', { 
+        stdio: VERBOSE ? 'inherit' : 'pipe'
+      });
+      const buildDuration = Date.now() - buildStart;
+      logger.stepLog(`Rspack build completed in ${logger.formatDuration(buildDuration)}`);
+    } catch (buildError) {
+      logger.stepLog(`Build failed: ${buildError.message}`, 'ERROR');
+      if (buildError.stdout) logger.stepLog(`stdout: ${buildError.stdout.toString()}`, 'DEBUG');
+      if (buildError.stderr) logger.stepLog(`stderr: ${buildError.stderr.toString()}`, 'ERROR');
+      logger.endStep(false, buildError);
+      throw buildError;
+    }
+    logger.endStep(true);
+
+    logger.startStep('copy-assets', 'Copying static assets to root');
+    
+    await fs.mkdir(`${staticDestPath}/js`, { recursive: true });
+    await fs.mkdir(`${staticDestPath}/css`, { recursive: true });
+    logger.stepLog(`Created directories: ${staticDestPath}/js, ${staticDestPath}/css`);
+
+    const jsFiles = await fs.readdir(`${distPath}/static/js/`);
+    let jsCount = 0;
+    for (const file of jsFiles) {
+      const srcPath = `${distPath}/static/js/${file}`;
+      if ((await fs.stat(srcPath)).isFile()) {
+        await fs.copyFile(srcPath, `${staticDestPath}/js/${file}`);
+        jsCount++;
+      }
+    }
+    logger.stepLog(`Copied ${jsCount} JS files`);
+
+    const generatedHtml = await fs.readFile(`${distPath}/index.html`, 'utf8');
+    const scriptMatch = generatedHtml.match(/<script[^>]+src="([^"]+index\.[a-f0-9]+\.js)"/);
+    const hashedJsFile = scriptMatch ? scriptMatch[1].split('/').pop() : null;
+    
+    if (hashedJsFile) {
+      await fs.copyFile(
+        `${distPath}/static/js/${hashedJsFile}`,
+        `${staticDestPath}/js/index.js`
+      );
+      logger.stepLog(`Created plain index.js (from ${hashedJsFile})`);
+    }
+
+    let cssCount = 0;
+    try {
+      const cssFiles = await fs.readdir(`${distPath}/static/css/`);
+      for (const file of cssFiles) {
+        const srcPath = `${distPath}/static/css/${file}`;
+        if ((await fs.stat(srcPath)).isFile()) {
+          await fs.copyFile(srcPath, `${staticDestPath}/css/${file}`);
+          cssCount++;
+          
+          if (file.startsWith('index.') && file.endsWith('.css')) {
+            await fs.copyFile(srcPath, `${staticDestPath}/css/index.css`);
+            logger.stepLog(`Created plain index.css`);
+          }
+        }
+      }
+    } catch (e) {
+      if (e.code !== 'ENOENT') throw e;
+      logger.stepLog('No CSS files to copy', 'DEBUG');
+    }
+    logger.stepLog(`Copied ${cssCount} CSS files`);
+    logger.endStep(true);
+
+    await buildWebUI();
+
+    await patchIndexHtml();
+
+    logger.startStep('update-index', 'Updating index.html with correct paths');
+
+    let originalIndexHtml = await fs.readFile(`${distPath}/index.html`, 'utf8');
+    
+    let distIndexHtml = originalIndexHtml
+      .replace(/<title>[^<]*<\/title>/, '<title>Rust WebUI Application</title>')
+      .replace(/<div id="app"><\/div>/, '<div class="app"></div>')
+      .replace(/"(\.\/static\/)/g, '"../static/');
+
+    await fs.writeFile(`${distPath}/index.html`, distIndexHtml);
+    logger.stepLog('Updated dist/index.html with relative paths');
+
+    let rootIndexHtml = originalIndexHtml
+      .replace(/<title>[^<]*<\/title>/, '<title>Rust WebUI Application</title>')
+      .replace(/<div id="app"><\/div>/, '<div class="app"></div>')
+      .replace(/index\.[a-f0-9]+\.js/g, 'index.js')
+      .replace(/index\.[a-f0-9]+\.css/g, 'index.css')
+      .replace(/"(\.\.\/static\/)/g, '" ./static/');
+
+    await fs.writeFile('../index.html', rootIndexHtml);
+    logger.stepLog('Created root index.html with plain filenames');
+    logger.endStep(true);
+
+    logger.success('Frontend build completed successfully!', {
+      output: 'frontend/dist/',
+      assets: { js: jsCount, css: cssCount }
+    });
+
+  } catch (error) {
+    logger.error(`Build failed: ${error.message}`, { 
+      stack: error.stack,
+      step: logger.currentStep?.name 
+    });
+    console.error('\n' + colors.red + 'BUILD FAILED' + colors.reset);
+    console.error(colors.red + error.message + colors.reset);
+    process.exitCode = 1;
+  } finally {
+    process.chdir(originalDir);
+    const summary = logger.printSummary();
+    
+    if (process.argv.includes('--save-logs')) {
+      logger.saveLogs(`build-${Date.now()}.log`);
+      logger.info('Build logs saved');
+    }
+  }
+
+  return process.exitCode;
 }
 
 async function pathExists(p) {

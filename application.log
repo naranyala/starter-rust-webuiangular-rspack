@@ -1249,3 +1249,39 @@
 [2026-02-13 08:07:57.068] INFO [rustwebui_app] Loading application UI from root index.html
 [2026-02-13 08:08:12.519] INFO [rustwebui_app] Application started successfully, waiting for events...
 [2026-02-13 08:08:12.519] INFO [rustwebui_app] =============================================
+{"timestamp":"2026-02-14 10:36:30.153","level":"INFO","target":"rustwebui_app::infrastructure::logging","file":"src/infrastructure/logging.rs","line":184,"message":"Logging initialized: level=info, file=application.log"}
+{"timestamp":"2026-02-14 10:36:30.153","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":67,"message":"============================================="}
+{"timestamp":"2026-02-14 10:36:30.153","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":68,"message":"Starting: Rust WebUI SQLite Demo v1.0.0"}
+{"timestamp":"2026-02-14 10:36:30.154","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":73,"message":"============================================="}
+{"timestamp":"2026-02-14 10:36:30.154","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":75,"message":"Application starting..."}
+{"timestamp":"2026-02-14 10:36:30.154","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":79,"message":"Database path: app.db"}
+{"timestamp":"2026-02-14 10:36:30.154","level":"INFO","target":"rustwebui_app::infrastructure::database","file":"src/infrastructure/database.rs","line":42,"message":"Database connection established: app.db"}
+{"timestamp":"2026-02-14 10:36:30.154","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":84,"message":"Database initialized successfully"}
+{"timestamp":"2026-02-14 10:36:30.155","level":"INFO","target":"rustwebui_app::infrastructure::database","file":"src/infrastructure/database.rs","line":79,"message":"Database schema initialized"}
+{"timestamp":"2026-02-14 10:36:30.155","level":"INFO","target":"rustwebui_app::infrastructure::database","file":"src/infrastructure/database.rs","line":254,"message":"Sample data already exists, skipping insertion"}
+{"timestamp":"2026-02-14 10:36:30.155","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":94,"message":"Sample data created (if not exists)"}
+{"timestamp":"2026-02-14 10:36:30.155","level":"INFO","target":"rustwebui_app::presentation::webui::handlers::db_handlers","file":"src/presentation/webui/handlers/db_handlers.rs","line":13,"message":"Database handlers initialized"}
+{"timestamp":"2026-02-14 10:36:30.155","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":111,"message":"=== Utility Modules Demonstration ==="}
+{"timestamp":"2026-02-14 10:36:30.156","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":115,"message":"OS: linux Unknown"}
+{"timestamp":"2026-02-14 10:36:30.156","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":116,"message":"Hostname: endeavour-pc"}
+{"timestamp":"2026-02-14 10:36:30.156","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":117,"message":"CPU Cores: 4"}
+{"timestamp":"2026-02-14 10:36:30.156","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":122,"message":"Home directory: /home/naranyala"}
+{"timestamp":"2026-02-14 10:36:30.156","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":127,"message":"Current time: 2026-02-14 03:36:30 UTC"}
+{"timestamp":"2026-02-14 10:36:30.156","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":131,"message":"SHA256 hash: e7d87b738825c33824cf3fd32b7314161fc8c425129163ff5e7260fc7288da36"}
+{"timestamp":"2026-02-14 10:36:30.156","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":135,"message":"Password hashed successfully"}
+{"timestamp":"2026-02-14 10:36:30.156","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":140,"message":"Email 'test@example.com' valid: true"}
+{"timestamp":"2026-02-14 10:36:30.156","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":145,"message":"Base64 encoded: SGVsbG8sIFdvcmxkIQ=="}
+{"timestamp":"2026-02-14 10:36:30.157","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":149,"message":"Local IP: Some(\"192.168.1.7\")"}
+{"timestamp":"2026-02-14 10:36:30.157","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":152,"message":"Current PID: 254549"}
+{"timestamp":"2026-02-14 10:36:30.158","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":157,"message":"Gzip compression: 49 -> 72 bytes"}
+{"timestamp":"2026-02-14 10:36:30.158","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":161,"message":"Running as admin: false"}
+{"timestamp":"2026-02-14 10:36:30.382","level":"INFO","target":"rustwebui_app::presentation::webui::handlers::db_handlers","file":"src/presentation/webui/handlers/db_handlers.rs","line":120,"message":"Database handlers set up successfully"}
+{"timestamp":"2026-02-14 10:36:30.382","level":"INFO","target":"rustwebui_app::presentation::webui::handlers::sysinfo_handlers","file":"src/presentation/webui/handlers/sysinfo_handlers.rs","line":183,"message":"System info handlers set up successfully"}
+{"timestamp":"2026-02-14 10:36:30.383","level":"INFO","target":"rustwebui_app::presentation::webui::handlers::logging_handlers","file":"src/presentation/webui/handlers/logging_handlers.rs","line":56,"message":"Logging handlers initialized"}
+{"timestamp":"2026-02-14 10:36:30.385","level":"INFO","target":"rustwebui_app::presentation::webui::handlers::event_bus_handlers","file":"src/presentation/webui/handlers/event_bus_handlers.rs","line":114,"message":"Event bus handlers initialized"}
+{"timestamp":"2026-02-14 10:36:30.385","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":176,"message":"Window title: Rust WebUI Application"}
+{"timestamp":"2026-02-14 10:36:30.385","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":179,"message":"Loading application UI from root index.html"}
+{"timestamp":"2026-02-14 10:36:45.795","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":182,"message":"Application started successfully, waiting for events..."}
+{"timestamp":"2026-02-14 10:36:45.795","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":183,"message":"============================================="}
+{"timestamp":"2026-02-14 10:36:53.029","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":188,"message":"Application shutting down..."}
+{"timestamp":"2026-02-14 10:36:53.029","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":189,"message":"============================================="}
