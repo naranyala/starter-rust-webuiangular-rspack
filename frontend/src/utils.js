@@ -430,46 +430,176 @@ class BuildLogger {
   }
 }
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+
 class WebUIBridge {
   constructor() {
     this.callbacks = new Map();
     this.nextId = 1;
     this.logger = window.Logger || new EnhancedLogger();
+    this.connected = false;
+    this.lastStatus = "disconnected";
+    this.lastError = null;
+    this.lastChange = Date.now();
+    this.pingIntervalMs = 2000;
+    this.pingTimeoutMs = 2000;
+    this.setConnectionState("connecting", { reason: "init" });
+    this.startConnectionMonitor();
   }
 
-  callRustFunction(funcName, data = null) {
-    return new Promise((resolve, reject) => {
-      const id = this.nextId++;
-      this.callbacks.set(id, { resolve, reject });
+  setConnectionState(state, detail = {}) {
+    const changed = this.lastStatus !== state;
+    this.lastStatus = state;
+    this.connected = state === "connected";
+    this.lastChange = Date.now();
 
-      this.logger.debug(`Calling Rust: ${funcName}`, {
-        functionName: funcName,
-        data,
-        callId: id
-      });
+    if (changed) {
+      const level = state === "error" ? "error" : state === "connected" ? "info" : "warn";
+      if (this.logger && typeof this.logger[level] === "function") {
+        this.logger[level]("WebUI " + state, detail);
+      }
+      if (state !== "connected") {
+        this.sendStatusToBackend(state, detail);
+      }
+    }
+
+    const port = window.__WEBUI_PORT || null;
+    window.dispatchEvent(new CustomEvent("webui:status", {
+      detail: {
+        state,
+        detail: { ...detail, port },
+        timestamp: Date.now()
+      }
+    }));
+  }
+
+  sendStatusToBackend(state, detail = {}) {
+    if (!window.__webui__) return;
+    const payload = {
+      message: "WebUI " + state,
+      level: state === "error" ? "ERROR" : "WARN",
+      meta: {
+        state,
+        ...detail,
+        port: window.__WEBUI_PORT || null,
+        timestamp: new Date().toISOString()
+      },
+      category: "webui",
+      sessionId: this.logger?.sessionId || "frontend",
+      frontendTimestamp: new Date().toISOString()
+    };
+
+    try {
+      window.__webui__.call("log_message", JSON.stringify(payload)).catch(() => {});
+    } catch (_) {
+      // ignore
+    }
+  }
+
+  getStatus() {
+    return {
+      state: this.lastStatus,
+      connected: this.connected,
+      lastError: this.lastError,
+      lastChange: this.lastChange
+    };
+  }
+
+  startConnectionMonitor() {
+    if (this._monitor) return;
+    this._monitor = setInterval(() => {
+      this.pingBackend();
+    }, this.pingIntervalMs);
+    this.pingBackend();
+  }
+
+  async pingBackend() {
+    if (!window.__webui__) {
+      this.setConnectionState("disconnected", { reason: "no_webui" });
+      return false;
+    }
+
+    try {
+      await this.callRustFunction("event:stats", {}, { timeoutMs: this.pingTimeoutMs, silent: true });
+      return true;
+    } catch (e) {
+      this.setConnectionState("retrying", { reason: "ping_failed", error: e?.message || String(e) });
+      return false;
+    }
+  }
+
+  async callRustFunction(funcName, data = null, options = {}) {
+    const id = this.nextId++;
+    this.callbacks.set(id, { resolve: null, reject: null });
+
+    this.logger.debug(`Calling Rust: ${funcName}`, {
+      functionName: funcName,
+      data,
+      callId: id
+    });
+
+    const {
+      timeoutMs = 3000,
+      silent = false,
+      retries = 1,
+      retryDelayMs = 400
+    } = options || {};
+
+    const attemptCall = async (attempt) => {
+      if (!window.__webui__) {
+        this.setConnectionState('disconnected', { reason: 'no_webui' });
+        if (!silent) {
+          this.logger.warn('WebUI not available, using mock');
+        }
+        return this.getMockResponse(funcName, data);
+      }
 
       try {
-        if (window.__webui__) {
-          window.__webui__.call(funcName, JSON.stringify(data || {})).then(result => {
-            this.logger.debug(`Rust function success: ${funcName}`, { functionName: funcName, result });
-            resolve(JSON.parse(result));
-          }).catch(error => {
-            this.logger.error(`Rust function error: ${funcName}`, {
-              functionName: funcName,
-              error: error.message,
-              data
-            });
-            reject(error);
-          });
-        } else {
-          this.logger.warn('WebUI not available, using mock');
-          resolve(this.getMockResponse(funcName, data));
+        const callPromise = window.__webui__.call(funcName, JSON.stringify(data || {}));
+        const timedPromise = timeoutMs
+          ? Promise.race([
+              callPromise,
+              new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('WebUI call timeout')), timeoutMs)
+              )
+            ])
+          : callPromise;
+
+        const result = await timedPromise;
+        if (!silent) {
+          this.logger.debug(`Rust function success: ${funcName}`, { functionName: funcName, result });
+        }
+        this.setConnectionState('connected', { funcName });
+
+        try {
+          return JSON.parse(result);
+        } catch (_) {
+          return result;
         }
       } catch (error) {
-        this.logger.error(`Exception calling ${funcName}`, { functionName: funcName, error: error.message });
-        reject(error);
+        this.lastError = error?.message || String(error);
+        if (attempt < retries) {
+          const backoff = retryDelayMs * Math.pow(2, attempt);
+          this.setConnectionState('retrying', { funcName, error: this.lastError, attempt: attempt + 1, backoff });
+          await sleep(backoff);
+          return attemptCall(attempt + 1);
+        }
+        if (!silent) {
+          this.logger.error(`Rust function error: ${funcName}`, {
+            functionName: funcName,
+            error: this.lastError,
+            data
+          });
+        }
+        this.setConnectionState('error', { funcName, error: this.lastError });
+        throw error;
       }
-    });
+    };
+
+    return attemptCall(0);
   }
 
   getMockResponse(funcName, data) {

@@ -1,7 +1,4 @@
-pub mod config;
-pub mod events;
-pub mod user;
+// viewmodels/mod.rs
+// ViewModels - business logic and use case implementations
 
-pub use config::*;
-pub use events::*;
-pub use user::*;
+pub mod handlers;

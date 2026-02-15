@@ -1,5 +1,5 @@
-// lib/mod.rs
-// Infrastructure and shared utilities
+// services/mod.rs
+// Infrastructure services - database, config, logging, DI
 
 pub mod config;
 pub mod database;

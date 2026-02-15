@@ -31,6 +31,17 @@ declare global {
       warn: (message: string, meta?: Record<string, any>) => void;
       error: (message: string, meta?: Record<string, any>) => void;
       debug: (message: string, meta?: Record<string, any>) => void;
+      sendToBackend?: (message: string, level?: string, meta?: Record<string, any>) => Promise<void> | void;
+      sessionId?: string;
+    };
+    WebUIBridge?: {
+      callRustFunction: (funcName: string, data?: any, options?: any) => Promise<any>;
+      getStatus?: () => {
+        state: string;
+        connected: boolean;
+        lastError: string | null;
+        lastChange: number;
+      };
     };
   }
 }
@@ -43,361 +54,147 @@ const Logger = window.Logger || {
   debug: (msg: string, meta?: any) => console.debug('[DEBUG]', msg, meta),
 };
 
-// Add CSS styles dynamically
-function addStyles(): void {
-  const style = document.createElement('style');
-  style.textContent = `
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f5f7fa;
-      color: #333;
-      font-size: 14px;
-    }
-
-    .app {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: row;
-    }
-
-    .sidebar {
-      width: 200px;
-      background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-      color: white;
-      display: flex;
-      flex-direction: column;
-      border-right: 1px solid #334155;
-    }
-
-    .home-button-container {
-      padding: 0.75rem;
-      background: rgba(79, 70, 229, 0.2);
-      border-bottom: 1px solid #334155;
-    }
-
-    .home-btn {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      padding: 0.5rem 0.75rem;
-      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .home-btn:hover {
-      background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%);
-      transform: translateY(-1px);
-      box-shadow: 0 2px 8px rgba(79, 70, 229, 0.4);
-    }
-
-    .home-icon {
-      font-size: 1rem;
-    }
-
-    .home-text {
-      font-size: 0.85rem;
-    }
-
-    .sidebar-header {
-      padding: 0.75rem;
-      background: rgba(255, 255, 255, 0.05);
-      border-bottom: 1px solid #334155;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .sidebar-header h2 {
-      font-size: 0.9rem;
-      font-weight: 600;
-    }
-
-    .window-count {
-      background: #4f46e5;
-      color: white;
-      padding: 0.15rem 0.5rem;
-      border-radius: 12px;
-      font-size: 0.75rem;
-      font-weight: 600;
-    }
-
-    .window-list {
-      flex: 1;
-      overflow-y: auto;
-      padding: 0.5rem;
-    }
-
-    .window-item {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.5rem;
-      margin-bottom: 0.25rem;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      border: 1px solid transparent;
-    }
-
-    .window-item:hover {
-      background: rgba(255, 255, 255, 0.15);
-      border-color: #4f46e5;
-      transform: translateX(4px);
-    }
-
-    .window-item.minimized {
-      opacity: 0.6;
-      background: rgba(255, 255, 255, 0.02);
-    }
-
-    .window-item.minimized:hover {
-      opacity: 0.9;
-      background: rgba(255, 255, 255, 0.1);
-    }
-
-    .window-icon {
-      font-size: 1rem;
-    }
-
-    .window-info {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      min-width: 0;
-    }
-
-    .window-title {
-      font-size: 0.75rem;
-      font-weight: 500;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .window-status {
-      font-size: 0.65rem;
-      color: #94a3b8;
-    }
-
-    .window-close {
-      background: transparent;
-      border: none;
-      color: #94a3b8;
-      font-size: 1.1rem;
-      cursor: pointer;
-      padding: 0.15rem;
-      line-height: 1;
-      border-radius: 3px;
-      transition: all 0.2s ease;
-    }
-
-    .window-close:hover {
-      background: #dc3545;
-      color: white;
-    }
-
-    .no-windows {
-      text-align: center;
-      padding: 1rem;
-      color: #64748b;
-      font-size: 0.8rem;
-      font-style: italic;
-    }
-
-    .sidebar-footer {
-      padding: 0.75rem;
-      border-top: 1px solid #334155;
-    }
-
-    .close-all-btn {
-      width: 100%;
-      padding: 0.5rem;
-      background: #dc3545;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      font-size: 0.75rem;
-      cursor: pointer;
-      transition: background 0.2s ease;
-    }
-
-    .close-all-btn:hover {
-      background: #c82333;
-    }
-
-    .main-container {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    .header {
-      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-      color: white;
-      padding: 0.5rem 1rem;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-
-    .header h1 {
-      font-size: 1.2rem;
-      font-weight: 600;
-    }
-
-    .main-content {
-      flex: 1;
-      padding: 1rem;
-      overflow-y: auto;
-    }
-
-    .cards-section {
-      margin-bottom: 1rem;
-    }
-
-    .cards-grid {
-      display: grid;
-      gap: 1.5rem;
-    }
-
-    .cards-grid.two-cards {
-      grid-template-columns: repeat(2, 1fr);
-      max-width: 800px;
-      margin: 0 auto;
-    }
-
-    .feature-card {
-      background: white;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      min-height: 200px;
-    }
-
-    .feature-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 12px 24px rgba(0,0,0,0.1);
-    }
-
-    .card-icon {
-      font-size: 3rem;
-      text-align: center;
-      padding: 1.5rem;
-      background: linear-gradient(135deg, #f5f7fa 0%, #e4e7ec 100%);
-    }
-
-    .card-content {
-      padding: 1.25rem;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .card-title {
-      font-size: 1.1rem;
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-      color: #1e293b;
-    }
-
-    .card-description {
-      font-size: 0.85rem;
-      color: #64748b;
-      margin-bottom: 1rem;
-      line-height: 1.5;
-      flex: 1;
-    }
-
-    .card-tags {
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-    }
-
-    .tag {
-      background: #e0e7ff;
-      color: #4f46e5;
-      padding: 0.25rem 0.75rem;
-      font-size: 0.75rem;
-      font-weight: 500;
-      border-radius: 20px;
-    }
-
-    .wb-dock,
-    .wb-taskbar,
-    .winbox-dock,
-    .winbox-taskbar,
-    .winbox-dock-container,
-    .wb-dock-container,
-    .winbox.minimized ~ .wb-dock,
-    .winbox.min ~ .wb-dock,
-    .winbox.minimized ~ .wb-taskbar,
-    .winbox.min ~ .wb-taskbar {
-      display: none !important;
-      visibility: hidden !important;
-      opacity: 0 !important;
-      height: 0 !important;
-      width: 0 !important;
-      position: absolute !important;
-      bottom: -9999px !important;
-    }
-
-    .winbox.min,
-    .winbox.minimized {
-      opacity: 0 !important;
-      pointer-events: none !important;
-      top: -9999px !important;
-      left: -9999px !important;
-    }
-
-    @media (max-width: 768px) {
-      .app {
-        flex-direction: column;
-      }
-
-      .sidebar {
-        width: 100%;
-        max-height: 150px;
-      }
-
-      .window-list {
-        display: flex;
-        flex-direction: row;
-        gap: 0.5rem;
-        overflow-x: auto;
-        padding: 0.5rem;
-      }
-
-      .window-item {
-        min-width: 150px;
-        margin-bottom: 0;
-      }
-
-      .cards-grid.two-cards {
-        grid-template-columns: 1fr;
-      }
-    }
-  `;
-  document.head.appendChild(style);
+function getFrontendSessionId(): string {
+  return window.Logger?.sessionId || 'frontend';
 }
+
+function sendWindowEvent(eventType: string, windowId: string, title: string, state: { minimized?: boolean; maximized?: boolean } = {}): void {
+  const message = "WinBox " + eventType + ": " + title;
+  const payload = {
+    message: message.replace(/\s+/g, " ").trim(),
+    level: "INFO",
+    meta: {
+      event: eventType,
+      window_id: windowId,
+      title,
+      minimized: state.minimized ?? false,
+      maximized: state.maximized ?? false,
+      timestamp: new Date().toISOString()
+    },
+    category: "winbox",
+    session_id: getFrontendSessionId(),
+    frontend_timestamp: new Date().toISOString()
+  };
+
+  if (window.WebUIBridge?.callRustFunction) {
+    window.WebUIBridge.callRustFunction("log_message", payload).catch(() => {});
+    return;
+  }
+
+  if (window.Logger?.sendToBackend) {
+    window.Logger.sendToBackend(payload.message, payload.level, payload.meta);
+  }
+}
+
+
+function getWindowState(windowId: string): { minimized?: boolean; maximized?: boolean } {
+  const windowInfo = activeWindows.find(w => w.id === windowId);
+  if (!windowInfo) {
+    return {};
+  }
+  return {
+    minimized: windowInfo.minimized,
+    maximized: windowInfo.maximized
+  };
+}
+
+
+let wsStatusBar: HTMLElement | null = null;
+let wsStatusButtons: HTMLElement | null = null;
+let wsStatusToggle: HTMLButtonElement | null = null;
+let wsStatusCollapsed = true;
+
+function ensureWebuiStatusBar(): void {
+  if (wsStatusBar) return;
+  const existing = document.getElementById('bottom-panel');
+  if (existing) {
+    wsStatusBar = existing;
+    wsStatusButtons = existing.querySelector('.panel-buttons') as HTMLElement | null;
+    wsStatusToggle = existing.querySelector('.panel-toggle') as HTMLButtonElement | null;
+    return;
+  }
+
+  wsStatusBar = document.createElement('div');
+  wsStatusBar.id = 'bottom-panel';
+  wsStatusBar.classList.add('connecting', 'panel-collapsed');
+
+  const statusText = document.createElement('div');
+  statusText.className = 'panel-status-text';
+  statusText.textContent = 'WebUI: connecting';
+
+  wsStatusButtons = document.createElement('div');
+  wsStatusButtons.className = 'panel-buttons';
+  wsStatusButtons.id = 'bottom-panel-buttons';
+
+  wsStatusToggle = document.createElement('button');
+  wsStatusToggle.className = 'panel-toggle';
+  wsStatusToggle.textContent = 'Expand';
+  wsStatusToggle.type = 'button';
+  wsStatusToggle.addEventListener('click', () => {
+    wsStatusCollapsed = !wsStatusCollapsed;
+    if (!wsStatusBar) return;
+    wsStatusBar.classList.toggle('panel-collapsed', wsStatusCollapsed);
+    wsStatusBar.classList.toggle('panel-expanded', !wsStatusCollapsed);
+    if (wsStatusToggle) {
+      wsStatusToggle.textContent = wsStatusCollapsed ? 'Expand' : 'Collapse';
+    }
+  });
+
+  wsStatusBar.appendChild(statusText);
+  wsStatusBar.appendChild(wsStatusButtons);
+  wsStatusBar.appendChild(wsStatusToggle);
+  document.body.appendChild(wsStatusBar);
+}
+
+function updateWebuiStatusBar(state: string, detail: any = {}): void {
+  ensureWebuiStatusBar();
+  if (!wsStatusBar) return;
+
+  wsStatusBar.className = state + (wsStatusCollapsed ? ' panel-collapsed' : ' panel-expanded');
+  const textEl = wsStatusBar.querySelector('.panel-status-text');
+  if (!textEl) return;
+
+  let suffix = '';
+  if (detail?.port) {
+    suffix += ` :${detail.port}`;
+  }
+  if (detail?.error) {
+    suffix += ' - ' + detail.error;
+  } else if (detail?.reason) {
+    suffix += ' - ' + detail.reason;
+  }
+
+  textEl.textContent = `WebUI: ${state}${suffix}`;
+}
+
+function registerBottomPanelButtons(buttons: Array<{ label: string; action: () => void }>): void {
+  ensureWebuiStatusBar();
+  if (!wsStatusButtons) return;
+
+  wsStatusButtons.innerHTML = '';
+
+  const errorButtons = buttons.filter(b => /error|rejection|network/i.test(b.label));
+  const otherButtons = buttons.filter(b => !/error|rejection|network/i.test(b.label));
+
+  const addButton = (btn: { label: string; action: () => void }) => {
+    const button = document.createElement('button');
+    button.textContent = btn.label;
+    button.className = 'panel-button';
+    button.onclick = btn.action;
+    wsStatusButtons?.appendChild(button);
+  };
+
+  errorButtons.forEach(addButton);
+
+  if (errorButtons.length && otherButtons.length) {
+    const divider = document.createElement('div');
+    divider.className = 'panel-divider';
+    wsStatusButtons?.appendChild(divider);
+  }
+
+  otherButtons.forEach(addButton);
+}
+
 
 // Application state
 let activeWindows: WindowInfo[] = [];
@@ -412,11 +209,7 @@ let windowListElement: HTMLElement | null = null;
 
 // Initialize the application
 export default function App(): void {
-  Logger.info('Application initialized');
-  
-  // Add styles to the document
-  addStyles();
-  
+  Logger.info('Application initialized');  
   // Wait for DOM to be ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initializeApp);
@@ -441,9 +234,28 @@ function initializeApp(): void {
   
   // Set up global functions
   setupGlobalFunctions();
+  (window as any).registerBottomPanelButtons = registerBottomPanelButtons;
   
   // Add resize listener
   window.addEventListener('resize', handleWindowResize);
+  
+  // WebUI connection status bar
+  ensureWebuiStatusBar();
+  const initialStatus = window.WebUIBridge?.getStatus?.();
+  if (initialStatus?.state) {
+    updateWebuiStatusBar(initialStatus.state, {
+      error: initialStatus.lastError
+    });
+  }
+  window.addEventListener('webui:status', (event: Event) => {
+    const detail = (event as CustomEvent).detail || {};
+    updateWebuiStatusBar(detail.state || 'unknown', detail.detail || {});
+  });
+  window.addEventListener('webui:port', (event: Event) => {
+    const detail = (event as CustomEvent).detail || {};
+    const state = window.WebUIBridge?.getStatus?.()?.state || 'unknown';
+    updateWebuiStatusBar(state, { port: detail.port });
+  });
   
   Logger.info('App initialized successfully');
 }
@@ -774,18 +586,27 @@ function openWindow(title: string, content: string, icon: string): void {
     mount: document.createElement('div'),
     oncreate: function() {
       this.body.innerHTML = content;
+      sendWindowEvent('open', windowId, title, { minimized: false, maximized: false });
+    },
+    onfocus: function() {
+      sendWindowEvent('focus', windowId, title, getWindowState(windowId));
+    },
+    onblur: function() {
+      sendWindowEvent('blur', windowId, title, getWindowState(windowId));
     },
     onminimize: function() {
       activeWindows = activeWindows.map(w =>
         w.id === windowId ? { ...w, minimized: true } : w
       );
       updateWindowListUI();
+      sendWindowEvent('minimize', windowId, title, { minimized: true, maximized: false });
     },
     onrestore: function() {
       activeWindows = activeWindows.map(w =>
         w.id === windowId ? { ...w, minimized: false, maximized: false } : w
       );
       updateWindowListUI();
+      sendWindowEvent('restore', windowId, title, { minimized: false, maximized: false });
     },
     onmaximize: function() {
       const availableWidth = window.innerWidth - 200;
@@ -798,8 +619,10 @@ function openWindow(title: string, content: string, icon: string): void {
         w.id === windowId ? { ...w, maximized: true } : w
       );
       updateWindowListUI();
+      sendWindowEvent('maximize', windowId, title, { minimized: false, maximized: true });
     },
     onclose: function() {
+      sendWindowEvent('close', windowId, title, getWindowState(windowId));
       activeWindows = activeWindows.filter(w => w.id !== windowId);
       updateWindowListUI();
     }

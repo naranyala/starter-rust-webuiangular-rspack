@@ -1,4 +1,6 @@
 // Add error handling for debugging
+import "./styles/app.css";
+import './utils.js';
 import './error-handler';
 import { ErrorModal } from './error-handler';
 
@@ -22,17 +24,6 @@ const errorModal = ErrorModal.init({
 
 // Demo: Add a button to trigger test errors
 function createDemoUI(): void {
-  const demoContainer = document.createElement('div');
-  demoContainer.style.cssText = `
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    z-index: 999998;
-  `;
-
   const buttons = [
     { label: 'Throw Uncaught Error', action: () => { throw new Error('This is an uncaught error!'); }},
     { label: 'Throw Promise Rejection', action: () => { Promise.reject(new Error('Unhandled promise rejection!')); }},
@@ -41,26 +32,42 @@ function createDemoUI(): void {
     { label: 'Show All Errors', action: () => { errorModal.show(); }}
   ];
 
+  if (typeof (window as any).registerBottomPanelButtons === 'function') {
+    (window as any).registerBottomPanelButtons(buttons);
+    return;
+  }
+
+  const fallback = document.createElement('div');
+  fallback.style.cssText = `
+    position: fixed;
+    bottom: 24px;
+    right: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    z-index: 999998;
+  `;
+
   buttons.forEach(btn => {
     const button = document.createElement('button');
     button.textContent = btn.label;
     button.style.cssText = `
-      padding: 8px 12px;
+      padding: 6px 10px;
       background: #45475a;
       color: #cdd6f4;
       border: none;
       border-radius: 6px;
       cursor: pointer;
-      font-size: 12px;
+      font-size: 11px;
       transition: background 0.2s;
     `;
     button.onmouseenter = () => button.style.background = '#585b70';
     button.onmouseleave = () => button.style.background = '#45475a';
     button.onclick = btn.action;
-    demoContainer.appendChild(button);
+    fallback.appendChild(button);
   });
 
-  document.body.appendChild(demoContainer);
+  document.body.appendChild(fallback);
 }
 
 try {

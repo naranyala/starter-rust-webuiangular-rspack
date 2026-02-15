@@ -1,27 +1,26 @@
 use log::info;
 use std::sync::Arc;
+use std::net::TcpListener;
 use webui_rs::webui;
+use webui_rs::webui::bindgen::webui_set_port;
 
-// Import from infrastructure layer
-mod infrastructure;
-use infrastructure::{config::AppConfig, database::Database, logging, di};
-
-// Import application layer
-mod application;
-use application::*;
-
-// Import domain layer
+// MVVM: Domain - Data structures and entities
 mod domain;
 use domain::*;
 
-// Import presentation layer
+// MVVM: Infrastructure - database, config, logging, DI
+mod infrastructure;
+use infrastructure::{config::AppConfig, database::Database, logging, di};
+
+// MVVM: Application - business logic and use cases
+mod application;
+
+// MVVM: Presentation - UI handlers and presentation
 mod presentation;
 
-// Import shared utilities
+// Shared utilities
 mod shared;
 use shared::*;
-
-
 
 // Build-time generated config
 include!(concat!(env!("OUT_DIR"), "/build_config.rs"));
@@ -163,7 +162,23 @@ fn main() {
     // Create a new window
     let mut my_window = webui::Window::new();
 
-    // Set up UI event handlers from presentation layer
+    // Randomize WebUI server port
+    let port = TcpListener::bind("127.0.0.1:0")
+        .ok()
+        .and_then(|listener| listener.local_addr().ok())
+        .map(|addr| addr.port());
+
+    let port_ok = port
+        .map(|p| unsafe { webui_set_port(my_window.id, p as usize) })
+        .unwrap_or(false);
+
+    if port_ok {
+        info!("WebUI port set to {}", port.unwrap_or(0));
+    } else {
+        info!("WebUI port not set, using default");
+    }
+
+    // Set up UI event handlers from views layer
     presentation::ui_handlers::setup_ui_handlers(&mut my_window);
     presentation::ui_handlers::setup_counter_handlers(&mut my_window);
     presentation::db_handlers::setup_db_handlers(&mut my_window);
@@ -178,6 +193,17 @@ fn main() {
     // Show the built application - use the root index.html which has correct paths to static files
     info!("Loading application UI from root index.html");
     my_window.show("index.html");
+
+    // Sync WebUI port to frontend
+    if port_ok {
+        if let Some(port) = port {
+            let js = format!(
+                "window.__WEBUI_PORT = {}; window.dispatchEvent(new CustomEvent('webui:port', {{ detail: {{ port: {} }} }}));",
+                port, port
+            );
+            my_window.run_js(js);
+        }
+    }
 
     info!("Application started successfully, waiting for events...");
     info!("=============================================");
