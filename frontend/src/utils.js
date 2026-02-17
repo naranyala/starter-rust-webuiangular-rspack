@@ -446,20 +446,55 @@ class WebUIBridge {
     this.lastChange = Date.now();
     this.pingIntervalMs = 2000;
     this.pingTimeoutMs = 2000;
+    
+    // Enhanced connection tracking
+    this.connectionStats = {
+      connectedAt: null,
+      disconnectedAt: null,
+      uptime: 0,
+      totalReconnects: 0,
+      totalPings: 0,
+      successfulPings: 0,
+      failedPings: 0,
+      lastPingTime: null,
+      lastPongTime: null,
+      averageLatency: 0,
+      latencyHistory: [],
+      totalCalls: 0,
+      successfulCalls: 0,
+      failedCalls: 0
+    };
+    this._pingStartTime = null;
+    
     this.setConnectionState("connecting", { reason: "init" });
     this.startConnectionMonitor();
   }
 
   setConnectionState(state, detail = {}) {
     const changed = this.lastStatus !== state;
+    const previousState = this.lastStatus;
     this.lastStatus = state;
     this.connected = state === "connected";
     this.lastChange = Date.now();
 
+    // Track connection state changes
+    if (state === "connected" && previousState !== "connected") {
+      this.connectionStats.connectedAt = Date.now();
+      this.connectionStats.disconnectedAt = null;
+      if (previousState === "connecting" || previousState === "retrying") {
+        this.connectionStats.totalReconnects++;
+      }
+    } else if (state === "disconnected" || state === "error") {
+      this.connectionStats.disconnectedAt = Date.now();
+      if (this.connectionStats.connectedAt) {
+        this.connectionStats.uptime += Date.now() - this.connectionStats.connectedAt;
+      }
+    }
+
     if (changed) {
       const level = state === "error" ? "error" : state === "connected" ? "info" : "warn";
       if (this.logger && typeof this.logger[level] === "function") {
-        this.logger[level]("WebUI " + state, detail);
+        this.logger[level]("WebSocket " + state, detail);
       }
       if (state !== "connected") {
         this.sendStatusToBackend(state, detail);
@@ -479,7 +514,7 @@ class WebUIBridge {
   sendStatusToBackend(state, detail = {}) {
     if (!window.__webui__) return;
     const payload = {
-      message: "WebUI " + state,
+      message: "WebSocket " + state,
       level: state === "error" ? "ERROR" : "WARN",
       meta: {
         state,
@@ -487,7 +522,7 @@ class WebUIBridge {
         port: window.__WEBUI_PORT || null,
         timestamp: new Date().toISOString()
       },
-      category: "webui",
+      category: "websocket",
       sessionId: this.logger?.sessionId || "frontend",
       frontendTimestamp: new Date().toISOString()
     };
@@ -500,12 +535,43 @@ class WebUIBridge {
   }
 
   getStatus() {
+    // Calculate current uptime if connected
+    let currentUptime = this.connectionStats.uptime;
+    if (this.connected && this.connectionStats.connectedAt) {
+      currentUptime += Date.now() - this.connectionStats.connectedAt;
+    }
+    
     return {
       state: this.lastStatus,
       connected: this.connected,
       lastError: this.lastError,
-      lastChange: this.lastChange
+      lastChange: this.lastChange,
+      stats: {
+        ...this.connectionStats,
+        currentUptime,
+        uptimeFormatted: this._formatUptime(currentUptime),
+        latencyFormatted: this.connectionStats.averageLatency.toFixed(0) + 'ms',
+        successRate: this._calculateSuccessRate()
+      }
     };
+  }
+
+  _formatUptime(ms) {
+    const seconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+    
+    if (days > 0) return `${days}d ${hours % 24}h ${minutes % 60}m`;
+    if (hours > 0) return `${hours}h ${minutes % 60}m ${seconds % 60}s`;
+    if (minutes > 0) return `${minutes}m ${seconds % 60}s`;
+    return `${seconds}s`;
+  }
+
+  _calculateSuccessRate() {
+    const total = this.connectionStats.successfulPings + this.connectionStats.failedPings;
+    if (total === 0) return '100%';
+    return ((this.connectionStats.successfulPings / total) * 100).toFixed(1) + '%';
   }
 
   startConnectionMonitor() {
@@ -518,15 +584,32 @@ class WebUIBridge {
 
   async pingBackend() {
     if (!window.__webui__) {
-      this.setConnectionState("disconnected", { reason: "no_webui" });
+      this.setConnectionState("disconnected", { reason: "backend_unavailable" });
       return false;
     }
 
+    this._pingStartTime = Date.now();
+    this.connectionStats.totalPings++;
+
     try {
       await this.callRustFunction("event:stats", {}, { timeoutMs: this.pingTimeoutMs, silent: true });
+      const pingTime = Date.now() - this._pingStartTime;
+      this.connectionStats.successfulPings++;
+      this.connectionStats.lastPingTime = this._pingStartTime;
+      this.connectionStats.lastPongTime = Date.now();
+
+      // Track latency
+      this.connectionStats.latencyHistory.push(pingTime);
+      if (this.connectionStats.latencyHistory.length > 10) {
+        this.connectionStats.latencyHistory.shift();
+      }
+      this.connectionStats.averageLatency =
+        this.connectionStats.latencyHistory.reduce((a, b) => a + b, 0) / this.connectionStats.latencyHistory.length;
+
       return true;
     } catch (e) {
-      this.setConnectionState("retrying", { reason: "ping_failed", error: e?.message || String(e) });
+      this.connectionStats.failedPings++;
+      this.setConnectionState("retrying", { reason: "ping_timeout", error: e?.message || String(e) });
       return false;
     }
   }
@@ -534,6 +617,7 @@ class WebUIBridge {
   async callRustFunction(funcName, data = null, options = {}) {
     const id = this.nextId++;
     this.callbacks.set(id, { resolve: null, reject: null });
+    this.connectionStats.totalCalls++;
 
     this.logger.debug(`Calling Rust: ${funcName}`, {
       functionName: funcName,
@@ -550,10 +634,11 @@ class WebUIBridge {
 
     const attemptCall = async (attempt) => {
       if (!window.__webui__) {
-        this.setConnectionState('disconnected', { reason: 'no_webui' });
+        this.setConnectionState('disconnected', { reason: 'backend_unavailable' });
         if (!silent) {
-          this.logger.warn('WebUI not available, using mock');
+          this.logger.warn('Backend not available, using mock');
         }
+        this.connectionStats.successfulCalls++;
         return this.getMockResponse(funcName, data);
       }
 
@@ -563,7 +648,7 @@ class WebUIBridge {
           ? Promise.race([
               callPromise,
               new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('WebUI call timeout')), timeoutMs)
+                setTimeout(() => reject(new Error('WebSocket call timeout')), timeoutMs)
               )
             ])
           : callPromise;
@@ -573,6 +658,7 @@ class WebUIBridge {
           this.logger.debug(`Rust function success: ${funcName}`, { functionName: funcName, result });
         }
         this.setConnectionState('connected', { funcName });
+        this.connectionStats.successfulCalls++;
 
         try {
           return JSON.parse(result);
@@ -581,6 +667,7 @@ class WebUIBridge {
         }
       } catch (error) {
         this.lastError = error?.message || String(error);
+        this.connectionStats.failedCalls++;
         if (attempt < retries) {
           const backoff = retryDelayMs * Math.pow(2, attempt);
           this.setConnectionState('retrying', { funcName, error: this.lastError, attempt: attempt + 1, backoff });

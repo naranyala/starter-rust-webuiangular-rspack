@@ -366,33 +366,38 @@ async function buildFrontend() {
     }
     logger.endStep(true);
 
-    logger.startStep('copy-assets', 'Copying static assets to root');
+    logger.startStep('copy-assets', 'Copying static assets to dist directory');
+
+    // Create dist directory structure
+    const distRoot = path.join(projectRoot, 'dist');
+    const distStaticJs = path.join(distRoot, 'static', 'js');
+    const distStaticCss = path.join(distRoot, 'static', 'css');
     
-    await fs.mkdir(`${staticDestPath}/js`, { recursive: true });
-    await fs.mkdir(`${staticDestPath}/css`, { recursive: true });
-    logger.stepLog(`Created directories: ${staticDestPath}/js, ${staticDestPath}/css`);
+    await fs.mkdir(distStaticJs, { recursive: true });
+    await fs.mkdir(distStaticCss, { recursive: true });
+    logger.stepLog(`Created directories: dist/static/js, dist/static/css`);
 
     const jsFiles = await fs.readdir(`${distPath}/static/js/`);
     let jsCount = 0;
     for (const file of jsFiles) {
       const srcPath = `${distPath}/static/js/${file}`;
       if ((await fs.stat(srcPath)).isFile()) {
-        await fs.copyFile(srcPath, `${staticDestPath}/js/${file}`);
+        await fs.copyFile(srcPath, path.join(distStaticJs, file));
         jsCount++;
       }
     }
-    logger.stepLog(`Copied ${jsCount} JS files`);
+    logger.stepLog(`Copied ${jsCount} JS files to dist/static/js/`);
 
     const generatedHtml = await fs.readFile(`${distPath}/index.html`, 'utf8');
     const scriptMatch = generatedHtml.match(/<script[^>]+src="([^"]+index\.[a-f0-9]+\.js)"/);
     const hashedJsFile = scriptMatch ? scriptMatch[1].split('/').pop() : null;
-    
+
     if (hashedJsFile) {
       await fs.copyFile(
         `${distPath}/static/js/${hashedJsFile}`,
-        `${staticDestPath}/js/index.js`
+        path.join(distStaticJs, 'index.js')
       );
-      logger.stepLog(`Created plain index.js (from ${hashedJsFile})`);
+      logger.stepLog(`Created dist/static/js/index.js (from ${hashedJsFile})`);
     }
 
     let cssCount = 0;
@@ -401,12 +406,12 @@ async function buildFrontend() {
       for (const file of cssFiles) {
         const srcPath = `${distPath}/static/css/${file}`;
         if ((await fs.stat(srcPath)).isFile()) {
-          await fs.copyFile(srcPath, `${staticDestPath}/css/${file}`);
+          await fs.copyFile(srcPath, path.join(distStaticCss, file));
           cssCount++;
-          
+
           if (file.startsWith('index.') && file.endsWith('.css')) {
-            await fs.copyFile(srcPath, `${staticDestPath}/css/index.css`);
-            logger.stepLog(`Created plain index.css`);
+            await fs.copyFile(srcPath, path.join(distStaticCss, 'index.css'));
+            logger.stepLog(`Created dist/static/css/index.css`);
           }
         }
       }
@@ -414,25 +419,27 @@ async function buildFrontend() {
       if (e.code !== 'ENOENT') throw e;
       logger.stepLog('No CSS files to copy', 'DEBUG');
     }
-    logger.stepLog(`Copied ${cssCount} CSS files`);
+    logger.stepLog(`Copied ${cssCount} CSS files to dist/static/css/`);
     logger.endStep(true);
 
     await buildWebUI();
 
     await patchIndexHtml();
 
-    logger.startStep('update-index', 'Updating index.html with correct paths');
+    logger.startStep('update-index', 'Creating dist/index.html with correct paths');
 
     let originalIndexHtml = await fs.readFile(`${distPath}/index.html`, 'utf8');
-    
+
+    // Create dist/index.html with paths pointing to ../static/
     let distIndexHtml = originalIndexHtml
       .replace(/<title>[^<]*<\/title>/, '<title>Rust WebUI Application</title>')
       .replace(/<div id="app"><\/div>/, '<div class="app"></div>')
       .replace(/"(\.\/static\/)/g, '"../static/');
 
-    await fs.writeFile(`${distPath}/index.html`, distIndexHtml);
-    logger.stepLog('Updated dist/index.html with relative paths');
+    await fs.writeFile(path.join(distRoot, 'index.html'), distIndexHtml);
+    logger.stepLog('Created dist/index.html with relative paths');
 
+    // Also update root index.html for development (paths to ./static/)
     let rootIndexHtml = originalIndexHtml
       .replace(/<title>[^<]*<\/title>/, '<title>Rust WebUI Application</title>')
       .replace(/<div id="app"><\/div>/, '<div class="app"></div>')
@@ -441,11 +448,11 @@ async function buildFrontend() {
       .replace(/"(\.\.\/static\/)/g, '" ./static/');
 
     await fs.writeFile('../index.html', rootIndexHtml);
-    logger.stepLog('Created root index.html with plain filenames');
+    logger.stepLog('Created root index.html for development');
     logger.endStep(true);
 
     logger.success('Frontend build completed successfully!', {
-      output: 'frontend/dist/',
+      output: 'dist/',
       assets: { js: jsCount, css: cssCount }
     });
 

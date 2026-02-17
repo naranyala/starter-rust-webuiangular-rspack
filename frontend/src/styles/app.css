@@ -377,9 +377,10 @@ body {
   bottom: 0;
   width: 100%;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: stretch;
   gap: 8px;
-  padding: 4px 8px;
+  padding: 6px 12px;
   font-size: 11px;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   letter-spacing: 0.2px;
@@ -387,80 +388,100 @@ body {
   color: #e5e7eb;
   z-index: 999999;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
-  height: 28px;
-  transition: height 0.2s ease, padding 0.2s ease;
+  transition: height 0.25s ease, padding 0.25s ease;
   overflow: hidden;
+}
+
+/* Top Status Bar */
+#bottom-panel .ws-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 12px;
+  flex-shrink: 0;
 }
 
 #bottom-panel .panel-status-text {
-  flex: 0 0 auto;
+  flex: 1 1 auto;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-weight: 600;
+  font-size: 11px;
+}
+
+#bottom-panel .panel-toggle {
+  flex: 0 0 auto;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: inherit;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 500;
+  padding: 3px 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 55px;
+  text-align: center;
+}
+
+#bottom-panel .panel-toggle:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.35);
 }
 
 #bottom-panel .panel-buttons {
-  flex: 1 1 auto;
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   align-items: center;
-  overflow-x: auto;
-  padding-bottom: 2px;
+  padding: 4px 0 2px;
   opacity: 1;
-  transition: opacity 0.15s ease;
+  transition: opacity 0.2s ease;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 8px;
 }
 
 #bottom-panel .panel-button {
-  padding: 4px 8px;
+  padding: 5px 10px;
   background: rgba(255, 255, 255, 0.12);
   color: inherit;
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 4px;
   cursor: pointer;
   font-size: 10px;
-  transition: background 0.2s;
+  font-weight: 500;
+  transition: all 0.2s;
   white-space: nowrap;
 }
 
 #bottom-panel .panel-button:hover {
   background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.35);
+  transform: translateY(-1px);
 }
 
 #bottom-panel .panel-divider {
   width: 1px;
-  height: 14px;
+  height: 16px;
   background: rgba(255, 255, 255, 0.25);
-  margin: 0 2px;
-}
-
-#bottom-panel .panel-toggle {
-  flex: 0 0 auto;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: inherit;
-  border-radius: 4px;
-  font-size: 10px;
-  padding: 2px 6px;
-  cursor: pointer;
-}
-
-#bottom-panel .panel-toggle:hover {
-  background: rgba(255, 255, 255, 0.2);
+  margin: 0 4px;
 }
 
 #bottom-panel.panel-collapsed {
-  height: 28px;
-  padding: 2px 8px;
+  height: 36px;
+  padding: 6px 12px;
 }
 
 #bottom-panel.panel-expanded {
-  height: 72px;
-  padding: 6px 8px;
+  height: 150px;
+  padding: 8px 12px;
 }
 
-#bottom-panel.panel-collapsed .panel-buttons {
-  opacity: 0;
+#bottom-panel.panel-collapsed .panel-buttons,
+#bottom-panel.panel-collapsed .ws-connection-details {
+  display: none;
 }
 
 #bottom-panel.connected {
@@ -476,6 +497,136 @@ body {
 #bottom-panel.retrying {
   background: #92400e;
   color: #fffbeb;
+}
+
+/* WebSocket Connection Details Panel */
+#bottom-panel .ws-connection-details {
+  display: none;
+  flex: 1 1 auto;
+  width: 100%;
+  overflow: hidden;
+}
+
+#bottom-panel.panel-expanded .ws-connection-details {
+  display: block;
+}
+
+#bottom-panel .ws-metrics-grid {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 10px;
+  height: 100%;
+}
+
+#bottom-panel .ws-section {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 8px 10px;
+  min-width: 0;
+}
+
+#bottom-panel .ws-section-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 6px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#bottom-panel .ws-section-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+#bottom-panel .ws-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+#bottom-panel .ws-metrics-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1 1 0;
+  justify-content: center;
+}
+
+#bottom-panel .ws-metric-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+#bottom-panel .ws-metric-label {
+  color: rgba(255, 255, 255, 0.55);
+  font-weight: 500;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  flex: 0 0 55px;
+}
+
+#bottom-panel .ws-metric-value {
+  flex: 1 1 auto;
+  color: #fff;
+  font-weight: 600;
+  font-size: 10px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  text-align: center;
+  min-width: 0;
+}
+
+#bottom-panel .ws-status-value {
+  text-transform: capitalize;
+  font-weight: 700;
+  text-align: left;
+  min-width: 80px;
+}
+
+#bottom-panel .ws-status-connected {
+  background: rgba(16, 185, 129, 0.25);
+  color: #6ee7b7;
+}
+
+#bottom-panel .ws-status-connecting {
+  background: rgba(59, 130, 246, 0.25);
+  color: #93c5fd;
+}
+
+#bottom-panel .ws-status-disconnected {
+  background: rgba(107, 114, 128, 0.25);
+  color: #9ca3af;
+}
+
+#bottom-panel .ws-status-error {
+  background: rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+}
+
+#bottom-panel .ws-status-retrying {
+  background: rgba(245, 158, 11, 0.25);
+  color: #fcd34d;
+}
+
+#bottom-panel .ws-last-error {
+  text-align: left;
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+}
+
+#bottom-panel .ws-error-item .ws-metric-label {
+  flex: 0 0 40px;
 }
 
 #bottom-panel.error {

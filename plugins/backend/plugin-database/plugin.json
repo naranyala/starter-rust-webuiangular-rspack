@@ -1,0 +1,8 @@
+{
+  "name": "database",
+  "version": "1.0.0",
+  "description": "SQLite database integration plugin",
+  "author": "Developer",
+  "dependencies": [],
+  "core_version": ">=1.0.0"
+}

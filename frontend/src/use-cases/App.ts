@@ -103,6 +103,7 @@ let wsStatusBar: HTMLElement | null = null;
 let wsStatusButtons: HTMLElement | null = null;
 let wsStatusToggle: HTMLButtonElement | null = null;
 let wsStatusCollapsed = true;
+let wsConnectionDetails: HTMLElement | null = null;
 
 function ensureWebuiStatusBar(): void {
   if (wsStatusBar) return;
@@ -111,6 +112,7 @@ function ensureWebuiStatusBar(): void {
     wsStatusBar = existing;
     wsStatusButtons = existing.querySelector('.panel-buttons') as HTMLElement | null;
     wsStatusToggle = existing.querySelector('.panel-toggle') as HTMLButtonElement | null;
+    wsConnectionDetails = existing.querySelector('.ws-connection-details') as HTMLElement | null;
     return;
   }
 
@@ -118,13 +120,13 @@ function ensureWebuiStatusBar(): void {
   wsStatusBar.id = 'bottom-panel';
   wsStatusBar.classList.add('connecting', 'panel-collapsed');
 
+  // Top status bar (always visible)
+  const topBar = document.createElement('div');
+  topBar.className = 'ws-top-bar';
+  
   const statusText = document.createElement('div');
   statusText.className = 'panel-status-text';
-  statusText.textContent = 'WebUI: connecting';
-
-  wsStatusButtons = document.createElement('div');
-  wsStatusButtons.className = 'panel-buttons';
-  wsStatusButtons.id = 'bottom-panel-buttons';
+  statusText.textContent = 'WebSocket: connecting';
 
   wsStatusToggle = document.createElement('button');
   wsStatusToggle.className = 'panel-toggle';
@@ -140,9 +142,85 @@ function ensureWebuiStatusBar(): void {
     }
   });
 
-  wsStatusBar.appendChild(statusText);
+  topBar.appendChild(statusText);
+  topBar.appendChild(wsStatusToggle);
+  wsStatusBar.appendChild(topBar);
+
+  // Connection details panel (shown when expanded)
+  wsConnectionDetails = document.createElement('div');
+  wsConnectionDetails.className = 'ws-connection-details';
+  wsConnectionDetails.innerHTML = `
+    <div class="ws-metrics-grid">
+      <div class="ws-section">
+        <div class="ws-section-header">
+          <span class="ws-section-icon">📡</span>
+          <span class="ws-section-title">Connection</span>
+        </div>
+        <div class="ws-metrics-row">
+          <div class="ws-metric-item">
+            <span class="ws-metric-label">Status</span>
+            <span class="ws-metric-value ws-status-value">connecting</span>
+          </div>
+          <div class="ws-metric-item">
+            <span class="ws-metric-label">Port</span>
+            <span class="ws-metric-value ws-port">-</span>
+          </div>
+          <div class="ws-metric-item">
+            <span class="ws-metric-label">Latency</span>
+            <span class="ws-metric-value ws-latency">-</span>
+          </div>
+        </div>
+      </div>
+      <div class="ws-section">
+        <div class="ws-section-header">
+          <span class="ws-section-icon">⏱️</span>
+          <span class="ws-section-title">Reliability</span>
+        </div>
+        <div class="ws-metrics-row">
+          <div class="ws-metric-item">
+            <span class="ws-metric-label">Uptime</span>
+            <span class="ws-metric-value ws-uptime">0s</span>
+          </div>
+          <div class="ws-metric-item">
+            <span class="ws-metric-label">Reconnects</span>
+            <span class="ws-metric-value ws-reconnects">0</span>
+          </div>
+          <div class="ws-metric-item">
+            <span class="ws-metric-label">Ping</span>
+            <span class="ws-metric-value ws-ping-success">100%</span>
+          </div>
+        </div>
+      </div>
+      <div class="ws-section">
+        <div class="ws-section-header">
+          <span class="ws-section-icon">📞</span>
+          <span class="ws-section-title">Calls</span>
+        </div>
+        <div class="ws-metrics-row">
+          <div class="ws-metric-item">
+            <span class="ws-metric-label">Total</span>
+            <span class="ws-metric-value ws-total-calls">0/0</span>
+          </div>
+          <div class="ws-metric-item">
+            <span class="ws-metric-label">Success</span>
+            <span class="ws-metric-value ws-call-success">100%</span>
+          </div>
+          <div class="ws-metric-item ws-error-item">
+            <span class="ws-metric-label">Error</span>
+            <span class="ws-metric-value ws-last-error">-</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Action buttons row (shown when expanded)
+  wsStatusButtons = document.createElement('div');
+  wsStatusButtons.className = 'panel-buttons';
+  wsStatusButtons.id = 'bottom-panel-buttons';
+
+  wsStatusBar.appendChild(wsConnectionDetails);
   wsStatusBar.appendChild(wsStatusButtons);
-  wsStatusBar.appendChild(wsStatusToggle);
   document.body.appendChild(wsStatusBar);
 }
 
@@ -154,17 +232,98 @@ function updateWebuiStatusBar(state: string, detail: any = {}): void {
   const textEl = wsStatusBar.querySelector('.panel-status-text');
   if (!textEl) return;
 
+  // Format the reason message to be user-friendly
   let suffix = '';
   if (detail?.port) {
     suffix += ` :${detail.port}`;
   }
+  
+  // Map internal reason codes to user-friendly messages
+  const reasonMap: Record<string, string> = {
+    'backend_unavailable': 'waiting for backend',
+    'ping_timeout': 'connection timeout',
+    'init': 'initializing'
+  };
+  
   if (detail?.error) {
-    suffix += ' - ' + detail.error;
+    suffix += ` - ${detail.error}`;
   } else if (detail?.reason) {
-    suffix += ' - ' + detail.reason;
+    const friendlyReason = reasonMap[detail.reason] || detail.reason.replace(/_/g, ' ');
+    suffix += ` - ${friendlyReason}`;
   }
 
-  textEl.textContent = `WebUI: ${state}${suffix}`;
+  textEl.textContent = `WebSocket: ${state}${suffix}`;
+  
+  // Update connection details panel
+  updateConnectionDetails(state, detail);
+}
+
+function updateConnectionDetails(state: string, detail: any): void {
+  if (!wsConnectionDetails) return;
+  
+  // Get detailed stats from WebUIBridge
+  const bridgeStatus = window.WebUIBridge?.getStatus?.();
+  const stats = bridgeStatus?.stats;
+  
+  // Update status value with color
+  const statusValueEl = wsConnectionDetails.querySelector('.ws-status-value');
+  if (statusValueEl) {
+    statusValueEl.textContent = state;
+    statusValueEl.className = `ws-metric-value ws-status-value ws-status-${state}`;
+  }
+  
+  // Update port
+  const portEl = wsConnectionDetails.querySelector('.ws-port');
+  if (portEl) {
+    portEl.textContent = detail?.port ? `${detail.port}` : '-';
+  }
+  
+  // Update latency
+  const latencyEl = wsConnectionDetails.querySelector('.ws-latency');
+  if (latencyEl && stats) {
+    latencyEl.textContent = stats.latencyFormatted || '-';
+  }
+  
+  // Update uptime
+  const uptimeEl = wsConnectionDetails.querySelector('.ws-uptime');
+  if (uptimeEl && stats) {
+    uptimeEl.textContent = stats.uptimeFormatted || '0s';
+  }
+  
+  // Update reconnects
+  const reconnectsEl = wsConnectionDetails.querySelector('.ws-reconnects');
+  if (reconnectsEl && stats) {
+    reconnectsEl.textContent = String(stats.totalReconnects || 0);
+  }
+  
+  // Update ping success rate
+  const pingSuccessEl = wsConnectionDetails.querySelector('.ws-ping-success');
+  if (pingSuccessEl && stats) {
+    pingSuccessEl.textContent = stats.successRate || '100%';
+  }
+  
+  // Update total calls (successful/total)
+  const totalCallsEl = wsConnectionDetails.querySelector('.ws-total-calls');
+  if (totalCallsEl && stats) {
+    totalCallsEl.textContent = `${stats.successfulCalls || 0}/${stats.totalCalls || 0}`;
+  }
+  
+  // Update call success rate
+  const callSuccessEl = wsConnectionDetails.querySelector('.ws-call-success');
+  if (callSuccessEl && stats) {
+    const total = stats.totalCalls || 0;
+    const success = stats.successfulCalls || 0;
+    const rate = total > 0 ? ((success / total) * 100).toFixed(0) + '%' : '100%';
+    callSuccessEl.textContent = rate;
+  }
+  
+  // Update last error
+  const lastErrorEl = wsConnectionDetails.querySelector('.ws-last-error');
+  if (lastErrorEl) {
+    const errorText = detail?.error || bridgeStatus?.lastError || '-';
+    lastErrorEl.textContent = errorText && errorText !== 'none' ? 
+      (errorText.length > 20 ? errorText.substring(0, 20) + '...' : errorText) : '-';
+  }
 }
 
 function registerBottomPanelButtons(buttons: Array<{ label: string; action: () => void }>): void {
@@ -257,6 +416,14 @@ function initializeApp(): void {
     updateWebuiStatusBar(state, { port: detail.port });
   });
   
+  // Periodic refresh of connection details (every second)
+  setInterval(() => {
+    const status = window.WebUIBridge?.getStatus?.();
+    if (status && !wsStatusCollapsed) {
+      updateConnectionDetails(status.state, { error: status.lastError });
+    }
+  }, 1000);
+
   Logger.info('App initialized successfully');
 }
 

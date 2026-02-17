@@ -1672,3 +1672,634 @@
 {"timestamp":"2026-02-15 16:49:00.276","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":194,"message":"Loading application UI from root index.html"}
 {"timestamp":"2026-02-15 16:49:15.578","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":208,"message":"Application started successfully, waiting for events..."}
 {"timestamp":"2026-02-15 16:49:15.578","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":209,"message":"============================================="}
+{"timestamp":"2026-02-17 07:57:59.251","level":"INFO","target":"rustwebui_app::infrastructure::logging","file":"src/infrastructure/logging.rs","line":184,"message":"Logging initialized: level=info, file=application.log"}
+{"timestamp":"2026-02-17 07:57:59.252","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":66,"message":"============================================="}
+{"timestamp":"2026-02-17 07:57:59.252","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":67,"message":"Starting: Rust WebUI SQLite Demo v1.0.0"}
+{"timestamp":"2026-02-17 07:57:59.252","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":72,"message":"============================================="}
+{"timestamp":"2026-02-17 07:57:59.252","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":75,"message":"Backend-Frontend Communication Configuration:"}
+{"timestamp":"2026-02-17 07:57:59.252","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":76,"message":"  Transport Options:"}
+{"timestamp":"2026-02-17 07:57:59.253","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":77,"message":"    - WebView FFI (Native Binding) [SELECTED]"}
+{"timestamp":"2026-02-17 07:57:59.253","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":78,"message":"    - HTTP/REST (Not used)"}
+{"timestamp":"2026-02-17 07:57:59.253","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":79,"message":"    - WebSocket (Not used)"}
+{"timestamp":"2026-02-17 07:57:59.253","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":80,"message":"  Serialization Options:"}
+{"timestamp":"2026-02-17 07:57:59.253","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":81,"message":"    - JSON via serde_json [SELECTED]"}
+{"timestamp":"2026-02-17 07:57:59.253","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":82,"message":"    - Protocol Buffers (Not used)"}
+{"timestamp":"2026-02-17 07:57:59.253","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":83,"message":"    - MessagePack (Not used)"}
+{"timestamp":"2026-02-17 07:57:59.253","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":84,"message":"  Selected Configuration:"}
+{"timestamp":"2026-02-17 07:57:59.253","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":85,"message":"    Transport: WebView FFI (Native Binding)"}
+{"timestamp":"2026-02-17 07:57:59.253","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":86,"message":"    Serialization: JSON (serde_json)"}
+{"timestamp":"2026-02-17 07:57:59.253","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":87,"message":"  Communication Flow:"}
+{"timestamp":"2026-02-17 07:57:59.253","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":88,"message":"    Frontend JS --[JSON]--> window.bind() handlers --[Rust]--> Backend"}
+{"timestamp":"2026-02-17 07:57:59.254","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":89,"message":"    Backend --[JSON]--> window.run_js() dispatchEvent --> Frontend JS"}
+{"timestamp":"2026-02-17 07:57:59.254","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":90,"message":"============================================="}
+{"timestamp":"2026-02-17 07:57:59.254","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":92,"message":"Application starting..."}
+{"timestamp":"2026-02-17 07:57:59.254","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":96,"message":"Database path: app.db"}
+{"timestamp":"2026-02-17 07:57:59.256","level":"INFO","target":"rustwebui_app::infrastructure::database","file":"src/infrastructure/database.rs","line":42,"message":"Database connection established: app.db"}
+{"timestamp":"2026-02-17 07:57:59.256","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":101,"message":"Database initialized successfully"}
+{"timestamp":"2026-02-17 07:57:59.257","level":"INFO","target":"rustwebui_app::infrastructure::database","file":"src/infrastructure/database.rs","line":79,"message":"Database schema initialized"}
+{"timestamp":"2026-02-17 07:57:59.257","level":"INFO","target":"rustwebui_app::infrastructure::database","file":"src/infrastructure/database.rs","line":254,"message":"Sample data already exists, skipping insertion"}
+{"timestamp":"2026-02-17 07:57:59.257","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":111,"message":"Sample data created (if not exists)"}
+{"timestamp":"2026-02-17 07:57:59.257","level":"INFO","target":"rustwebui_app::presentation::webui::handlers::db_handlers","file":"src/presentation/webui/handlers/db_handlers.rs","line":13,"message":"Database handlers initialized"}
+{"timestamp":"2026-02-17 07:57:59.259","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":128,"message":"=== Utility Modules Demonstration ==="}
+{"timestamp":"2026-02-17 07:57:59.259","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":132,"message":"OS: linux Unknown"}
+{"timestamp":"2026-02-17 07:57:59.259","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":133,"message":"Hostname: endeavour-pc"}
+{"timestamp":"2026-02-17 07:57:59.259","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":134,"message":"CPU Cores: 4"}
+{"timestamp":"2026-02-17 07:57:59.259","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":139,"message":"Home directory: /home/naranyala"}
+{"timestamp":"2026-02-17 07:57:59.259","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":144,"message":"Current time: 2026-02-17 00:57:59 UTC"}
+{"timestamp":"2026-02-17 07:57:59.260","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":148,"message":"SHA256 hash: e7d87b738825c33824cf3fd32b7314161fc8c425129163ff5e7260fc7288da36"}
+{"timestamp":"2026-02-17 07:57:59.260","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":152,"message":"Password hashed successfully"}
+{"timestamp":"2026-02-17 07:57:59.260","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":157,"message":"Email 'test@example.com' valid: true"}
+{"timestamp":"2026-02-17 07:57:59.260","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":162,"message":"Base64 encoded: SGVsbG8sIFdvcmxkIQ=="}
+{"timestamp":"2026-02-17 07:57:59.260","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":166,"message":"Local IP: Some(\"192.168.1.7\")"}
+{"timestamp":"2026-02-17 07:57:59.260","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":169,"message":"Current PID: 262522"}
+{"timestamp":"2026-02-17 07:57:59.261","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":174,"message":"Gzip compression: 49 -> 72 bytes"}
+{"timestamp":"2026-02-17 07:57:59.261","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":178,"message":"Running as admin: false"}
+{"timestamp":"2026-02-17 07:57:59.689","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":194,"message":"WebUI port set to 45211"}
+{"timestamp":"2026-02-17 07:57:59.690","level":"INFO","target":"rustwebui_app::presentation::webui::handlers::db_handlers","file":"src/presentation/webui/handlers/db_handlers.rs","line":122,"message":"Database handlers set up successfully"}
+{"timestamp":"2026-02-17 07:57:59.691","level":"INFO","target":"rustwebui_app::presentation::webui::handlers::sysinfo_handlers","file":"src/presentation/webui/handlers/sysinfo_handlers.rs","line":183,"message":"System info handlers set up successfully"}
+{"timestamp":"2026-02-17 07:57:59.691","level":"INFO","target":"rustwebui_app::presentation::webui::handlers::logging_handlers","file":"src/presentation/webui/handlers/logging_handlers.rs","line":72,"message":"Logging handlers initialized"}
+{"timestamp":"2026-02-17 07:57:59.692","level":"INFO","target":"rustwebui_app::presentation::webui::handlers::event_bus_handlers","file":"src/presentation/webui/handlers/event_bus_handlers.rs","line":131,"message":"Event bus handlers initialized"}
+{"timestamp":"2026-02-17 07:57:59.692","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":209,"message":"Window title: Rust WebUI Application"}
+{"timestamp":"2026-02-17 07:57:59.692","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":212,"message":"Loading application UI from root index.html"}
+{"timestamp":"2026-02-17 07:58:15.400","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":226,"message":"Application started successfully, waiting for events..."}
+{"timestamp":"2026-02-17 07:58:15.403","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":227,"message":"============================================="}
+{"timestamp":"2026-02-17 07:58:22.573","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":232,"message":"Application shutting down..."}
+{"timestamp":"2026-02-17 07:58:22.573","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":233,"message":"============================================="}
+{"timestamp":"2026-02-17 08:11:13.486","level":"INFO","target":"rustwebui_app::infrastructure::logging","file":"src/infrastructure/logging.rs","line":184,"message":"Logging initialized: level=info, file=application.log"}
+{"timestamp":"2026-02-17 08:11:13.487","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":66,"message":"============================================="}
+{"timestamp":"2026-02-17 08:11:13.487","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":67,"message":"Starting: Rust WebUI SQLite Demo v1.0.0"}
+{"timestamp":"2026-02-17 08:11:13.487","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":72,"message":"============================================="}
+{"timestamp":"2026-02-17 08:11:13.487","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":75,"message":"Backend-Frontend Communication Configuration:"}
+{"timestamp":"2026-02-17 08:11:13.487","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":76,"message":"  Transport Options:"}
+{"timestamp":"2026-02-17 08:11:13.487","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":77,"message":"    - WebView FFI (Native Binding) [SELECTED]"}
+{"timestamp":"2026-02-17 08:11:13.487","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":78,"message":"    - HTTP/REST (Not used)"}
+{"timestamp":"2026-02-17 08:11:13.487","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":79,"message":"    - WebSocket Emulation (UI displays as WebSocket)"}
+{"timestamp":"2026-02-17 08:11:13.487","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":80,"message":"  Serialization Options:"}
+{"timestamp":"2026-02-17 08:11:13.488","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":81,"message":"    - JSON via serde_json [SELECTED]"}
+{"timestamp":"2026-02-17 08:11:13.488","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":82,"message":"    - Protocol Buffers (Not used)"}
+{"timestamp":"2026-02-17 08:11:13.488","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":83,"message":"    - MessagePack (Not used)"}
+{"timestamp":"2026-02-17 08:11:13.488","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":84,"message":"  Selected Configuration:"}
+{"timestamp":"2026-02-17 08:11:13.488","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":85,"message":"    Transport: WebView FFI (Native Binding)"}
+{"timestamp":"2026-02-17 08:11:13.488","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":86,"message":"    Serialization: JSON (serde_json)"}
+{"timestamp":"2026-02-17 08:11:13.488","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":87,"message":"    UI Status Display: WebSocket (emulated over WebView FFI)"}
+{"timestamp":"2026-02-17 08:11:13.488","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":88,"message":"  Communication Flow:"}
+{"timestamp":"2026-02-17 08:11:13.488","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":89,"message":"    Frontend JS --[JSON]--> window.bind() handlers --[Rust]--> Backend"}
+{"timestamp":"2026-02-17 08:11:13.488","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":90,"message":"    Backend --[JSON]--> window.run_js() dispatchEvent --> Frontend JS"}
+{"timestamp":"2026-02-17 08:11:13.488","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":91,"message":"============================================="}
+{"timestamp":"2026-02-17 08:11:13.488","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":93,"message":"Application starting..."}
+{"timestamp":"2026-02-17 08:11:13.488","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":97,"message":"Database path: app.db"}
+{"timestamp":"2026-02-17 08:11:13.494","level":"INFO","target":"rustwebui_app::infrastructure::database","file":"src/infrastructure/database.rs","line":42,"message":"Database connection established: app.db"}
+{"timestamp":"2026-02-17 08:11:13.494","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":102,"message":"Database initialized successfully"}
+{"timestamp":"2026-02-17 08:11:13.497","level":"INFO","target":"rustwebui_app::infrastructure::database","file":"src/infrastructure/database.rs","line":79,"message":"Database schema initialized"}
+{"timestamp":"2026-02-17 08:11:13.497","level":"INFO","target":"rustwebui_app::infrastructure::database","file":"src/infrastructure/database.rs","line":254,"message":"Sample data already exists, skipping insertion"}
+{"timestamp":"2026-02-17 08:11:13.497","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":112,"message":"Sample data created (if not exists)"}
+{"timestamp":"2026-02-17 08:11:13.497","level":"INFO","target":"rustwebui_app::presentation::webui::handlers::db_handlers","file":"src/presentation/webui/handlers/db_handlers.rs","line":13,"message":"Database handlers initialized"}
+{"timestamp":"2026-02-17 08:11:13.497","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":129,"message":"=== Utility Modules Demonstration ==="}
+{"timestamp":"2026-02-17 08:11:13.497","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":133,"message":"OS: linux Unknown"}
+{"timestamp":"2026-02-17 08:11:13.497","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":134,"message":"Hostname: endeavour-pc"}
+{"timestamp":"2026-02-17 08:11:13.497","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":135,"message":"CPU Cores: 4"}
+{"timestamp":"2026-02-17 08:11:13.498","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":140,"message":"Home directory: /home/naranyala"}
+{"timestamp":"2026-02-17 08:11:13.498","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":145,"message":"Current time: 2026-02-17 01:11:13 UTC"}
+{"timestamp":"2026-02-17 08:11:13.498","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":149,"message":"SHA256 hash: e7d87b738825c33824cf3fd32b7314161fc8c425129163ff5e7260fc7288da36"}
+{"timestamp":"2026-02-17 08:11:13.498","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":153,"message":"Password hashed successfully"}
+{"timestamp":"2026-02-17 08:11:13.498","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":158,"message":"Email 'test@example.com' valid: true"}
+{"timestamp":"2026-02-17 08:11:13.498","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":163,"message":"Base64 encoded: SGVsbG8sIFdvcmxkIQ=="}
+{"timestamp":"2026-02-17 08:11:13.498","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":167,"message":"Local IP: Some(\"192.168.1.7\")"}
+{"timestamp":"2026-02-17 08:11:13.498","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":170,"message":"Current PID: 269371"}
+{"timestamp":"2026-02-17 08:11:13.499","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":175,"message":"Gzip compression: 49 -> 72 bytes"}
+{"timestamp":"2026-02-17 08:11:13.499","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":179,"message":"Running as admin: false"}
+{"timestamp":"2026-02-17 08:11:13.738","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":195,"message":"WebUI port set to 37377"}
+{"timestamp":"2026-02-17 08:11:13.740","level":"INFO","target":"rustwebui_app::presentation::webui::handlers::db_handlers","file":"src/presentation/webui/handlers/db_handlers.rs","line":122,"message":"Database handlers set up successfully"}
+{"timestamp":"2026-02-17 08:11:13.740","level":"INFO","target":"rustwebui_app::presentation::webui::handlers::sysinfo_handlers","file":"src/presentation/webui/handlers/sysinfo_handlers.rs","line":183,"message":"System info handlers set up successfully"}
+{"timestamp":"2026-02-17 08:11:13.741","level":"INFO","target":"rustwebui_app::presentation::webui::handlers::logging_handlers","file":"src/presentation/webui/handlers/logging_handlers.rs","line":72,"message":"Logging handlers initialized"}
+{"timestamp":"2026-02-17 08:11:13.742","level":"INFO","target":"rustwebui_app::presentation::webui::handlers::event_bus_handlers","file":"src/presentation/webui/handlers/event_bus_handlers.rs","line":131,"message":"Event bus handlers initialized"}
+{"timestamp":"2026-02-17 08:11:13.742","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":210,"message":"Window title: Rust WebUI Application"}
+{"timestamp":"2026-02-17 08:11:13.742","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":213,"message":"Loading application UI from root index.html"}
+{"timestamp":"2026-02-17 08:11:29.150","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":227,"message":"Application started successfully, waiting for events..."}
+{"timestamp":"2026-02-17 08:11:29.150","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":228,"message":"============================================="}
+{"timestamp":"2026-02-17 08:11:36.289","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":233,"message":"Application shutting down..."}
+{"timestamp":"2026-02-17 08:11:36.289","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":234,"message":"============================================="}
+{"timestamp":"2026-02-17 08:12:08.331","level":"INFO","target":"rustwebui_app::infrastructure::logging","file":"src/infrastructure/logging.rs","line":184,"message":"Logging initialized: level=info, file=application.log"}
+{"timestamp":"2026-02-17 08:12:08.331","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":66,"message":"============================================="}
+{"timestamp":"2026-02-17 08:12:08.331","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":67,"message":"Starting: Rust WebUI SQLite Demo v1.0.0"}
+{"timestamp":"2026-02-17 08:12:08.331","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":72,"message":"============================================="}
+{"timestamp":"2026-02-17 08:12:08.332","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":75,"message":"Backend-Frontend Communication Configuration:"}
+{"timestamp":"2026-02-17 08:12:08.332","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":76,"message":"  Transport Options:"}
+{"timestamp":"2026-02-17 08:12:08.332","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":77,"message":"    - WebView FFI (Native Binding) [SELECTED]"}
+{"timestamp":"2026-02-17 08:12:08.332","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":78,"message":"    - HTTP/REST (Not used)"}
+{"timestamp":"2026-02-17 08:12:08.332","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":79,"message":"    - WebSocket Emulation (UI displays as WebSocket)"}
+{"timestamp":"2026-02-17 08:12:08.332","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":80,"message":"  Serialization Options:"}
+{"timestamp":"2026-02-17 08:12:08.332","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":81,"message":"    - JSON via serde_json [SELECTED]"}
+{"timestamp":"2026-02-17 08:12:08.332","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":82,"message":"    - Protocol Buffers (Not used)"}
+{"timestamp":"2026-02-17 08:12:08.332","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":83,"message":"    - MessagePack (Not used)"}
+{"timestamp":"2026-02-17 08:12:08.332","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":84,"message":"  Selected Configuration:"}
+{"timestamp":"2026-02-17 08:12:08.332","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":85,"message":"    Transport: WebView FFI (Native Binding)"}
+{"timestamp":"2026-02-17 08:12:08.332","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":86,"message":"    Serialization: JSON (serde_json)"}
+{"timestamp":"2026-02-17 08:12:08.332","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":87,"message":"    UI Status Display: WebSocket (emulated over WebView FFI)"}
+{"timestamp":"2026-02-17 08:12:08.332","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":88,"message":"  Communication Flow:"}
+{"timestamp":"2026-02-17 08:12:08.332","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":89,"message":"    Frontend JS --[JSON]--> window.bind() handlers --[Rust]--> Backend"}
+{"timestamp":"2026-02-17 08:12:08.332","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":90,"message":"    Backend --[JSON]--> window.run_js() dispatchEvent --> Frontend JS"}
+{"timestamp":"2026-02-17 08:12:08.332","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":91,"message":"============================================="}
+{"timestamp":"2026-02-17 08:12:08.332","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":93,"message":"Application starting..."}
+{"timestamp":"2026-02-17 08:12:08.333","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":97,"message":"Database path: app.db"}
+{"timestamp":"2026-02-17 08:12:08.333","level":"INFO","target":"rustwebui_app::infrastructure::database","file":"src/infrastructure/database.rs","line":42,"message":"Database connection established: app.db"}
+{"timestamp":"2026-02-17 08:12:08.333","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":102,"message":"Database initialized successfully"}
+{"timestamp":"2026-02-17 08:12:08.334","level":"INFO","target":"rustwebui_app::infrastructure::database","file":"src/infrastructure/database.rs","line":79,"message":"Database schema initialized"}
+{"timestamp":"2026-02-17 08:12:08.334","level":"INFO","target":"rustwebui_app::infrastructure::database","file":"src/infrastructure/database.rs","line":254,"message":"Sample data already exists, skipping insertion"}
+{"timestamp":"2026-02-17 08:12:08.334","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":112,"message":"Sample data created (if not exists)"}
+{"timestamp":"2026-02-17 08:12:08.334","level":"INFO","target":"rustwebui_app::presentation::webui::handlers::db_handlers","file":"src/presentation/webui/handlers/db_handlers.rs","line":13,"message":"Database handlers initialized"}
+{"timestamp":"2026-02-17 08:12:08.334","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":129,"message":"=== Utility Modules Demonstration ==="}
+{"timestamp":"2026-02-17 08:12:08.334","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":133,"message":"OS: linux Unknown"}
+{"timestamp":"2026-02-17 08:12:08.335","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":134,"message":"Hostname: endeavour-pc"}
+{"timestamp":"2026-02-17 08:12:08.335","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":135,"message":"CPU Cores: 4"}
+{"timestamp":"2026-02-17 08:12:08.335","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":140,"message":"Home directory: /home/naranyala"}
+{"timestamp":"2026-02-17 08:12:08.335","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":145,"message":"Current time: 2026-02-17 01:12:08 UTC"}
+{"timestamp":"2026-02-17 08:12:08.335","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":149,"message":"SHA256 hash: e7d87b738825c33824cf3fd32b7314161fc8c425129163ff5e7260fc7288da36"}
+{"timestamp":"2026-02-17 08:12:08.335","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":153,"message":"Password hashed successfully"}
+{"timestamp":"2026-02-17 08:12:08.335","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":158,"message":"Email 'test@example.com' valid: true"}
+{"timestamp":"2026-02-17 08:12:08.335","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":163,"message":"Base64 encoded: SGVsbG8sIFdvcmxkIQ=="}
+{"timestamp":"2026-02-17 08:12:08.335","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":167,"message":"Local IP: Some(\"192.168.1.7\")"}
+{"timestamp":"2026-02-17 08:12:08.335","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":170,"message":"Current PID: 269578"}
+{"timestamp":"2026-02-17 08:12:08.336","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":175,"message":"Gzip compression: 49 -> 72 bytes"}
+{"timestamp":"2026-02-17 08:12:08.336","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":179,"message":"Running as admin: false"}
+{"timestamp":"2026-02-17 08:12:08.592","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":195,"message":"WebUI port set to 36245"}
+{"timestamp":"2026-02-17 08:12:08.594","level":"INFO","target":"rustwebui_app::presentation::webui::handlers::db_handlers","file":"src/presentation/webui/handlers/db_handlers.rs","line":122,"message":"Database handlers set up successfully"}
+{"timestamp":"2026-02-17 08:12:08.595","level":"INFO","target":"rustwebui_app::presentation::webui::handlers::sysinfo_handlers","file":"src/presentation/webui/handlers/sysinfo_handlers.rs","line":183,"message":"System info handlers set up successfully"}
+{"timestamp":"2026-02-17 08:12:08.595","level":"INFO","target":"rustwebui_app::presentation::webui::handlers::logging_handlers","file":"src/presentation/webui/handlers/logging_handlers.rs","line":72,"message":"Logging handlers initialized"}
+{"timestamp":"2026-02-17 08:12:08.597","level":"INFO","target":"rustwebui_app::presentation::webui::handlers::event_bus_handlers","file":"src/presentation/webui/handlers/event_bus_handlers.rs","line":131,"message":"Event bus handlers initialized"}
+{"timestamp":"2026-02-17 08:12:08.597","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":210,"message":"Window title: Rust WebUI Application"}
+{"timestamp":"2026-02-17 08:12:08.597","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":213,"message":"Loading application UI from root index.html"}
+{"timestamp":"2026-02-17 08:12:23.913","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":227,"message":"Application started successfully, waiting for events..."}
+{"timestamp":"2026-02-17 08:12:23.914","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":228,"message":"============================================="}
+{"timestamp":"2026-02-17 08:12:31.140","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":233,"message":"Application shutting down..."}
+{"timestamp":"2026-02-17 08:12:31.140","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":234,"message":"============================================="}
+{"timestamp":"2026-02-17 08:17:35.101","level":"INFO","target":"rustwebui_app::infrastructure::logging","file":"src/infrastructure/logging.rs","line":184,"message":"Logging initialized: level=info, file=application.log"}
+{"timestamp":"2026-02-17 08:17:35.102","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":66,"message":"============================================="}
+{"timestamp":"2026-02-17 08:17:35.102","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":67,"message":"Starting: Rust WebUI SQLite Demo v1.0.0"}
+{"timestamp":"2026-02-17 08:17:35.102","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":72,"message":"============================================="}
+{"timestamp":"2026-02-17 08:17:35.102","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":75,"message":"Backend-Frontend Communication Configuration:"}
+{"timestamp":"2026-02-17 08:17:35.102","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":76,"message":"  Transport Options:"}
+{"timestamp":"2026-02-17 08:17:35.102","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":77,"message":"    - WebView FFI (Native Binding) [SELECTED]"}
+{"timestamp":"2026-02-17 08:17:35.102","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":78,"message":"    - HTTP/REST (Not used)"}
+{"timestamp":"2026-02-17 08:17:35.103","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":79,"message":"    - WebSocket Emulation (UI displays as WebSocket)"}
+{"timestamp":"2026-02-17 08:17:35.103","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":80,"message":"  Serialization Options:"}
+{"timestamp":"2026-02-17 08:17:35.103","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":81,"message":"    - JSON via serde_json [SELECTED]"}
+{"timestamp":"2026-02-17 08:17:35.103","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":82,"message":"    - Protocol Buffers (Not used)"}
+{"timestamp":"2026-02-17 08:17:35.103","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":83,"message":"    - MessagePack (Not used)"}
+{"timestamp":"2026-02-17 08:17:35.103","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":84,"message":"  Selected Configuration:"}
+{"timestamp":"2026-02-17 08:17:35.103","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":85,"message":"    Transport: WebView FFI (Native Binding)"}
+{"timestamp":"2026-02-17 08:17:35.103","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":86,"message":"    Serialization: JSON (serde_json)"}
+{"timestamp":"2026-02-17 08:17:35.103","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":87,"message":"    UI Status Display: WebSocket (emulated over WebView FFI)"}
+{"timestamp":"2026-02-17 08:17:35.104","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":88,"message":"  Communication Flow:"}
+{"timestamp":"2026-02-17 08:17:35.104","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":89,"message":"    Frontend JS --[JSON]--> window.bind() handlers --[Rust]--> Backend"}
+{"timestamp":"2026-02-17 08:17:35.104","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":90,"message":"    Backend --[JSON]--> window.run_js() dispatchEvent --> Frontend JS"}
+{"timestamp":"2026-02-17 08:17:35.104","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":91,"message":"============================================="}
+{"timestamp":"2026-02-17 08:17:35.105","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":93,"message":"Application starting..."}
+{"timestamp":"2026-02-17 08:17:35.105","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":97,"message":"Database path: app.db"}
+{"timestamp":"2026-02-17 08:17:35.113","level":"INFO","target":"rustwebui_app::infrastructure::database","file":"src/infrastructure/database.rs","line":42,"message":"Database connection established: app.db"}
+{"timestamp":"2026-02-17 08:17:35.113","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":102,"message":"Database initialized successfully"}
+{"timestamp":"2026-02-17 08:17:35.114","level":"INFO","target":"rustwebui_app::infrastructure::database","file":"src/infrastructure/database.rs","line":79,"message":"Database schema initialized"}
+{"timestamp":"2026-02-17 08:17:35.115","level":"INFO","target":"rustwebui_app::infrastructure::database","file":"src/infrastructure/database.rs","line":254,"message":"Sample data already exists, skipping insertion"}
+{"timestamp":"2026-02-17 08:17:35.115","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":112,"message":"Sample data created (if not exists)"}
+{"timestamp":"2026-02-17 08:17:35.115","level":"INFO","target":"rustwebui_app::presentation::webui::handlers::db_handlers","file":"src/presentation/webui/handlers/db_handlers.rs","line":13,"message":"Database handlers initialized"}
+{"timestamp":"2026-02-17 08:17:35.115","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":129,"message":"=== Utility Modules Demonstration ==="}
+{"timestamp":"2026-02-17 08:17:35.116","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":133,"message":"OS: linux Unknown"}
+{"timestamp":"2026-02-17 08:17:35.116","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":134,"message":"Hostname: endeavour-pc"}
+{"timestamp":"2026-02-17 08:17:35.116","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":135,"message":"CPU Cores: 4"}
+{"timestamp":"2026-02-17 08:17:35.116","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":140,"message":"Home directory: /home/naranyala"}
+{"timestamp":"2026-02-17 08:17:35.116","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":145,"message":"Current time: 2026-02-17 01:17:35 UTC"}
+{"timestamp":"2026-02-17 08:17:35.117","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":149,"message":"SHA256 hash: e7d87b738825c33824cf3fd32b7314161fc8c425129163ff5e7260fc7288da36"}
+{"timestamp":"2026-02-17 08:17:35.117","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":153,"message":"Password hashed successfully"}
+{"timestamp":"2026-02-17 08:17:35.117","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":158,"message":"Email 'test@example.com' valid: true"}
+{"timestamp":"2026-02-17 08:17:35.117","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":163,"message":"Base64 encoded: SGVsbG8sIFdvcmxkIQ=="}
+{"timestamp":"2026-02-17 08:17:35.117","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":167,"message":"Local IP: Some(\"192.168.1.7\")"}
+{"timestamp":"2026-02-17 08:17:35.117","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":170,"message":"Current PID: 270639"}
+{"timestamp":"2026-02-17 08:17:35.118","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":175,"message":"Gzip compression: 49 -> 72 bytes"}
+{"timestamp":"2026-02-17 08:17:35.119","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":179,"message":"Running as admin: false"}
+{"timestamp":"2026-02-17 08:17:35.371","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":195,"message":"WebUI port set to 45671"}
+{"timestamp":"2026-02-17 08:17:35.373","level":"INFO","target":"rustwebui_app::presentation::webui::handlers::db_handlers","file":"src/presentation/webui/handlers/db_handlers.rs","line":122,"message":"Database handlers set up successfully"}
+{"timestamp":"2026-02-17 08:17:35.373","level":"INFO","target":"rustwebui_app::presentation::webui::handlers::sysinfo_handlers","file":"src/presentation/webui/handlers/sysinfo_handlers.rs","line":183,"message":"System info handlers set up successfully"}
+{"timestamp":"2026-02-17 08:17:35.374","level":"INFO","target":"rustwebui_app::presentation::webui::handlers::logging_handlers","file":"src/presentation/webui/handlers/logging_handlers.rs","line":72,"message":"Logging handlers initialized"}
+{"timestamp":"2026-02-17 08:17:35.375","level":"INFO","target":"rustwebui_app::presentation::webui::handlers::event_bus_handlers","file":"src/presentation/webui/handlers/event_bus_handlers.rs","line":131,"message":"Event bus handlers initialized"}
+{"timestamp":"2026-02-17 08:17:35.375","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":210,"message":"Window title: Rust WebUI Application"}
+{"timestamp":"2026-02-17 08:17:35.375","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":213,"message":"Loading application UI from root index.html"}
+{"timestamp":"2026-02-17 08:17:50.792","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":227,"message":"Application started successfully, waiting for events..."}
+{"timestamp":"2026-02-17 08:17:50.792","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":228,"message":"============================================="}
+{"timestamp":"2026-02-17 08:17:57.949","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":233,"message":"Application shutting down..."}
+{"timestamp":"2026-02-17 08:17:57.950","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":234,"message":"============================================="}
+{"timestamp":"2026-02-17 08:22:32.350","level":"INFO","target":"rustwebui_app::infrastructure::logging","file":"src/infrastructure/logging.rs","line":184,"message":"Logging initialized: level=info, file=application.log"}
+{"timestamp":"2026-02-17 08:22:32.351","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":66,"message":"============================================="}
+{"timestamp":"2026-02-17 08:22:32.351","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":67,"message":"Starting: Rust WebUI SQLite Demo v1.0.0"}
+{"timestamp":"2026-02-17 08:22:32.351","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":72,"message":"============================================="}
+{"timestamp":"2026-02-17 08:22:32.351","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":75,"message":"Backend-Frontend Communication Configuration:"}
+{"timestamp":"2026-02-17 08:22:32.351","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":76,"message":"  Transport Options:"}
+{"timestamp":"2026-02-17 08:22:32.351","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":77,"message":"    - WebView FFI (Native Binding) [SELECTED]"}
+{"timestamp":"2026-02-17 08:22:32.352","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":78,"message":"    - HTTP/REST (Not used)"}
+{"timestamp":"2026-02-17 08:22:32.352","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":79,"message":"    - WebSocket Emulation (UI displays as WebSocket)"}
+{"timestamp":"2026-02-17 08:22:32.352","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":80,"message":"  Serialization Options:"}
+{"timestamp":"2026-02-17 08:22:32.352","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":81,"message":"    - JSON via serde_json [SELECTED]"}
+{"timestamp":"2026-02-17 08:22:32.352","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":82,"message":"    - Protocol Buffers (Not used)"}
+{"timestamp":"2026-02-17 08:22:32.352","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":83,"message":"    - MessagePack (Not used)"}
+{"timestamp":"2026-02-17 08:22:32.352","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":84,"message":"  Selected Configuration:"}
+{"timestamp":"2026-02-17 08:22:32.352","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":85,"message":"    Transport: WebView FFI (Native Binding)"}
+{"timestamp":"2026-02-17 08:22:32.352","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":86,"message":"    Serialization: JSON (serde_json)"}
+{"timestamp":"2026-02-17 08:22:32.353","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":87,"message":"    UI Status Display: WebSocket (emulated over WebView FFI)"}
+{"timestamp":"2026-02-17 08:22:32.353","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":88,"message":"  Communication Flow:"}
+{"timestamp":"2026-02-17 08:22:32.353","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":89,"message":"    Frontend JS --[JSON]--> window.bind() handlers --[Rust]--> Backend"}
+{"timestamp":"2026-02-17 08:22:32.353","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":90,"message":"    Backend --[JSON]--> window.run_js() dispatchEvent --> Frontend JS"}
+{"timestamp":"2026-02-17 08:22:32.354","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":91,"message":"============================================="}
+{"timestamp":"2026-02-17 08:22:32.354","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":93,"message":"Application starting..."}
+{"timestamp":"2026-02-17 08:22:32.354","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":97,"message":"Database path: app.db"}
+{"timestamp":"2026-02-17 08:22:32.355","level":"INFO","target":"rustwebui_app::infrastructure::database","file":"src/infrastructure/database.rs","line":42,"message":"Database connection established: app.db"}
+{"timestamp":"2026-02-17 08:22:32.355","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":102,"message":"Database initialized successfully"}
+{"timestamp":"2026-02-17 08:22:32.357","level":"INFO","target":"rustwebui_app::infrastructure::database","file":"src/infrastructure/database.rs","line":79,"message":"Database schema initialized"}
+{"timestamp":"2026-02-17 08:22:32.357","level":"INFO","target":"rustwebui_app::infrastructure::database","file":"src/infrastructure/database.rs","line":254,"message":"Sample data already exists, skipping insertion"}
+{"timestamp":"2026-02-17 08:22:32.357","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":112,"message":"Sample data created (if not exists)"}
+{"timestamp":"2026-02-17 08:22:32.357","level":"INFO","target":"rustwebui_app::presentation::webui::handlers::db_handlers","file":"src/presentation/webui/handlers/db_handlers.rs","line":13,"message":"Database handlers initialized"}
+{"timestamp":"2026-02-17 08:22:32.357","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":129,"message":"=== Utility Modules Demonstration ==="}
+{"timestamp":"2026-02-17 08:22:32.358","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":133,"message":"OS: linux Unknown"}
+{"timestamp":"2026-02-17 08:22:32.358","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":134,"message":"Hostname: endeavour-pc"}
+{"timestamp":"2026-02-17 08:22:32.358","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":135,"message":"CPU Cores: 4"}
+{"timestamp":"2026-02-17 08:22:32.358","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":140,"message":"Home directory: /home/naranyala"}
+{"timestamp":"2026-02-17 08:22:32.359","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":145,"message":"Current time: 2026-02-17 01:22:32 UTC"}
+{"timestamp":"2026-02-17 08:22:32.359","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":149,"message":"SHA256 hash: e7d87b738825c33824cf3fd32b7314161fc8c425129163ff5e7260fc7288da36"}
+{"timestamp":"2026-02-17 08:22:32.359","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":153,"message":"Password hashed successfully"}
+{"timestamp":"2026-02-17 08:22:32.359","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":158,"message":"Email 'test@example.com' valid: true"}
+{"timestamp":"2026-02-17 08:22:32.359","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":163,"message":"Base64 encoded: SGVsbG8sIFdvcmxkIQ=="}
+{"timestamp":"2026-02-17 08:22:32.360","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":167,"message":"Local IP: Some(\"192.168.1.7\")"}
+{"timestamp":"2026-02-17 08:22:32.360","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":170,"message":"Current PID: 271170"}
+{"timestamp":"2026-02-17 08:22:32.361","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":175,"message":"Gzip compression: 49 -> 72 bytes"}
+{"timestamp":"2026-02-17 08:22:32.361","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":179,"message":"Running as admin: false"}
+{"timestamp":"2026-02-17 08:22:32.727","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":195,"message":"WebUI port set to 36793"}
+{"timestamp":"2026-02-17 08:22:32.731","level":"INFO","target":"rustwebui_app::presentation::webui::handlers::db_handlers","file":"src/presentation/webui/handlers/db_handlers.rs","line":122,"message":"Database handlers set up successfully"}
+{"timestamp":"2026-02-17 08:22:32.731","level":"INFO","target":"rustwebui_app::presentation::webui::handlers::sysinfo_handlers","file":"src/presentation/webui/handlers/sysinfo_handlers.rs","line":183,"message":"System info handlers set up successfully"}
+{"timestamp":"2026-02-17 08:22:32.732","level":"INFO","target":"rustwebui_app::presentation::webui::handlers::logging_handlers","file":"src/presentation/webui/handlers/logging_handlers.rs","line":72,"message":"Logging handlers initialized"}
+{"timestamp":"2026-02-17 08:22:32.733","level":"INFO","target":"rustwebui_app::presentation::webui::handlers::event_bus_handlers","file":"src/presentation/webui/handlers/event_bus_handlers.rs","line":131,"message":"Event bus handlers initialized"}
+{"timestamp":"2026-02-17 08:22:32.733","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":210,"message":"Window title: Rust WebUI Application"}
+{"timestamp":"2026-02-17 08:22:32.733","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":213,"message":"Loading application UI from root index.html"}
+{"timestamp":"2026-02-17 08:22:48.131","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":227,"message":"Application started successfully, waiting for events..."}
+{"timestamp":"2026-02-17 08:22:48.133","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":228,"message":"============================================="}
+{"timestamp":"2026-02-17 08:22:55.319","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":233,"message":"Application shutting down..."}
+{"timestamp":"2026-02-17 08:22:55.319","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":234,"message":"============================================="}
+{"timestamp":"2026-02-17 08:27:41.492","level":"INFO","target":"rustwebui_app::infrastructure::logging","file":"src/infrastructure/logging.rs","line":184,"message":"Logging initialized: level=info, file=application.log"}
+{"timestamp":"2026-02-17 08:27:41.492","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":66,"message":"============================================="}
+{"timestamp":"2026-02-17 08:27:41.492","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":67,"message":"Starting: Rust WebUI SQLite Demo v1.0.0"}
+{"timestamp":"2026-02-17 08:27:41.492","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":72,"message":"============================================="}
+{"timestamp":"2026-02-17 08:27:41.492","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":75,"message":"Backend-Frontend Communication Configuration:"}
+{"timestamp":"2026-02-17 08:27:41.492","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":76,"message":"  Transport Options:"}
+{"timestamp":"2026-02-17 08:27:41.493","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":77,"message":"    - WebView FFI (Native Binding) [SELECTED]"}
+{"timestamp":"2026-02-17 08:27:41.493","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":78,"message":"    - HTTP/REST (Not used)"}
+{"timestamp":"2026-02-17 08:27:41.493","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":79,"message":"    - WebSocket Emulation (UI displays as WebSocket)"}
+{"timestamp":"2026-02-17 08:27:41.493","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":80,"message":"  Serialization Options:"}
+{"timestamp":"2026-02-17 08:27:41.494","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":81,"message":"    - JSON via serde_json [SELECTED]"}
+{"timestamp":"2026-02-17 08:27:41.494","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":82,"message":"    - Protocol Buffers (Not used)"}
+{"timestamp":"2026-02-17 08:27:41.494","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":83,"message":"    - MessagePack (Not used)"}
+{"timestamp":"2026-02-17 08:27:41.495","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":84,"message":"  Selected Configuration:"}
+{"timestamp":"2026-02-17 08:27:41.495","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":85,"message":"    Transport: WebView FFI (Native Binding)"}
+{"timestamp":"2026-02-17 08:27:41.495","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":86,"message":"    Serialization: JSON (serde_json)"}
+{"timestamp":"2026-02-17 08:27:41.495","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":87,"message":"    UI Status Display: WebSocket (emulated over WebView FFI)"}
+{"timestamp":"2026-02-17 08:27:41.495","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":88,"message":"  Communication Flow:"}
+{"timestamp":"2026-02-17 08:27:41.495","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":89,"message":"    Frontend JS --[JSON]--> window.bind() handlers --[Rust]--> Backend"}
+{"timestamp":"2026-02-17 08:27:41.496","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":90,"message":"    Backend --[JSON]--> window.run_js() dispatchEvent --> Frontend JS"}
+{"timestamp":"2026-02-17 08:27:41.496","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":91,"message":"============================================="}
+{"timestamp":"2026-02-17 08:27:41.496","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":93,"message":"Application starting..."}
+{"timestamp":"2026-02-17 08:27:41.496","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":97,"message":"Database path: app.db"}
+{"timestamp":"2026-02-17 08:27:41.497","level":"INFO","target":"rustwebui_app::infrastructure::database","file":"src/infrastructure/database.rs","line":42,"message":"Database connection established: app.db"}
+{"timestamp":"2026-02-17 08:27:41.498","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":102,"message":"Database initialized successfully"}
+{"timestamp":"2026-02-17 08:27:41.499","level":"INFO","target":"rustwebui_app::infrastructure::database","file":"src/infrastructure/database.rs","line":79,"message":"Database schema initialized"}
+{"timestamp":"2026-02-17 08:27:41.499","level":"INFO","target":"rustwebui_app::infrastructure::database","file":"src/infrastructure/database.rs","line":254,"message":"Sample data already exists, skipping insertion"}
+{"timestamp":"2026-02-17 08:27:41.499","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":112,"message":"Sample data created (if not exists)"}
+{"timestamp":"2026-02-17 08:27:41.500","level":"INFO","target":"rustwebui_app::presentation::webui::handlers::db_handlers","file":"src/presentation/webui/handlers/db_handlers.rs","line":13,"message":"Database handlers initialized"}
+{"timestamp":"2026-02-17 08:27:41.500","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":129,"message":"=== Utility Modules Demonstration ==="}
+{"timestamp":"2026-02-17 08:27:41.501","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":133,"message":"OS: linux Unknown"}
+{"timestamp":"2026-02-17 08:27:41.501","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":134,"message":"Hostname: endeavour-pc"}
+{"timestamp":"2026-02-17 08:27:41.501","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":135,"message":"CPU Cores: 4"}
+{"timestamp":"2026-02-17 08:27:41.501","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":140,"message":"Home directory: /home/naranyala"}
+{"timestamp":"2026-02-17 08:27:41.501","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":145,"message":"Current time: 2026-02-17 01:27:41 UTC"}
+{"timestamp":"2026-02-17 08:27:41.502","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":149,"message":"SHA256 hash: e7d87b738825c33824cf3fd32b7314161fc8c425129163ff5e7260fc7288da36"}
+{"timestamp":"2026-02-17 08:27:41.502","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":153,"message":"Password hashed successfully"}
+{"timestamp":"2026-02-17 08:27:41.502","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":158,"message":"Email 'test@example.com' valid: true"}
+{"timestamp":"2026-02-17 08:27:41.502","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":163,"message":"Base64 encoded: SGVsbG8sIFdvcmxkIQ=="}
+{"timestamp":"2026-02-17 08:27:41.503","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":167,"message":"Local IP: Some(\"192.168.1.7\")"}
+{"timestamp":"2026-02-17 08:27:41.503","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":170,"message":"Current PID: 271505"}
+{"timestamp":"2026-02-17 08:27:41.505","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":175,"message":"Gzip compression: 49 -> 72 bytes"}
+{"timestamp":"2026-02-17 08:27:41.505","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":179,"message":"Running as admin: false"}
+{"timestamp":"2026-02-17 08:27:41.799","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":195,"message":"WebUI port set to 45825"}
+{"timestamp":"2026-02-17 08:27:41.801","level":"INFO","target":"rustwebui_app::presentation::webui::handlers::db_handlers","file":"src/presentation/webui/handlers/db_handlers.rs","line":122,"message":"Database handlers set up successfully"}
+{"timestamp":"2026-02-17 08:27:41.802","level":"INFO","target":"rustwebui_app::presentation::webui::handlers::sysinfo_handlers","file":"src/presentation/webui/handlers/sysinfo_handlers.rs","line":183,"message":"System info handlers set up successfully"}
+{"timestamp":"2026-02-17 08:27:41.803","level":"INFO","target":"rustwebui_app::presentation::webui::handlers::logging_handlers","file":"src/presentation/webui/handlers/logging_handlers.rs","line":72,"message":"Logging handlers initialized"}
+{"timestamp":"2026-02-17 08:27:41.804","level":"INFO","target":"rustwebui_app::presentation::webui::handlers::event_bus_handlers","file":"src/presentation/webui/handlers/event_bus_handlers.rs","line":131,"message":"Event bus handlers initialized"}
+{"timestamp":"2026-02-17 08:27:41.804","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":210,"message":"Window title: Rust WebUI Application"}
+{"timestamp":"2026-02-17 08:27:41.804","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":213,"message":"Loading application UI from root index.html"}
+{"timestamp":"2026-02-17 08:27:57.121","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":227,"message":"Application started successfully, waiting for events..."}
+{"timestamp":"2026-02-17 08:27:57.122","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":228,"message":"============================================="}
+{"timestamp":"2026-02-17 08:28:04.307","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":233,"message":"Application shutting down..."}
+{"timestamp":"2026-02-17 08:28:04.307","level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":234,"message":"============================================="}
+{"level":"INFO","target":"rustwebui_app::core::infrastructure::logging","file":"src/core/infrastructure/logging/mod.rs","line":35,"message":"Logging initialized: level=info, file=application.log"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":61,"message":"============================================="}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":62,"message":"Starting: Rust WebUI SQLite Demo v1.0.0"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":67,"message":"============================================="}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":70,"message":"Backend-Frontend Communication Configuration:"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":71,"message":"  ═══════════════════════════════════════════"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":72,"message":"  TRANSPORT OPTIONS:"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":73,"message":"  ┌─────────────────────────────────────────┐"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":74,"message":"  │ ✓ WebView FFI (Native Binding) [ACTIVE] │"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":75,"message":"  │   HTTP/REST (Not used)                  │"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":76,"message":"  │   WebSocket Emulation (UI display)      │"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":77,"message":"  └─────────────────────────────────────────┘"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":78,"message":"  SERIALIZATION OPTIONS:"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":79,"message":"  ┌────────────────────────────────────────────────────┐"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":80,"message":"  │ Format       │ Size    │ Speed   │ Readable      │"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":81,"message":"  ├────────────────────────────────────────────────────┤"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":82,"message":"  │ ✓ JSON       │ 1.0x    │ 1.0x    │ Yes [ACTIVE]  │"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":83,"message":"  │   MessagePack│ ~0.7x   │ ~1.5x   │ No (Binary)   │"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":84,"message":"  │   CBOR       │ ~0.6x   │ ~1.6x   │ No (Binary)   │"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":85,"message":"  └────────────────────────────────────────────────────┘"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":86,"message":"  SELECTED CONFIGURATION:"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":87,"message":"    Transport: WebView FFI (Native Binding)"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":88,"message":"    Serialization: JSON (serde_json)"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":89,"message":"    UI Status Display: WebSocket (emulated)"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":90,"message":"  ALTERNATIVE FORMATS AVAILABLE:"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":91,"message":"    - MessagePack: 30% smaller, 1.5x faster (binary)"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":92,"message":"    - CBOR: 40% smaller, 1.6x faster (RFC 7049)"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":93,"message":"  COMMUNICATION FLOW:"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":94,"message":"    Frontend JS --[JSON]--> window.bind() --> Rust Backend"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":95,"message":"    Rust Backend --[JSON]--> window.run_js() --> Frontend JS"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":96,"message":"  ═══════════════════════════════════════════"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":98,"message":"Application starting..."}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":102,"message":"Database path: app.db"}
+{"level":"INFO","target":"rustwebui_app::core::infrastructure::database::connection","file":"src/core/infrastructure/database/connection.rs","line":19,"message":"Database connection established: app.db"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":107,"message":"Database initialized successfully"}
+{"level":"INFO","target":"rustwebui_app::core::infrastructure::database::connection","file":"src/core/infrastructure/database/connection.rs","line":61,"message":"Database schema initialized"}
+{"level":"INFO","target":"rustwebui_app::core::infrastructure::database::users","file":"src/core/infrastructure/database/users.rs","line":125,"message":"Sample data already exists, skipping insertion"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":117,"message":"Sample data created (if not exists)"}
+{"level":"INFO","target":"rustwebui_app::core::presentation::webui::handlers::db_handlers","file":"src/core/presentation/webui/handlers/db_handlers.rs","line":13,"message":"Database handlers initialized"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":134,"message":"=== Utility Modules Demonstration ==="}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":138,"message":"OS: linux Unknown"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":139,"message":"Hostname: endeavour-pc"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":140,"message":"CPU Cores: 4"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":145,"message":"Home directory: /home/naranyala"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":150,"message":"Current time: 2026-02-17 02:31:40 UTC"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":154,"message":"SHA256 hash: e7d87b738825c33824cf3fd32b7314161fc8c425129163ff5e7260fc7288da36"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":158,"message":"Password hashed successfully"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":163,"message":"Email 'test@example.com' valid: true"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":168,"message":"Base64 encoded: SGVsbG8sIFdvcmxkIQ=="}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":172,"message":"Local IP: Some(\"192.168.1.7\")"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":175,"message":"Current PID: 282419"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":180,"message":"Gzip compression: 49 -> 72 bytes"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":184,"message":"Running as admin: false"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":200,"message":"WebUI port set to 45985"}
+{"level":"INFO","target":"rustwebui_app::core::presentation::webui::handlers::db_handlers","file":"src/core/presentation/webui/handlers/db_handlers.rs","line":122,"message":"Database handlers set up successfully"}
+{"level":"INFO","target":"rustwebui_app::core::presentation::webui::handlers::sysinfo_handlers","file":"src/core/presentation/webui/handlers/sysinfo_handlers.rs","line":183,"message":"System info handlers set up successfully"}
+{"level":"INFO","target":"rustwebui_app::core::presentation::webui::handlers::logging_handlers","file":"src/core/presentation/webui/handlers/logging_handlers.rs","line":72,"message":"Logging handlers initialized"}
+{"level":"INFO","target":"rustwebui_app::core::presentation::webui::handlers::event_bus_handlers","file":"src/core/presentation/webui/handlers/event_bus_handlers.rs","line":131,"message":"Event bus handlers initialized"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":215,"message":"Window title: Rust WebUI Application"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":218,"message":"Loading application UI from root index.html"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":232,"message":"Application started successfully, waiting for events..."}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":233,"message":"============================================="}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":238,"message":"Application shutting down..."}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":239,"message":"============================================="}
+{"level":"INFO","target":"rustwebui_app::core::infrastructure::logging","file":"src/core/infrastructure/logging/mod.rs","line":35,"message":"Logging initialized: level=info, file=application.log"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":61,"message":"============================================="}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":62,"message":"Starting: Rust WebUI SQLite Demo v1.0.0"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":67,"message":"============================================="}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":70,"message":"Backend-Frontend Communication Configuration:"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":71,"message":"  ═══════════════════════════════════════════"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":72,"message":"  TRANSPORT OPTIONS:"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":73,"message":"  ┌─────────────────────────────────────────┐"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":74,"message":"  │ ✓ WebView FFI (Native Binding) [ACTIVE] │"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":75,"message":"  │   HTTP/REST (Not used)                  │"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":76,"message":"  │   WebSocket Emulation (UI display)      │"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":77,"message":"  └─────────────────────────────────────────┘"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":78,"message":"  SERIALIZATION OPTIONS:"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":79,"message":"  ┌────────────────────────────────────────────────────┐"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":80,"message":"  │ Format       │ Size    │ Speed   │ Readable      │"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":81,"message":"  ├────────────────────────────────────────────────────┤"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":82,"message":"  │ ✓ JSON       │ 1.0x    │ 1.0x    │ Yes [ACTIVE]  │"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":83,"message":"  │   MessagePack│ ~0.7x   │ ~1.5x   │ No (Binary)   │"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":84,"message":"  │   CBOR       │ ~0.6x   │ ~1.6x   │ No (Binary)   │"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":85,"message":"  └────────────────────────────────────────────────────┘"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":86,"message":"  SELECTED CONFIGURATION:"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":87,"message":"    Transport: WebView FFI (Native Binding)"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":88,"message":"    Serialization: JSON (serde_json)"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":89,"message":"    UI Status Display: WebSocket (emulated)"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":90,"message":"  ALTERNATIVE FORMATS AVAILABLE:"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":91,"message":"    - MessagePack: 30% smaller, 1.5x faster (binary)"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":92,"message":"    - CBOR: 40% smaller, 1.6x faster (RFC 7049)"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":93,"message":"  COMMUNICATION FLOW:"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":94,"message":"    Frontend JS --[JSON]--> window.bind() --> Rust Backend"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":95,"message":"    Rust Backend --[JSON]--> window.run_js() --> Frontend JS"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":96,"message":"  ═══════════════════════════════════════════"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":98,"message":"Application starting..."}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":102,"message":"Database path: app.db"}
+{"level":"INFO","target":"rustwebui_app::core::infrastructure::database::connection","file":"src/core/infrastructure/database/connection.rs","line":19,"message":"Database connection established: app.db"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":107,"message":"Database initialized successfully"}
+{"level":"INFO","target":"rustwebui_app::core::infrastructure::database::connection","file":"src/core/infrastructure/database/connection.rs","line":61,"message":"Database schema initialized"}
+{"level":"INFO","target":"rustwebui_app::core::infrastructure::database::users","file":"src/core/infrastructure/database/users.rs","line":125,"message":"Sample data already exists, skipping insertion"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":117,"message":"Sample data created (if not exists)"}
+{"level":"INFO","target":"rustwebui_app::core::presentation::webui::handlers::db_handlers","file":"src/core/presentation/webui/handlers/db_handlers.rs","line":13,"message":"Database handlers initialized"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":134,"message":"=== Utility Modules Demonstration ==="}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":138,"message":"OS: linux Unknown"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":139,"message":"Hostname: endeavour-pc"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":140,"message":"CPU Cores: 4"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":145,"message":"Home directory: /home/naranyala"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":150,"message":"Current time: 2026-02-17 02:33:43 UTC"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":154,"message":"SHA256 hash: e7d87b738825c33824cf3fd32b7314161fc8c425129163ff5e7260fc7288da36"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":158,"message":"Password hashed successfully"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":163,"message":"Email 'test@example.com' valid: true"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":168,"message":"Base64 encoded: SGVsbG8sIFdvcmxkIQ=="}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":172,"message":"Local IP: Some(\"192.168.1.7\")"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":175,"message":"Current PID: 282661"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":180,"message":"Gzip compression: 49 -> 72 bytes"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":184,"message":"Running as admin: false"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":200,"message":"WebUI port set to 40161"}
+{"level":"INFO","target":"rustwebui_app::core::presentation::webui::handlers::db_handlers","file":"src/core/presentation/webui/handlers/db_handlers.rs","line":122,"message":"Database handlers set up successfully"}
+{"level":"INFO","target":"rustwebui_app::core::presentation::webui::handlers::sysinfo_handlers","file":"src/core/presentation/webui/handlers/sysinfo_handlers.rs","line":183,"message":"System info handlers set up successfully"}
+{"level":"INFO","target":"rustwebui_app::core::presentation::webui::handlers::logging_handlers","file":"src/core/presentation/webui/handlers/logging_handlers.rs","line":72,"message":"Logging handlers initialized"}
+{"level":"INFO","target":"rustwebui_app::core::presentation::webui::handlers::event_bus_handlers","file":"src/core/presentation/webui/handlers/event_bus_handlers.rs","line":131,"message":"Event bus handlers initialized"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":215,"message":"Window title: Rust WebUI Application"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":218,"message":"Loading application UI from root index.html"}
+{"level":"INFO","target":"rustwebui_app::core::infrastructure::logging","file":"src/core/infrastructure/logging/mod.rs","line":35,"message":"Logging initialized: level=info, file=application.log"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":61,"message":"============================================="}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":62,"message":"Starting: Rust WebUI SQLite Demo v1.0.0"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":67,"message":"============================================="}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":70,"message":"Backend-Frontend Communication Configuration:"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":71,"message":"  ═══════════════════════════════════════════"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":72,"message":"  TRANSPORT OPTIONS:"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":73,"message":"  ┌─────────────────────────────────────────┐"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":74,"message":"  │ ✓ WebView FFI (Native Binding) [ACTIVE] │"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":75,"message":"  │   HTTP/REST (Not used)                  │"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":76,"message":"  │   WebSocket Emulation (UI display)      │"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":77,"message":"  └─────────────────────────────────────────┘"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":78,"message":"  SERIALIZATION OPTIONS:"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":79,"message":"  ┌────────────────────────────────────────────────────┐"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":80,"message":"  │ Format       │ Size    │ Speed   │ Readable      │"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":81,"message":"  ├────────────────────────────────────────────────────┤"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":82,"message":"  │ ✓ JSON       │ 1.0x    │ 1.0x    │ Yes [ACTIVE]  │"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":83,"message":"  │   MessagePack│ ~0.7x   │ ~1.5x   │ No (Binary)   │"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":84,"message":"  │   CBOR       │ ~0.6x   │ ~1.6x   │ No (Binary)   │"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":85,"message":"  └────────────────────────────────────────────────────┘"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":86,"message":"  SELECTED CONFIGURATION:"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":87,"message":"    Transport: WebView FFI (Native Binding)"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":88,"message":"    Serialization: JSON (serde_json)"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":89,"message":"    UI Status Display: WebSocket (emulated)"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":90,"message":"  ALTERNATIVE FORMATS AVAILABLE:"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":91,"message":"    - MessagePack: 30% smaller, 1.5x faster (binary)"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":92,"message":"    - CBOR: 40% smaller, 1.6x faster (RFC 7049)"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":93,"message":"  COMMUNICATION FLOW:"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":94,"message":"    Frontend JS --[JSON]--> window.bind() --> Rust Backend"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":95,"message":"    Rust Backend --[JSON]--> window.run_js() --> Frontend JS"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":96,"message":"  ═══════════════════════════════════════════"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":98,"message":"Application starting..."}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":102,"message":"Database path: app.db"}
+{"level":"INFO","target":"rustwebui_app::core::infrastructure::database::connection","file":"src/core/infrastructure/database/connection.rs","line":19,"message":"Database connection established: app.db"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":107,"message":"Database initialized successfully"}
+{"level":"INFO","target":"rustwebui_app::core::infrastructure::database::connection","file":"src/core/infrastructure/database/connection.rs","line":61,"message":"Database schema initialized"}
+{"level":"INFO","target":"rustwebui_app::core::infrastructure::database::users","file":"src/core/infrastructure/database/users.rs","line":125,"message":"Sample data already exists, skipping insertion"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":117,"message":"Sample data created (if not exists)"}
+{"level":"INFO","target":"rustwebui_app::core::presentation::webui::handlers::db_handlers","file":"src/core/presentation/webui/handlers/db_handlers.rs","line":13,"message":"Database handlers initialized"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":134,"message":"=== Utility Modules Demonstration ==="}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":138,"message":"OS: linux Unknown"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":139,"message":"Hostname: endeavour-pc"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":140,"message":"CPU Cores: 4"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":145,"message":"Home directory: /home/naranyala"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":150,"message":"Current time: 2026-02-17 02:42:17 UTC"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":154,"message":"SHA256 hash: e7d87b738825c33824cf3fd32b7314161fc8c425129163ff5e7260fc7288da36"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":158,"message":"Password hashed successfully"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":163,"message":"Email 'test@example.com' valid: true"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":168,"message":"Base64 encoded: SGVsbG8sIFdvcmxkIQ=="}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":172,"message":"Local IP: Some(\"192.168.1.7\")"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":175,"message":"Current PID: 287776"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":180,"message":"Gzip compression: 49 -> 72 bytes"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":184,"message":"Running as admin: false"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":200,"message":"WebUI port set to 40717"}
+{"level":"INFO","target":"rustwebui_app::core::presentation::webui::handlers::db_handlers","file":"src/core/presentation/webui/handlers/db_handlers.rs","line":122,"message":"Database handlers set up successfully"}
+{"level":"INFO","target":"rustwebui_app::core::presentation::webui::handlers::sysinfo_handlers","file":"src/core/presentation/webui/handlers/sysinfo_handlers.rs","line":183,"message":"System info handlers set up successfully"}
+{"level":"INFO","target":"rustwebui_app::core::presentation::webui::handlers::logging_handlers","file":"src/core/presentation/webui/handlers/logging_handlers.rs","line":72,"message":"Logging handlers initialized"}
+{"level":"INFO","target":"rustwebui_app::core::presentation::webui::handlers::event_bus_handlers","file":"src/core/presentation/webui/handlers/event_bus_handlers.rs","line":131,"message":"Event bus handlers initialized"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":215,"message":"Window title: Rust WebUI Application"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":218,"message":"Loading application UI from root index.html"}
+{"level":"INFO","target":"rustwebui_app::core::infrastructure::logging","file":"src/core/infrastructure/logging/mod.rs","line":35,"message":"Logging initialized: level=info, file=application.log"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":61,"message":"============================================="}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":62,"message":"Starting: Rust WebUI SQLite Demo v1.0.0"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":67,"message":"============================================="}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":70,"message":"Backend-Frontend Communication Configuration:"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":71,"message":"  ═══════════════════════════════════════════"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":72,"message":"  TRANSPORT OPTIONS:"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":73,"message":"  ┌─────────────────────────────────────────┐"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":74,"message":"  │ ✓ WebView FFI (Native Binding) [ACTIVE] │"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":75,"message":"  │   HTTP/REST (Not used)                  │"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":76,"message":"  │   WebSocket Emulation (UI display)      │"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":77,"message":"  └─────────────────────────────────────────┘"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":78,"message":"  SERIALIZATION OPTIONS:"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":79,"message":"  ┌────────────────────────────────────────────────────┐"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":80,"message":"  │ Format       │ Size    │ Speed   │ Readable      │"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":81,"message":"  ├────────────────────────────────────────────────────┤"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":82,"message":"  │ ✓ JSON       │ 1.0x    │ 1.0x    │ Yes [ACTIVE]  │"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":83,"message":"  │   MessagePack│ ~0.7x   │ ~1.5x   │ No (Binary)   │"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":84,"message":"  │   CBOR       │ ~0.6x   │ ~1.6x   │ No (Binary)   │"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":85,"message":"  └────────────────────────────────────────────────────┘"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":86,"message":"  SELECTED CONFIGURATION:"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":87,"message":"    Transport: WebView FFI (Native Binding)"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":88,"message":"    Serialization: JSON (serde_json)"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":89,"message":"    UI Status Display: WebSocket (emulated)"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":90,"message":"  ALTERNATIVE FORMATS AVAILABLE:"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":91,"message":"    - MessagePack: 30% smaller, 1.5x faster (binary)"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":92,"message":"    - CBOR: 40% smaller, 1.6x faster (RFC 7049)"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":93,"message":"  COMMUNICATION FLOW:"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":94,"message":"    Frontend JS --[JSON]--> window.bind() --> Rust Backend"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":95,"message":"    Rust Backend --[JSON]--> window.run_js() --> Frontend JS"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":96,"message":"  ═══════════════════════════════════════════"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":98,"message":"Application starting..."}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":102,"message":"Database path: app.db"}
+{"level":"INFO","target":"rustwebui_app::core::infrastructure::database::connection","file":"src/core/infrastructure/database/connection.rs","line":19,"message":"Database connection established: app.db"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":107,"message":"Database initialized successfully"}
+{"level":"INFO","target":"rustwebui_app::core::infrastructure::database::connection","file":"src/core/infrastructure/database/connection.rs","line":61,"message":"Database schema initialized"}
+{"level":"INFO","target":"rustwebui_app::core::infrastructure::database::users","file":"src/core/infrastructure/database/users.rs","line":125,"message":"Sample data already exists, skipping insertion"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":117,"message":"Sample data created (if not exists)"}
+{"level":"INFO","target":"rustwebui_app::core::presentation::webui::handlers::db_handlers","file":"src/core/presentation/webui/handlers/db_handlers.rs","line":13,"message":"Database handlers initialized"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":134,"message":"=== Utility Modules Demonstration ==="}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":138,"message":"OS: linux Unknown"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":139,"message":"Hostname: endeavour-pc"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":140,"message":"CPU Cores: 4"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":145,"message":"Home directory: /home/naranyala"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":150,"message":"Current time: 2026-02-17 02:42:34 UTC"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":154,"message":"SHA256 hash: e7d87b738825c33824cf3fd32b7314161fc8c425129163ff5e7260fc7288da36"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":158,"message":"Password hashed successfully"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":163,"message":"Email 'test@example.com' valid: true"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":168,"message":"Base64 encoded: SGVsbG8sIFdvcmxkIQ=="}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":172,"message":"Local IP: Some(\"192.168.1.7\")"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":175,"message":"Current PID: 287934"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":180,"message":"Gzip compression: 49 -> 72 bytes"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":184,"message":"Running as admin: false"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":200,"message":"WebUI port set to 41439"}
+{"level":"INFO","target":"rustwebui_app::core::presentation::webui::handlers::db_handlers","file":"src/core/presentation/webui/handlers/db_handlers.rs","line":122,"message":"Database handlers set up successfully"}
+{"level":"INFO","target":"rustwebui_app::core::presentation::webui::handlers::sysinfo_handlers","file":"src/core/presentation/webui/handlers/sysinfo_handlers.rs","line":183,"message":"System info handlers set up successfully"}
+{"level":"INFO","target":"rustwebui_app::core::presentation::webui::handlers::logging_handlers","file":"src/core/presentation/webui/handlers/logging_handlers.rs","line":72,"message":"Logging handlers initialized"}
+{"level":"INFO","target":"rustwebui_app::core::presentation::webui::handlers::event_bus_handlers","file":"src/core/presentation/webui/handlers/event_bus_handlers.rs","line":131,"message":"Event bus handlers initialized"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":215,"message":"Window title: Rust WebUI Application"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":218,"message":"Loading application UI from root index.html"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":232,"message":"Application started successfully, waiting for events..."}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":233,"message":"============================================="}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":238,"message":"Application shutting down..."}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":239,"message":"============================================="}
+{"level":"INFO","target":"rustwebui_app::core::infrastructure::logging","file":"src/core/infrastructure/logging/mod.rs","line":35,"message":"Logging initialized: level=info, file=application.log"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":61,"message":"============================================="}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":62,"message":"Starting: Rust WebUI SQLite Demo v1.0.0"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":67,"message":"============================================="}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":70,"message":"Backend-Frontend Communication Configuration:"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":71,"message":"  ═══════════════════════════════════════════"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":72,"message":"  TRANSPORT OPTIONS:"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":73,"message":"  ┌─────────────────────────────────────────┐"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":74,"message":"  │ ✓ WebView FFI (Native Binding) [ACTIVE] │"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":75,"message":"  │   HTTP/REST (Not used)                  │"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":76,"message":"  │   WebSocket Emulation (UI display)      │"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":77,"message":"  └─────────────────────────────────────────┘"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":78,"message":"  SERIALIZATION OPTIONS:"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":79,"message":"  ┌────────────────────────────────────────────────────┐"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":80,"message":"  │ Format       │ Size    │ Speed   │ Readable      │"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":81,"message":"  ├────────────────────────────────────────────────────┤"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":82,"message":"  │ ✓ JSON       │ 1.0x    │ 1.0x    │ Yes [ACTIVE]  │"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":83,"message":"  │   MessagePack│ ~0.7x   │ ~1.5x   │ No (Binary)   │"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":84,"message":"  │   CBOR       │ ~0.6x   │ ~1.6x   │ No (Binary)   │"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":85,"message":"  └────────────────────────────────────────────────────┘"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":86,"message":"  SELECTED CONFIGURATION:"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":87,"message":"    Transport: WebView FFI (Native Binding)"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":88,"message":"    Serialization: JSON (serde_json)"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":89,"message":"    UI Status Display: WebSocket (emulated)"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":90,"message":"  ALTERNATIVE FORMATS AVAILABLE:"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":91,"message":"    - MessagePack: 30% smaller, 1.5x faster (binary)"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":92,"message":"    - CBOR: 40% smaller, 1.6x faster (RFC 7049)"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":93,"message":"  COMMUNICATION FLOW:"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":94,"message":"    Frontend JS --[JSON]--> window.bind() --> Rust Backend"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":95,"message":"    Rust Backend --[JSON]--> window.run_js() --> Frontend JS"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":96,"message":"  ═══════════════════════════════════════════"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":98,"message":"Application starting..."}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":102,"message":"Database path: app.db"}
+{"level":"INFO","target":"rustwebui_app::core::infrastructure::database::connection","file":"src/core/infrastructure/database/connection.rs","line":19,"message":"Database connection established: app.db"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":107,"message":"Database initialized successfully"}
+{"level":"INFO","target":"rustwebui_app::core::infrastructure::database::connection","file":"src/core/infrastructure/database/connection.rs","line":61,"message":"Database schema initialized"}
+{"level":"INFO","target":"rustwebui_app::core::infrastructure::database::users","file":"src/core/infrastructure/database/users.rs","line":125,"message":"Sample data already exists, skipping insertion"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":117,"message":"Sample data created (if not exists)"}
+{"level":"INFO","target":"rustwebui_app::core::presentation::webui::handlers::db_handlers","file":"src/core/presentation/webui/handlers/db_handlers.rs","line":13,"message":"Database handlers initialized"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":134,"message":"=== Utility Modules Demonstration ==="}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":138,"message":"OS: linux Unknown"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":139,"message":"Hostname: endeavour-pc"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":140,"message":"CPU Cores: 4"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":145,"message":"Home directory: /home/naranyala"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":150,"message":"Current time: 2026-02-17 03:20:40 UTC"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":154,"message":"SHA256 hash: e7d87b738825c33824cf3fd32b7314161fc8c425129163ff5e7260fc7288da36"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":158,"message":"Password hashed successfully"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":163,"message":"Email 'test@example.com' valid: true"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":168,"message":"Base64 encoded: SGVsbG8sIFdvcmxkIQ=="}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":172,"message":"Local IP: Some(\"192.168.1.7\")"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":175,"message":"Current PID: 308031"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":180,"message":"Gzip compression: 49 -> 72 bytes"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":184,"message":"Running as admin: false"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":200,"message":"WebUI port set to 40387"}
+{"level":"INFO","target":"rustwebui_app::core::presentation::webui::handlers::db_handlers","file":"src/core/presentation/webui/handlers/db_handlers.rs","line":122,"message":"Database handlers set up successfully"}
+{"level":"INFO","target":"rustwebui_app::core::presentation::webui::handlers::sysinfo_handlers","file":"src/core/presentation/webui/handlers/sysinfo_handlers.rs","line":183,"message":"System info handlers set up successfully"}
+{"level":"INFO","target":"rustwebui_app::core::presentation::webui::handlers::logging_handlers","file":"src/core/presentation/webui/handlers/logging_handlers.rs","line":72,"message":"Logging handlers initialized"}
+{"level":"INFO","target":"rustwebui_app::core::presentation::webui::handlers::event_bus_handlers","file":"src/core/presentation/webui/handlers/event_bus_handlers.rs","line":131,"message":"Event bus handlers initialized"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":215,"message":"Window title: Rust WebUI Application"}
+{"level":"INFO","target":"rustwebui_app","file":"src/main.rs","line":218,"message":"Loading application UI from root index.html"}

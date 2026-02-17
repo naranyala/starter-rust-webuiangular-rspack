@@ -1,0 +1,18 @@
+{
+  "name": "@rustwebui/core",
+  "version": "1.0.0",
+  "description": "Core library for Rust WebUI Frontend",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "mitt": "^3.0.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

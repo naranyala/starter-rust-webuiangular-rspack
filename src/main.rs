@@ -4,23 +4,18 @@ use std::net::TcpListener;
 use webui_rs::webui;
 use webui_rs::webui::bindgen::webui_set_port;
 
-// MVVM: Domain - Data structures and entities
-mod domain;
-use domain::*;
-
-// MVVM: Infrastructure - database, config, logging, DI
-mod infrastructure;
-use infrastructure::{config::AppConfig, database::Database, logging, di};
-
-// MVVM: Application - business logic and use cases
-mod application;
-
-// MVVM: Presentation - UI handlers and presentation
-mod presentation;
+// MVVM: Core - Domain, Application, Infrastructure, Presentation
+mod core;
+use core::{
+    domain::*,
+    infrastructure::{config::AppConfig, database::Database, logging, di},
+    application,
+    presentation,
+};
 
 // Shared utilities
-mod shared;
-use shared::*;
+mod utils;
+use utils::*;
 
 // Build-time generated config
 include!(concat!(env!("OUT_DIR"), "/build_config.rs"));
@@ -70,6 +65,35 @@ fn main() {
         config.get_version()
     );
     info!("=============================================");
+
+    // Display backend-frontend communication configuration
+    info!("Backend-Frontend Communication Configuration:");
+    info!("  ═══════════════════════════════════════════");
+    info!("  TRANSPORT OPTIONS:");
+    info!("  ┌─────────────────────────────────────────┐");
+    info!("  │ ✓ WebView FFI (Native Binding) [ACTIVE] │");
+    info!("  │   HTTP/REST (Not used)                  │");
+    info!("  │   WebSocket Emulation (UI display)      │");
+    info!("  └─────────────────────────────────────────┘");
+    info!("  SERIALIZATION OPTIONS:");
+    info!("  ┌────────────────────────────────────────────────────┐");
+    info!("  │ Format       │ Size    │ Speed   │ Readable      │");
+    info!("  ├────────────────────────────────────────────────────┤");
+    info!("  │ ✓ JSON       │ 1.0x    │ 1.0x    │ Yes [ACTIVE]  │");
+    info!("  │   MessagePack│ ~0.7x   │ ~1.5x   │ No (Binary)   │");
+    info!("  │   CBOR       │ ~0.6x   │ ~1.6x   │ No (Binary)   │");
+    info!("  └────────────────────────────────────────────────────┘");
+    info!("  SELECTED CONFIGURATION:");
+    info!("    Transport: WebView FFI (Native Binding)");
+    info!("    Serialization: JSON (serde_json)");
+    info!("    UI Status Display: WebSocket (emulated)");
+    info!("  ALTERNATIVE FORMATS AVAILABLE:");
+    info!("    - MessagePack: 30% smaller, 1.5x faster (binary)");
+    info!("    - CBOR: 40% smaller, 1.6x faster (RFC 7049)");
+    info!("  COMMUNICATION FLOW:");
+    info!("    Frontend JS --[JSON]--> window.bind() --> Rust Backend");
+    info!("    Rust Backend --[JSON]--> window.run_js() --> Frontend JS");
+    info!("  ═══════════════════════════════════════════");
 
     info!("Application starting...");
 
@@ -190,9 +214,9 @@ fn main() {
     let window_title = config.get_window_title();
     info!("Window title: {}", window_title);
 
-    // Show the built application - use the root index.html which has correct paths to static files
-    info!("Loading application UI from root index.html");
-    my_window.show("index.html");
+    // Show the built application - load from dist/ directory
+    info!("Loading application UI from dist/index.html");
+    my_window.show("dist/index.html");
 
     // Sync WebUI port to frontend
     if port_ok {
