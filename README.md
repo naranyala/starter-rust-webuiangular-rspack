@@ -1,21 +1,30 @@
 # Rust WebUI + Angular + Rspack Starter
 
-This repository is a full-stack desktop application starter that combines Rust for backend capability with an Angular frontend rendered through WebUI. It is designed for teams that want native-level performance, web-grade UI velocity, and a project layout that scales from prototype to production.
+Build desktop-class software with a modern web UI, a high-performance Rust core, and a codebase designed to scale from prototype to production.
 
-## What This Project Gives You
+This repository is not a toy scaffold. It is a structured platform for teams who want:
 
-- A Rust backend with clear architectural boundaries (domain, application, infrastructure, presentation).
-- An Angular 19 frontend configured for modern build workflows.
-- A WebUI integration path for shipping desktop UX without Electron-level runtime overhead.
-- Scripted build orchestration for frontend, backend, and distribution.
-- Plugin and shared-module scaffolding for extensibility.
+- Rust reliability and performance in the application core.
+- Angular velocity for rich UI and product iteration.
+- WebUI-based desktop delivery without heavyweight Electron overhead.
+- A layered architecture with clean separation of concerns.
+- A growth path for plugins, shared contracts, and multiple app entrypoints.
+
+## Why This Project Is Valuable
+
+Most starter templates optimize for a quick demo. This one optimizes for long-term product delivery.
+
+- It separates domain, application, infrastructure, and presentation on the Rust side.
+- It keeps the active frontend and legacy frontend snapshots side-by-side for safe migration.
+- It includes build orchestration scripts that connect frontend artifacts, static assets, and Rust binaries.
+- It introduces extension points (`core/`, `plugins/`, `shared/`, `apps/`) early, so architecture does not collapse as scope grows.
 
 ## Technology Stack
 
-- Backend: Rust, `webui-rs`, `rusqlite`, `serde`, `log` ecosystem
-- Frontend: Angular 19, TypeScript, WinBox integration
-- Build Tooling: Cargo, Bun, Rspack, Angular CLI
-- Runtime Artifacts: static JS/CSS assets, compiled binaries, SQLite DB, log files
+- Backend: Rust, WebUI integration, SQLite (`rusqlite`), serialization stack (`serde`)
+- Frontend: Angular 19, TypeScript, WinBox windowing integration
+- Build: Cargo, Angular CLI, Bun/Rspack support scripts
+- Runtime: static asset serving (`static/js`, `static/css`), desktop binary, local DB/log files
 
 ## Quick Start
 
@@ -24,7 +33,7 @@ This repository is a full-stack desktop application starter that combines Rust f
 ./run.sh
 ```
 
-Common commands:
+Common workflows:
 
 ```bash
 ./run.sh --build            # Build frontend + backend
@@ -32,174 +41,216 @@ Common commands:
 ./run.sh --build-rust       # Build backend only
 ./run.sh --release          # Release build
 ./run.sh --run              # Run existing build
-./run.sh --clean            # Clean build artifacts
+./run.sh --clean            # Clean artifacts
 ./run.sh --rebuild          # Clean + rebuild
 ```
 
-## Repository Structure (Complete Guide)
+## Repository Structure: Complete Breakdown
 
-The list below explains every top-level piece currently in the repository and how each part contributes to delivery.
+This section explains every major piece in the project and what role it plays in shipping the application.
 
-### Root Files
+### Root-Level Files
 
-- `Cargo.toml`: Root Rust package manifest and dependency graph.
-- `Cargo.lock`: Locked Rust dependency versions for reproducible builds.
-- `README.md`: Project overview and structure guide (this file).
-- `build.rs`: Cargo build script for build-time operations.
-- `build-frontend.js`: Frontend pipeline orchestrator (build, asset copy, `dist/index.html` generation).
-- `build-dist.sh`: Distribution packaging script.
-- `post-build.sh`: Post-build binary rename and packaging hygiene script.
-- `run.sh`: Main developer entrypoint for build/run workflows.
-- `index.html`: Root host HTML used by runtime/build flows.
-- `test.html`: Manual test/debug HTML page.
-- `.gitignore`: Git ignore rules.
+- `Cargo.toml`: root Rust package definition and dependency graph.
+- `Cargo.lock`: locked Rust dependency versions for reproducible builds.
+- `README.md`: project overview and operating guide.
+- `build.rs`: Rust build-time script.
+- `build-frontend.js`: frontend build orchestration and static asset flow.
+- `build-dist.sh`: distribution packaging script.
+- `post-build.sh`: post-build normalization steps.
+- `run.sh`: main developer command entrypoint.
+- `index.html`: root-level host HTML used by runtime/build integration paths.
+- `test.html`: manual HTML test/debug surface.
+- `.gitignore`: ignore policy for generated/runtime files.
 
-### Runtime Data at Root
+### Root Runtime Artifacts
 
-- `app.db`: SQLite database file created/used by the app.
-- `application.log`: Runtime log output file.
+- `app.db`: SQLite runtime database.
+- `application.log`: runtime logging output.
 
 ### Top-Level Directories
 
-- `src/`: Active Rust application source used by the root Cargo package.
-- `frontend/`: Active Angular frontend workspace.
-- `static/`: Runtime-served static assets (`js/`, `css/`).
-- `config/`: App configuration (`app.config.toml`).
-- `docs/`: Architecture, build, and implementation documentation.
-- `core/`: Shared/core crates and frontend core library workspace.
-- `plugins/`: Backend plugin implementation area and frontend plugin scaffold.
-- `apps/`: App entrypoint projects (desktop launcher crate).
-- `shared/`: Shared protocol/type boundaries for multi-module evolution.
-- `frontend-origin/`: Legacy/original frontend snapshot kept for reference/migration.
-- `thirdparty/`: Vendored third-party sources.
-- `dist/`: Generated distribution output.
+- `src/`: active Rust application source used by the root crate.
+- `frontend/`: active Angular workspace.
+- `static/`: runtime-served static JS/CSS assets.
+- `config/`: runtime configuration (`app.config.toml`).
+- `docs/`: architecture/build/reference documentation.
+- `core/`: reusable backend/frontend core packages.
+- `plugins/`: plugin extension area (backend + frontend).
+- `apps/`: application entrypoint crates (desktop wrapper).
+- `shared/`: shared protocol/type boundaries.
+- `frontend-origin/`: historical frontend reference snapshot.
+- `thirdparty/`: vendored upstream sources.
+- `dist/`: distribution output staging.
 - `target/`: Cargo build output.
 
-## `src/` (Primary Rust Application)
+## Rust Backend: `src/`
 
-- `src/main.rs`: Application entrypoint.
-- `src/core/`: Layered backend architecture.
-  - `src/core/domain/`: Core business entities and traits.
-  - `src/core/application/`: Use-case orchestration and handlers.
-    - `src/core/application/handlers/`: API, DB, system info, and UI handlers.
-  - `src/core/infrastructure/`: External systems and concrete implementations.
-    - `src/core/infrastructure/database/`: SQLite connection, models, user data access.
-    - `src/core/infrastructure/logging/`: Logger setup, formatters, logging config.
-    - `src/core/infrastructure/config.rs`: Configuration loading/management.
-    - `src/core/infrastructure/di.rs`: Dependency wiring.
-    - `src/core/infrastructure/event_bus.rs`: Event dispatch plumbing.
-  - `src/core/presentation/`: Presentation boundary.
-    - `src/core/presentation/webui/`: WebUI-facing presentation module.
-- `src/utils/`: Utility modules grouped by capability.
-  - `compression/`, `crypto/`, `encoding/`, `file_ops/`, `network/`, `security/`, `serialization/`, `system/`, `validation/`.
+### Entrypoint
 
-## `frontend/` (Primary Angular Frontend)
+- `src/main.rs`: application bootstrap and runtime startup.
 
-### Frontend App Source
+### Core Architecture (`src/core/`)
 
-- `frontend/src/main.ts`: Angular bootstrap entrypoint.
-- `frontend/src/index.html`: Frontend HTML template for Angular build.
-- `frontend/src/styles.css`: Global styles.
-- `frontend/src/winbox-loader.ts`: WinBox runtime loader integration.
-- `frontend/src/app/`: Angular app shell and feature components.
-  - `app.component.ts`: Main shell (sidebar, search, cards, bottom panel).
-  - `app-routing.module.ts`: Route definitions.
-  - `app.module.ts`: Angular module wiring.
-  - `demo/`, `home/`: Additional feature components/specs.
-- `frontend/src/environments/`: Environment configs.
-- `frontend/src/types/`: Frontend type declarations.
-- `frontend/src/assets/`: Static app assets.
+This follows a layered model:
 
-### Frontend Tooling and Config
+- `src/core/domain/`: domain entities and domain-level traits.
+- `src/core/application/`: use-case orchestration and app handlers.
+  - `src/core/application/handlers/`: focused handler modules (UI, DB, API, sysinfo).
+- `src/core/infrastructure/`: concrete implementations and external integrations.
+  - `src/core/infrastructure/database/`: connection, models, user persistence.
+  - `src/core/infrastructure/logging/`: logger config, formatter, and output behavior.
+  - `src/core/infrastructure/config.rs`: config loading.
+  - `src/core/infrastructure/di.rs`: dependency wiring.
+  - `src/core/infrastructure/event_bus.rs`: backend event dispatch plumbing.
+- `src/core/presentation/`: presentation boundary.
+  - `src/core/presentation/webui/`: WebUI-facing handlers and bridge surface.
 
-- `frontend/package.json`: Frontend dependencies and scripts.
-- `frontend/angular.json`: Angular workspace/build configuration.
-- `frontend/rspack.config.js`: Rspack configuration.
-- `frontend/biome.json`: Lint/format configuration.
-- `frontend/tsconfig*.json`: TypeScript project configs.
-- `frontend/karma.conf.js`: Unit test runner config.
-- `frontend/e2e/`: End-to-end test configuration/specs.
+### Utilities (`src/utils/`)
 
-### Frontend Snapshot and Build Artifacts
+- `compression/`, `crypto/`, `encoding/`, `file_ops/`, `network/`, `security/`, `serialization/`, `system/`, `validation/`.
 
-- `frontend/src-origin/`: Preserved original Angular source snapshot.
-- `frontend/dist/`: Frontend build output.
-- `frontend/node_modules/`: Installed frontend dependencies (generated).
-- `frontend/.angular/`: Angular build cache (generated).
+These modules keep infrastructure-level helper logic out of business layers.
 
-## `core/` (Reusable Core Packages)
+## Frontend App: `frontend/`
 
-- `core/backend/`: Backend core crate with modularized architecture.
-  - `core/backend/src/lib.rs`: Library entrypoint.
-  - `core/backend/src/domain/`, `application/`, `infrastructure/`, `presentation/`: Layered backend modules.
-  - `core/backend/src/error/`: Dedicated error model, kinds, and handlers.
-  - `core/backend/src/plugin/`: Plugin metadata, registry, context, and traits.
-- `core/frontend/`: Frontend core package.
-  - `core/frontend/src/core/`: Shared frontend models, services, events, plugin interface, viewmodel.
-  - `core/frontend/src/error/`: Structured frontend error handling primitives.
-  - `core/frontend/src/index.ts`: Frontend core package entrypoint.
+### Primary Runtime Source (`frontend/src/`)
 
-## `plugins/` (Extensibility Surface)
+- `frontend/src/main.ts`: Angular bootstrap and global startup wiring.
+- `frontend/src/index.html`: Angular HTML template.
+- `frontend/src/styles.css`: global stylesheet overrides.
+- `frontend/src/winbox-loader.ts`: WinBox runtime loader.
 
-- `plugins/backend/plugin-database/`: Example backend plugin crate.
+#### App Shell (`frontend/src/app/`)
+
+- `frontend/src/app/app.component.ts`: main shell UI, top/bottom panels, card grid, WinBox lifecycle wiring.
+- `frontend/src/app/app.module.ts`: Angular module wiring.
+- `frontend/src/app/app-routing.module.ts`: routing setup.
+- `frontend/src/app/home/`: home component and tests.
+- `frontend/src/app/demo/`: demo component and tests.
+- `frontend/src/app/shared/error-modal.component.ts`: global error modal with backdrop.
+
+#### Frontend Runtime Systems
+
+- `frontend/src/logging/logger.ts`: structured logging system (levels, redaction, history, sinks).
+- `frontend/src/error/global-error.service.ts`: root error state service.
+- `frontend/src/error/global-error.handler.ts`: Angular `ErrorHandler` integration.
+- `frontend/src/event-bus/event-bus.ts`: typed event bus implementation.
+- `frontend/src/event-bus/events.ts`: frontend event contract map.
+- `frontend/src/event-bus/index.ts`: shared event bus instance export.
+
+#### Environment and Typing
+
+- `frontend/src/environments/environment.ts`: development config.
+- `frontend/src/environments/environment.prod.ts`: production config.
+- `frontend/src/types/`: frontend declaration extensions.
+- `frontend/src/assets/`: static frontend assets.
+
+### Frontend Tooling and Build Config
+
+- `frontend/package.json`: scripts and dependencies.
+- `frontend/angular.json`: Angular build/serve configuration.
+- `frontend/rspack.config.js`: Rspack config path.
+- `frontend/tsconfig.json`, `frontend/tsconfig.app.json`, `frontend/tsconfig.spec.json`: TypeScript configs.
+- `frontend/biome.json`: lint/format policy.
+- `frontend/karma.conf.js`: unit test runner config.
+- `frontend/e2e/`: end-to-end testing config.
+
+### Frontend Generated Directories
+
+- `frontend/dist/`: compiled frontend output.
+- `frontend/.angular/`: Angular cache.
+- `frontend/node_modules/`: installed JS dependencies.
+
+## Core Packages: `core/`
+
+### `core/backend/`
+
+A reusable Rust backend core library with its own layered architecture:
+
+- `core/backend/src/lib.rs`: package entrypoint.
+- `core/backend/src/domain/`, `application/`, `infrastructure/`, `presentation/`.
+- `core/backend/src/error/`: normalized error model and handler abstractions.
+- `core/backend/src/plugin/`: plugin context, metadata, registry, and traits.
+
+### `core/frontend/`
+
+A reusable TypeScript frontend core package:
+
+- `core/frontend/src/core/models.ts`: common model primitives.
+- `core/frontend/src/core/viewmodel.ts`: viewmodel base behavior.
+- `core/frontend/src/core/events.ts`: core event bus utility.
+- `core/frontend/src/core/plugin.ts`: plugin abstractions.
+- `core/frontend/src/core/service.ts`: service base patterns.
+- `core/frontend/src/error/`: frontend error value model.
+- `core/frontend/src/index.ts`: package export surface.
+
+## Plugins: `plugins/`
+
+- `plugins/backend/plugin-database/`: backend plugin example.
   - `Cargo.toml`, `plugin.json`, `src/lib.rs`.
-- `plugins/frontend/`: Frontend plugin area scaffold (currently structure-first).
+- `plugins/frontend/`: frontend plugin extension area scaffold.
 
-## `apps/` (Application Entrypoints)
+## Application Entrypoints: `apps/`
 
-- `apps/desktop/`: Desktop app crate wrapper/launcher.
+- `apps/desktop/`: desktop application wrapper crate.
   - `apps/desktop/Cargo.toml`
   - `apps/desktop/src/main.rs`
 
-## `shared/` (Cross-Boundary Contracts)
+## Shared Contracts: `shared/`
 
-- `shared/protocol/`: Protocol-level shared definitions scaffold.
-- `shared/types/`: Shared type contracts scaffold.
+- `shared/protocol/`: cross-boundary protocol scaffolding.
+- `shared/types/`: shared type contract scaffolding.
 
-## `config/`
+## Configuration: `config/`
 
-- `config/app.config.toml`: Central app/runtime settings.
-  - App metadata
-  - Executable naming
-  - Database path/seed behavior
-  - Window sizing
-  - Logging behavior
-  - Feature flags
+- `config/app.config.toml`: runtime configuration source.
 
-## `docs/` (Reference Documentation)
+Typical configuration domains include app metadata, window behavior, database settings, and logging options.
 
-The docs directory includes both foundational guides and implementation logs:
+## Runtime Static Assets: `static/`
 
-- Numbered guides: `01-overview.md` through `07-getting-started.md`
-- Architecture/build/dependency deep dives
-- Refactor and file-splitting plans and summaries
-- Communication, serialization, and plugin architecture notes
+- `static/js/`: runtime JavaScript assets (including WebUI bridge files).
+- `static/css/`: runtime stylesheets.
 
-## `frontend-origin/` (Legacy Frontend Reference)
+These assets are consumed by runtime HTML and desktop WebUI rendering.
 
-Contains an older frontend implementation kept for migration comparison and rollback safety:
+## Legacy Frontend Snapshot: `frontend-origin/`
 
-- Independent `package.json`, config files, and source tree
-- Historical dist/static outputs
+Historical frontend implementation retained for migration safety and comparison:
 
-## `thirdparty/`
+- independent source tree
+- standalone configs
+- historical event bus and bridge experiments
 
-- `thirdparty/webui-c-src/`: Vendored WebUI C source and examples.
+## Vendor Sources: `thirdparty/`
 
-## Build and Output Flow
+- `thirdparty/webui-c-src/`: vendored WebUI C source and examples.
 
-1. Frontend is built in `frontend/`.
-2. `build-frontend.js` copies generated JS/CSS into runtime static locations.
-3. Rust binary is built via Cargo into `target/`.
-4. `post-build.sh` normalizes executable naming.
-5. Final runnable assets live across `target/`, `static/`, and `dist/`.
+## Build and Delivery Flow
 
-## Why This Structure Works in Public and Production
+1. Frontend builds from `frontend/`.
+2. Static/runtime assets are assembled for WebUI runtime paths.
+3. Rust binary is built via Cargo.
+4. Post-build scripts normalize packaging outputs.
+5. Final runnable artifacts are distributed across `target/`, `dist/`, and runtime static paths.
 
-- Teams can onboard fast because runtime code, core libraries, plugins, and app wrappers are separated early.
-- Refactoring is safer because domain/application/infrastructure boundaries are explicit.
-- Delivery is faster because frontend and backend build pipelines are scriptable and independently evolvable.
-- Expansion is straightforward because `core/`, `plugins/`, `apps/`, and `shared/` are already laid out for scale.
+## Documentation Map: `docs/`
+
+`docs/` contains architecture explainers, build references, restructuring plans, and implementation summaries.
+
+Use these files when you want deeper design rationale beyond this README.
+
+## Positioning for Public Use
+
+This project is intentionally engineered to be publishable, forkable, and maintainable by teams:
+
+- clear boundaries between core logic and delivery surfaces
+- explicit extension points for plugins and shared contracts
+- modern frontend runtime systems (event bus, logging, error modal)
+- backend architecture ready for iterative feature growth
+
+If you are evaluating templates for a serious product roadmap, this repository is structured to reduce rework later while preserving speed now.
 
 ## License
 
