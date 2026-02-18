@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
-import { getLogger } from '../logging/logger';
-import { appEventBus } from '../event-bus';
+import { getLogger } from '../viewmodels/logger';
+import { EventBusViewModel } from '../viewmodels/event-bus.viewmodel';
 
 export interface RootErrorState {
   id: number;
@@ -21,13 +21,19 @@ export interface RootErrorContext {
 export class GlobalErrorService {
   private readonly logger = getLogger('error.service');
   private sequence = 0;
+  private eventBus: EventBusViewModel<Record<string, unknown>>;
 
   readonly activeError = signal<RootErrorState | null>(null);
+
+  constructor() {
+    const debugWindow = window as unknown as { __FRONTEND_EVENT_BUS__?: EventBusViewModel<Record<string, unknown>> };
+    this.eventBus = debugWindow.__FRONTEND_EVENT_BUS__ ?? new EventBusViewModel<Record<string, unknown>>();
+  }
 
   report(error: unknown, context: RootErrorContext = {}): RootErrorState {
     const normalized = this.normalizeError(error, context);
     this.activeError.set(normalized);
-    appEventBus.publish('error:captured', {
+    this.eventBus.publish('error:captured', {
       id: normalized.id,
       source: normalized.source,
       title: normalized.title,

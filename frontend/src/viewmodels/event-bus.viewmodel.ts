@@ -1,6 +1,4 @@
-import { getLogger } from '../logging/logger';
-
-export type EventMapBase = object;
+import { Injectable, signal } from '@angular/core';
 
 export interface BusEvent<K extends string = string, P = unknown> {
   id: number;
@@ -34,24 +32,29 @@ export interface EventBusStats {
   historySize: number;
 }
 
-export class EventBus<Events extends EventMapBase> {
-  private readonly logger;
+@Injectable({
+  providedIn: 'root'
+})
+export class EventBusViewModel<Events extends object> {
   private subscriptions = new Map<keyof Events & string, Map<number, InternalSubscription>>();
   private anySubscriptions = new Map<number, AnyHandler>();
   private history: Array<BusEvent<keyof Events & string, unknown>> = [];
   private nextId = 1;
-  private enabled = true;
+  private enabled = signal(true);
+  private namespace = 'app';
+  private maxHistory = 300;
 
-  constructor(
-    private readonly namespace = 'app',
-    private readonly maxHistory = 300
-  ) {
-    this.logger = getLogger(`event-bus.${namespace}`);
+  readonly isEnabled = this.enabled.asReadonly();
+
+  constructor() {}
+
+  init(namespace: string, maxHistory: number): void {
+    this.namespace = namespace;
+    this.maxHistory = maxHistory;
   }
 
   setEnabled(enabled: boolean): void {
-    this.enabled = enabled;
-    this.logger.info('Event bus enabled state changed', { enabled });
+    this.enabled.set(enabled);
   }
 
   subscribe<K extends keyof Events & string>(
@@ -73,8 +76,8 @@ export class EventBus<Events extends EventMapBase> {
       if (last) {
         try {
           handler(last.payload as Events[K], last as BusEvent<string, Events[K]>);
-        } catch (error) {
-          this.logger.error('Event handler failed during replay', { event: name }, error);
+        } catch {
+          // Silently ignore handler errors during replay
         }
       }
     }
@@ -101,7 +104,7 @@ export class EventBus<Events extends EventMapBase> {
   }
 
   publish<K extends keyof Events & string>(name: K, payload: Events[K], options: PublishOptions = {}): void {
-    if (!this.enabled) {
+    if (!this.enabled()) {
       return;
     }
 
@@ -120,8 +123,8 @@ export class EventBus<Events extends EventMapBase> {
         for (const [id, subscription] of bucket.entries()) {
           try {
             subscription.handler(payload, event as BusEvent<string, unknown>);
-          } catch (error) {
-            this.logger.error('Event handler failed', { event: name, listenerId: id }, error);
+          } catch {
+            // Silently ignore handler errors
           }
 
           if (subscription.once) {
@@ -134,11 +137,11 @@ export class EventBus<Events extends EventMapBase> {
         }
       }
 
-      for (const [id, handler] of this.anySubscriptions.entries()) {
+      for (const [, handler] of this.anySubscriptions) {
         try {
           handler(event as BusEvent<string, unknown>);
-        } catch (error) {
-          this.logger.error('Wildcard event handler failed', { event: name, listenerId: id }, error);
+        } catch {
+          // Silently ignore handler errors
         }
       }
     };
@@ -189,7 +192,7 @@ export class EventBus<Events extends EventMapBase> {
     }
 
     return {
-      enabled: this.enabled,
+      enabled: this.enabled(),
       listeners,
       anyListeners: this.anySubscriptions.size,
       historySize: this.history.length,

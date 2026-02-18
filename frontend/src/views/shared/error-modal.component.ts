@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import type { RootErrorState } from '../../error/global-error.service';
+import { RootErrorState } from '../../core/global-error.service';
 
 @Component({
   selector: 'app-error-modal',
@@ -9,13 +9,7 @@ import type { RootErrorState } from '../../error/global-error.service';
   template: `
     @if (error) {
       <div class="error-backdrop" (click)="dismissed.emit()">
-        <section
-          class="error-modal"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Application error"
-          (click)="$event.stopPropagation()"
-        >
+        <section class="error-modal" role="dialog" aria-modal="true" aria-label="Application error" (click)="$event.stopPropagation()">
           <header class="error-header">
             <h2 class="error-title">{{ error.title }}</h2>
             <button type="button" class="error-close" (click)="dismissed.emit()" aria-label="Close error dialog">✕</button>

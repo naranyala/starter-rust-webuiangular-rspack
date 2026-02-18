@@ -3,27 +3,28 @@ import '@angular/compiler';
 import './winbox-loader';
 import { bootstrapApplication } from '@angular/platform-browser';
 import { ErrorHandler } from '@angular/core';
-import { AppComponent } from './app/app.component';
+import { AppComponent } from './views/app.component';
 import { environment } from './environments/environment';
-import { clearLogHistory, configureLogging, getLogHistory, getLogger } from './logging/logger';
-import { GlobalErrorHandler } from './error/global-error.handler';
-import { GlobalErrorService } from './error/global-error.service';
-import { appEventBus } from './event-bus';
+import { clearLogHistory, configureLogging, getLogHistory, getLogger } from './viewmodels/logger';
+import { GlobalErrorHandler } from './core/global-error.handler';
+import { EventBusViewModel } from './viewmodels/event-bus.viewmodel';
+import { GlobalErrorService } from './core/global-error.service';
+
+const eventBus = new EventBusViewModel<Record<string, unknown>>();
+eventBus.init('app', 300);
 
 configureLogging(environment.logging);
 const logger = getLogger('bootstrap');
-const debugApiWindow = window as Window & {
+
+const debugApiWindow = window as unknown as {
   __FRONTEND_LOGS__?: { getHistory: typeof getLogHistory; clear: typeof clearLogHistory };
-  __FRONTEND_EVENT_BUS__?: typeof appEventBus;
+  __FRONTEND_EVENT_BUS__?: EventBusViewModel<Record<string, unknown>>;
 };
-debugApiWindow.__FRONTEND_LOGS__ = {
-  getHistory: getLogHistory,
-  clear: clearLogHistory,
-};
-debugApiWindow.__FRONTEND_EVENT_BUS__ = appEventBus;
+debugApiWindow.__FRONTEND_LOGS__ = { getHistory: getLogHistory, clear: clearLogHistory };
+debugApiWindow.__FRONTEND_EVENT_BUS__ = eventBus;
 
 const globalFlag = '__frontendGlobalErrorHooks';
-const globalWindow = window as Window & { [globalFlag]?: boolean };
+const globalWindow = window as unknown as { [key: string]: unknown };
 
 try {
   logger.info('Starting Angular bootstrap', { production: environment.production });
@@ -31,34 +32,29 @@ try {
     providers: [{ provide: ErrorHandler, useClass: GlobalErrorHandler }],
   })
     .then((appRef) => {
-      const globalErrorService = appRef.injector.get(GlobalErrorService);
       if (!globalWindow[globalFlag]) {
         window.addEventListener('error', (event) => {
           event.preventDefault();
-          globalErrorService.report(event.error ?? event.message, {
-            source: 'window',
-            details: event.filename ? `${event.filename}:${event.lineno}:${event.colno}` : undefined,
-          });
+          const errorService = appRef.injector.get(GlobalErrorService);
+          errorService.report(event.error ?? event.message, { source: 'window' });
         });
 
         window.addEventListener('unhandledrejection', (event) => {
           event.preventDefault();
-          globalErrorService.report(event.reason, {
-            source: 'promise',
-            title: 'Unhandled Promise Rejection',
-          });
+          const errorService = appRef.injector.get(GlobalErrorService);
+          errorService.report(event.reason, { source: 'promise', title: 'Unhandled Promise Rejection' });
         });
 
         globalWindow[globalFlag] = true;
       }
-      appEventBus.publish('app:ready', { timestamp: Date.now() });
+      eventBus.publish('app:ready', { timestamp: Date.now() });
       logger.info('Angular bootstrap completed');
     })
     .catch((err) => {
       logger.error('Angular bootstrap failed', {}, err);
       document.body.innerHTML = `<h1 style="color:red;">Error: ${err.message}</h1>`;
     });
-} catch (err: any) {
+} catch (err: unknown) {
   logger.error('Bootstrap threw synchronously', {}, err);
-  document.body.innerHTML = `<h1 style="color:red;">Error: ${err.message}</h1>`;
+  document.body.innerHTML = `<h1 style="color:red;">Error: ${(err as Error).message}</h1>`;
 }

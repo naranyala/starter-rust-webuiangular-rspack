@@ -15,6 +15,7 @@ This repository is not a toy scaffold. It is a structured platform for teams who
 Most starter templates optimize for a quick demo. This one optimizes for long-term product delivery.
 
 - It separates domain, application, infrastructure, and presentation on the Rust side.
+- It embraces MVVM pattern on the Angular frontend with clear separation of models, viewmodels, and views.
 - It keeps the active frontend and legacy frontend snapshots side-by-side for safe migration.
 - It includes build orchestration scripts that connect frontend artifacts, static assets, and Rust binaries.
 - It introduces extension points (`core/`, `plugins/`, `shared/`, `apps/`) early, so architecture does not collapse as scope grows.
@@ -45,44 +46,26 @@ Common workflows:
 ./run.sh --rebuild          # Clean + rebuild
 ```
 
-## Repository Structure: Complete Breakdown
+## Repository Structure Overview
 
-This section explains every major piece in the project and what role it plays in shipping the application.
+```
+.
+├── src/                    # Active Rust application (main entry)
+├── frontend/               # Active Angular workspace (MVVM)
+├── core/                  # Reusable backend/frontend core packages
+├── plugins/               # Plugin extension area
+├── apps/                  # Application entrypoint crates
+├── shared/                # Shared protocol/type boundaries
+├── config/                # Runtime configuration
+├── static/                # Runtime static JS/CSS assets
+├── frontend-origin/       # Historical frontend reference
+├── frontend/src-origin/   # Pre-MVVM frontend snapshot
+├── thirdparty/            # Vendored upstream sources
+├── dist/                  # Distribution output
+└── target/                # Cargo build output
+```
 
-### Root-Level Files
-
-- `Cargo.toml`: root Rust package definition and dependency graph.
-- `Cargo.lock`: locked Rust dependency versions for reproducible builds.
-- `README.md`: project overview and operating guide.
-- `build.rs`: Rust build-time script.
-- `build-frontend.js`: frontend build orchestration and static asset flow.
-- `build-dist.sh`: distribution packaging script.
-- `post-build.sh`: post-build normalization steps.
-- `run.sh`: main developer command entrypoint.
-- `index.html`: root-level host HTML used by runtime/build integration paths.
-- `test.html`: manual HTML test/debug surface.
-- `.gitignore`: ignore policy for generated/runtime files.
-
-### Root Runtime Artifacts
-
-- `app.db`: SQLite runtime database.
-- `application.log`: runtime logging output.
-
-### Top-Level Directories
-
-- `src/`: active Rust application source used by the root crate.
-- `frontend/`: active Angular workspace.
-- `static/`: runtime-served static JS/CSS assets.
-- `config/`: runtime configuration (`app.config.toml`).
-- `docs/`: architecture/build/reference documentation.
-- `core/`: reusable backend/frontend core packages.
-- `plugins/`: plugin extension area (backend + frontend).
-- `apps/`: application entrypoint crates (desktop wrapper).
-- `shared/`: shared protocol/type boundaries.
-- `frontend-origin/`: historical frontend reference snapshot.
-- `thirdparty/`: vendored upstream sources.
-- `dist/`: distribution output staging.
-- `target/`: Cargo build output.
+---
 
 ## Rust Backend: `src/`
 
@@ -92,11 +75,11 @@ This section explains every major piece in the project and what role it plays in
 
 ### Core Architecture (`src/core/`)
 
-This follows a layered model:
+This follows a layered model (Domain-Driven Design inspired):
 
 - `src/core/domain/`: domain entities and domain-level traits.
 - `src/core/application/`: use-case orchestration and app handlers.
-  - `src/core/application/handlers/`: focused handler modules (UI, DB, API, sysinfo).
+  - `src/core/application/handlers/`: focused handler modules (UI, DB, API, sysinfo, window_state).
 - `src/core/infrastructure/`: concrete implementations and external integrations.
   - `src/core/infrastructure/database/`: connection, models, user persistence.
   - `src/core/infrastructure/logging/`: logger config, formatter, and output behavior.
@@ -112,48 +95,81 @@ This follows a layered model:
 
 These modules keep infrastructure-level helper logic out of business layers.
 
-## Frontend App: `frontend/`
+---
+
+## Frontend App: `frontend/` (MVVM Pattern)
 
 ### Primary Runtime Source (`frontend/src/`)
 
-- `frontend/src/main.ts`: Angular bootstrap and global startup wiring.
-- `frontend/src/index.html`: Angular HTML template.
-- `frontend/src/styles.css`: global stylesheet overrides.
-- `frontend/src/winbox-loader.ts`: WinBox runtime loader.
+```
+frontend/src/
+├── main.ts                    # Angular bootstrap and global startup wiring
+├── winbox-loader.ts          # WinBox runtime loader
+├── environments/             # Environment configs (dev/prod)
+├── types/                   # TypeScript declarations
+├── polyfills.ts             # Angular polyfills
+├── test.ts                  # Test configuration
+│
+├── models/                  # M - Data interfaces and types
+│   ├── index.ts             # Barrel export
+│   ├── card.model.ts        # Card entity interfaces
+│   ├── window.model.ts      # Window state interfaces
+│   └── log.model.ts         # Logging interfaces
+│
+├── viewmodels/              # VM - Business logic and state management
+│   ├── index.ts             # Barrel export
+│   ├── logging.viewmodel.ts # Logging backend service
+│   ├── logger.ts            # Logger facade API
+│   ├── event-bus.viewmodel.ts # Event bus implementation
+│   └── window-state.viewmodel.ts # Window state management
+│
+├── views/                   # V - Angular components
+│   ├── app.component.ts     # Main shell component
+│   ├── app.module.ts        # Angular module
+│   ├── app-routing.module.ts # Routing configuration
+│   ├── home/
+│   │   └── home.component.ts
+│   ├── demo/
+│   │   └── demo.component.ts
+│   └── shared/
+│       └── error-modal.component.ts
+│
+└── core/                   # Shared infrastructure
+    ├── index.ts
+    ├── global-error.service.ts
+    └── global-error.handler.ts
+```
 
-#### App Shell (`frontend/src/app/`)
+### MVVM Pattern Explanation
 
-- `frontend/src/app/app.component.ts`: main shell UI, top/bottom panels, card grid, WinBox lifecycle wiring.
-- `frontend/src/app/app.module.ts`: Angular module wiring.
-- `frontend/src/app/app-routing.module.ts`: routing setup.
-- `frontend/src/app/home/`: home component and tests.
-- `frontend/src/app/demo/`: demo component and tests.
-- `frontend/src/app/shared/error-modal.component.ts`: global error modal with backdrop.
+**Models (`models/`):**
+- Pure data interfaces and type definitions
+- No business logic, only data shape contracts
+- Examples: `Card`, `WindowEntry`, `LogEntry`
 
-#### Frontend Runtime Systems
+**ViewModels (`viewmodels/`):**
+- Business logic and state management services
+- Angular services decorated with `@Injectable`
+- Handle data transformation, state, and communication
+- Examples: `LoggingViewModel`, `EventBusViewModel`, `WindowStateViewModel`
 
-- `frontend/src/logging/logger.ts`: structured logging system (levels, redaction, history, sinks).
-- `frontend/src/error/global-error.service.ts`: root error state service.
-- `frontend/src/error/global-error.handler.ts`: Angular `ErrorHandler` integration.
-- `frontend/src/event-bus/event-bus.ts`: typed event bus implementation.
-- `frontend/src/event-bus/events.ts`: frontend event contract map.
-- `frontend/src/event-bus/index.ts`: shared event bus instance export.
+**Views (`views/`):**
+- Angular components (presentation layer)
+- Handle UI rendering and user interaction
+- Consume ViewModels via dependency injection
+- Examples: `AppComponent`, `DemoComponent`, `HomeComponent`
 
-#### Environment and Typing
-
-- `frontend/src/environments/environment.ts`: development config.
-- `frontend/src/environments/environment.prod.ts`: production config.
-- `frontend/src/types/`: frontend declaration extensions.
-- `frontend/src/assets/`: static frontend assets.
+**Core (`core/`):**
+- Cross-cutting concerns
+- Error handling infrastructure
+- Shared utilities that don't fit in other layers
 
 ### Frontend Tooling and Build Config
 
 - `frontend/package.json`: scripts and dependencies.
 - `frontend/angular.json`: Angular build/serve configuration.
-- `frontend/rspack.config.js`: Rspack config path.
 - `frontend/tsconfig.json`, `frontend/tsconfig.app.json`, `frontend/tsconfig.spec.json`: TypeScript configs.
 - `frontend/biome.json`: lint/format policy.
-- `frontend/karma.conf.js`: unit test runner config.
 - `frontend/e2e/`: end-to-end testing config.
 
 ### Frontend Generated Directories
@@ -161,6 +177,8 @@ These modules keep infrastructure-level helper logic out of business layers.
 - `frontend/dist/`: compiled frontend output.
 - `frontend/.angular/`: Angular cache.
 - `frontend/node_modules/`: installed JS dependencies.
+
+---
 
 ## Core Packages: `core/`
 
@@ -185,11 +203,15 @@ A reusable TypeScript frontend core package:
 - `core/frontend/src/error/`: frontend error value model.
 - `core/frontend/src/index.ts`: package export surface.
 
+---
+
 ## Plugins: `plugins/`
 
 - `plugins/backend/plugin-database/`: backend plugin example.
   - `Cargo.toml`, `plugin.json`, `src/lib.rs`.
 - `plugins/frontend/`: frontend plugin extension area scaffold.
+
+---
 
 ## Application Entrypoints: `apps/`
 
@@ -197,16 +219,22 @@ A reusable TypeScript frontend core package:
   - `apps/desktop/Cargo.toml`
   - `apps/desktop/src/main.rs`
 
+---
+
 ## Shared Contracts: `shared/`
 
 - `shared/protocol/`: cross-boundary protocol scaffolding.
 - `shared/types/`: shared type contract scaffolding.
+
+---
 
 ## Configuration: `config/`
 
 - `config/app.config.toml`: runtime configuration source.
 
 Typical configuration domains include app metadata, window behavior, database settings, and logging options.
+
+---
 
 ## Runtime Static Assets: `static/`
 
@@ -215,7 +243,11 @@ Typical configuration domains include app metadata, window behavior, database se
 
 These assets are consumed by runtime HTML and desktop WebUI rendering.
 
-## Legacy Frontend Snapshot: `frontend-origin/`
+---
+
+## Legacy Frontend Snapshots
+
+### `frontend-origin/`
 
 Historical frontend implementation retained for migration safety and comparison:
 
@@ -223,17 +255,27 @@ Historical frontend implementation retained for migration safety and comparison:
 - standalone configs
 - historical event bus and bridge experiments
 
+### `frontend/src-origin/`
+
+Pre-MVVM restructuring snapshot kept for reference during transition.
+
+---
+
 ## Vendor Sources: `thirdparty/`
 
 - `thirdparty/webui-c-src/`: vendored WebUI C source and examples.
 
+---
+
 ## Build and Delivery Flow
 
-1. Frontend builds from `frontend/`.
+1. Frontend builds from `frontend/` using Angular CLI or Rspack.
 2. Static/runtime assets are assembled for WebUI runtime paths.
 3. Rust binary is built via Cargo.
 4. Post-build scripts normalize packaging outputs.
 5. Final runnable artifacts are distributed across `target/`, `dist/`, and runtime static paths.
+
+---
 
 ## Documentation Map: `docs/`
 
@@ -241,16 +283,103 @@ Historical frontend implementation retained for migration safety and comparison:
 
 Use these files when you want deeper design rationale beyond this README.
 
+---
+
+## Potential Improvements
+
+The following suggestions are focused on project structure improvements to enhance maintainability, scalability, and code clarity.
+
+### Frontend Structure
+
+1. **Consolidate Core Packages**
+   - Consider merging `core/frontend/` with `frontend/src/core/` to eliminate duplication
+   - Create a single source of truth for shared frontend utilities
+
+2. **Extract Shared Types**
+   - Move duplicated type definitions between `frontend/src/models/`, `core/frontend/src/core/models.ts`, and event contracts into a single shared package
+   - Use `shared/` directory for cross-boundary type contracts
+
+3. **Modularize ViewModels**
+   - Consider grouping related viewmodels into feature-specific folders (e.g., `viewmodels/windows/`, `viewmodels/logging/`)
+   - Add barrel exports (`index.ts`) for each feature module
+
+4. **Separate Routing Configuration**
+   - Move routing logic from `views/app-routing.module.ts` to a dedicated `views/routes/` directory
+   - Consider lazy loading routes with separate route files per feature
+
+5. **Feature-Based Directory Structure**
+   - Restructure from layer-based (models/, views/, viewmodels/) to feature-based:
+     ```
+     features/
+       ├── windows/
+       │   ├── models/
+       │   ├── viewmodels/
+       │   └── components/
+       └── logging/
+           ├── models/
+           ├── viewmodels/
+           └── components/
+     ```
+
+### Backend Structure
+
+6. **Consolidate Handler Locations**
+   - Handlers exist in both `src/core/application/handlers/` and `src/core/presentation/webui/handlers/`
+   - Establish clear ownership: application handlers for use cases, presentation handlers for UI binding
+
+7. **Extract Infrastructure Services**
+   - Move concrete infrastructure implementations from `src/utils/` into `src/core/infrastructure/`
+   - Keep `src/utils/` for truly generic, application-agnostic utilities
+
+8. **Plugin System Refinement**
+   - Formalize plugin contract between `core/backend/src/plugin/` and `plugins/backend/`
+   - Consider frontend plugin architecture to complement backend plugins
+
+9. **Shared Error Handling**
+   - Unify error types across `core/backend/src/error/` and main application handlers
+   - Create standardized error codes for frontend-backend communication
+
+### Build and Configuration
+
+10. **Consolidate Frontend Variants**
+    - Choose between `frontend/` (MVVM), `frontend-origin/`, and `frontend/src-origin/`
+    - Keep only one active frontend and archive others
+
+11. **Environment Configuration**
+    - Centralize environment-specific settings in `config/` rather than having them split between `config/` and `frontend/src/environments/`
+
+12. **Build Script Organization**
+    - Consider moving build-related scripts to a dedicated `scripts/` directory at root level
+    - Document build pipeline dependencies more explicitly
+
+### General Architecture
+
+13. **Documentation Generation**
+    - Add documentation comments to public APIs in both Rust and TypeScript
+    - Consider using Rust's `rustdoc` and TypeScript's documentation generators
+
+14. **Testing Strategy**
+    - Establish clear testing directory structure (e.g., `tests/` for integration, co-located unit tests)
+    - Add test configuration for the new MVVM structure
+
+15. **CI/CD Pipeline Definition**
+    - Add `.github/workflows/` or similar for automated builds and tests
+    - Define clear build matrix for different target platforms
+
+---
+
 ## Positioning for Public Use
 
 This project is intentionally engineered to be publishable, forkable, and maintainable by teams:
 
 - clear boundaries between core logic and delivery surfaces
 - explicit extension points for plugins and shared contracts
-- modern frontend runtime systems (event bus, logging, error modal)
+- modern frontend runtime systems (MVVM, event bus, logging, error modal)
 - backend architecture ready for iterative feature growth
 
 If you are evaluating templates for a serious product roadmap, this repository is structured to reduce rework later while preserving speed now.
+
+---
 
 ## License
 
