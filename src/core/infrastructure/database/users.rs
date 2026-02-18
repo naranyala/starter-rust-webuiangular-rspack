@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 // src/core/infrastructure/database/users.rs
 // User-specific database operations
 
@@ -220,7 +221,9 @@ mod tests {
         let db = Database::new(":memory:").unwrap();
         db.init().unwrap();
 
-        let id = db.insert_user("Test", "test@example.com", "User", "Active").unwrap();
+        let id = db
+            .insert_user("Test", "test@example.com", "User", "Active")
+            .unwrap();
         let deleted = db.delete_user(id).unwrap();
         assert_eq!(deleted, 1);
     }

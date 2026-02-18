@@ -1,7 +1,9 @@
+#![allow(dead_code)]
 // src/shared/serialization/mod.rs
 // Serialization utilities for backend-frontend communication
 // Supports multiple formats: JSON, MessagePack, CBOR
 
+use base64::{engine::general_purpose::STANDARD, Engine};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
@@ -134,8 +136,8 @@ pub fn serialize<T: Serialize>(value: &T, format: SerializationFormat) -> Result
             Ok(base64_encode(&bytes))
         }
         SerializationFormat::Cbor => {
-            let bytes = serde_cbor::to_vec(value)
-                .map_err(|e| format!("CBOR serialize error: {}", e))?;
+            let bytes =
+                serde_cbor::to_vec(value).map_err(|e| format!("CBOR serialize error: {}", e))?;
             Ok(base64_encode(&bytes))
         }
     }
@@ -157,22 +159,23 @@ pub fn deserialize<T: for<'de> Deserialize<'de>>(
                 .map_err(|e| format!("MessagePack deserialize error: {}", e))
         }
         SerializationFormat::Cbor => {
-            let bytes = base64_decode(data)
-                .map_err(|e| format!("CBOR base64 decode error: {}", e))?;
-            serde_cbor::from_slice(&bytes)
-                .map_err(|e| format!("CBOR deserialize error: {}", e))
+            let bytes =
+                base64_decode(data).map_err(|e| format!("CBOR base64 decode error: {}", e))?;
+            serde_cbor::from_slice(&bytes).map_err(|e| format!("CBOR deserialize error: {}", e))
         }
     }
 }
 
 /// Base64 encode for binary data transport over text protocols
 fn base64_encode(data: &[u8]) -> String {
-    base64::encode(data)
+    STANDARD.encode(data)
 }
 
 /// Base64 decode for binary data transport over text protocols
 fn base64_decode(data: &str) -> Result<Vec<u8>, String> {
-    base64::decode(data).map_err(|e| format!("Base64 decode error: {}", e))
+    STANDARD
+        .decode(data)
+        .map_err(|e| format!("Base64 decode error: {}", e))
 }
 
 /// Get comparison table of all formats
@@ -244,7 +247,8 @@ mod tests {
             value: 42,
         };
         let serialized = serialize(&data, SerializationFormat::MessagePack).unwrap();
-        let deserialized: TestData = deserialize(&serialized, SerializationFormat::MessagePack).unwrap();
+        let deserialized: TestData =
+            deserialize(&serialized, SerializationFormat::MessagePack).unwrap();
         assert_eq!(data, deserialized);
     }
 

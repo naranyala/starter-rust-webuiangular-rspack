@@ -39,9 +39,6 @@ impl LogFormatter {
         };
         let reset = "\x1b[0m";
 
-        format!(
-            "{}[{}]{} [{}] {}",
-            color, level, reset, target, message
-        )
+        format!("{}[{}]{} [{}] {}", color, level, reset, target, message)
     }
 }

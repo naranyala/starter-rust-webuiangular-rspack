@@ -6,4 +6,3 @@ pub mod models;
 pub mod users;
 
 pub use connection::Database;
-pub use models::{DbRow, Product, QueryResult, User};

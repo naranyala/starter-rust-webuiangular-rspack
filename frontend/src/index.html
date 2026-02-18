@@ -1,0 +1,56 @@
+<!doctype html>
+<head>
+  <meta charset="utf-8">
+  <title>App</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="stylesheet" href="/static/css/winbox.min.css">
+  <script src="/static/js/webui.js"></script>
+  <script src="/static/js/winbox.min.js"></script>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+    app-root {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    /* Loading state */
+    app-root:empty::after {
+      content: '';
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: sans-serif;
+      font-size: 18px;
+      color: transparent;
+    }
+  </style>
+</head>
+<body>
+  <script>
+    document.body.style.backgroundColor = '#f0f0f0';
+    console.log('[HTML] Body script executed');
+  </script>
+  <div id="angular-error-container"></div>
+  <app-root></app-root>
+  <script>
+    console.log('[HTML] After app-root');
+    window.addEventListener('load', () => {
+      console.log('[HTML] Window loaded');
+      setTimeout(() => {
+        const appRoot = document.querySelector('app-root');
+        console.log('[HTML] app-root innerHTML:', appRoot ? appRoot.innerHTML : 'NOT FOUND');
+        console.log('[HTML] app-root children:', appRoot ? appRoot.children.length : 'NOT FOUND');
+      }, 2000);
+    });
+  </script>
+</body>
+</html>

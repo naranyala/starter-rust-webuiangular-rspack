@@ -1,3 +1,5 @@
+#![allow(unexpected_cfgs, dead_code)]
+
 pub struct SecurityUtils;
 
 impl SecurityUtils {
@@ -40,7 +42,7 @@ impl ClipboardUtils {
         }
     }
 
-    pub fn write_text(text: &str) -> Result<(), String> {
+    pub fn write_text(_text: &str) -> Result<(), String> {
         #[cfg(feature = "clipboard")]
         {
             let mut ctx = arboard::Clipboard::new().map_err(|e| e.to_string())?;

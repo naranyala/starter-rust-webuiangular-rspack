@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use crate::core::domain::entities::SystemInfo;
 
 pub struct SystemUtils;

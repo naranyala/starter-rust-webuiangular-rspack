@@ -7,19 +7,21 @@ use webui_rs::webui::bindgen::webui_set_port;
 // MVVM: Core - Domain, Application, Infrastructure, Presentation
 mod core;
 use core::{
-    domain::*,
     infrastructure::{config::AppConfig, database::Database, logging, di},
-    application,
     presentation,
 };
 
 // Shared utilities
 mod utils;
-use utils::*;
+use utils::compression::CompressionUtils;
+use utils::crypto::{CryptoUtils, PasswordUtils};
+use utils::encoding::EncodingUtils;
+use utils::network::NetworkUtils;
+use utils::security::SecurityUtils;
+use utils::system::SystemUtils;
+use utils::validation::ValidationUtils;
 
-// Build-time generated config
-include!(concat!(env!("OUT_DIR"), "/build_config.rs"));
-
+#[allow(unused_variables)]
 fn main() {
     // Initialize dependency injection container
     di::init_container();
@@ -154,7 +156,7 @@ fn main() {
     info!("SHA256 hash: {}", test_hash);
 
     let password = "MySecurePassword123!";
-    let hashed = PasswordUtils::hash_password(password).unwrap();
+    let _hashed = PasswordUtils::hash_password(password).unwrap();
     info!("Password hashed successfully");
 
     // Validation utilities
@@ -215,8 +217,23 @@ fn main() {
     info!("Window title: {}", window_title);
 
     // Show the built application - load from dist/ directory
-    info!("Loading application UI from dist/index.html");
-    my_window.show("dist/index.html");
+    let exe_dir = std::env::current_exe()
+        .ok()
+        .and_then(|p| p.parent().map(|p| p.to_path_buf()))
+        .unwrap_or_else(|| std::path::PathBuf::from("."));
+    let dist_dir = exe_dir.join("dist");
+    let index_path = dist_dir.join("index.html");
+    
+    // Set root folder for WebUI to serve static files
+    let root_folder = dist_dir.to_str().unwrap_or("dist");
+    info!("Setting WebUI root folder to: {}", root_folder);
+    let c_string = std::ffi::CString::new(root_folder).unwrap();
+    unsafe {
+        webui_rs::webui::bindgen::webui_set_root_folder(my_window.id, c_string.as_ptr());
+    }
+    
+    info!("Loading application UI from {}", index_path.display());
+    my_window.show(index_path.to_str().unwrap_or("dist/index.html"));
 
     // Sync WebUI port to frontend
     if port_ok {

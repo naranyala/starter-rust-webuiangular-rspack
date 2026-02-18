@@ -33,8 +33,13 @@ TARGET_BIN_RELEASE="target/release/$EXECUTABLE_NAME"
 # Rename debug build
 if [ -f "$SOURCE_BIN" ]; then
     if [ "$SOURCE_BIN" != "$TARGET_BIN" ]; then
-        echo "Renaming debug binary: $PACKAGE_NAME -> $EXECUTABLE_NAME"
-        mv "$SOURCE_BIN" "$TARGET_BIN"
+        if [ ! -f "$TARGET_BIN" ]; then
+            echo "Renaming debug binary: $PACKAGE_NAME -> $EXECUTABLE_NAME"
+            mv "$SOURCE_BIN" "$TARGET_BIN"
+        else
+            echo "Debug binary already named: $EXECUTABLE_NAME"
+            rm "$SOURCE_BIN"
+        fi
     else
         echo "Debug binary already named: $EXECUTABLE_NAME"
     fi

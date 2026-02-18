@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 // src/core/infrastructure/database/models.rs
 // Database data structures and models
 

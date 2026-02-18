@@ -6,6 +6,3 @@ pub mod database;
 pub mod di;
 pub mod event_bus;
 pub mod logging;
-
-pub use database::Database;
-pub use logging::{init_logging, init_logging_with_config};

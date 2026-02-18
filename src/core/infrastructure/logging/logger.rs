@@ -1,7 +1,7 @@
 // src/core/infrastructure/logging/logger.rs
 // Logger implementation
 
-use log::{LevelFilter, Metadata, Record};
+use log::{Metadata, Record};
 use std::fs::{self, OpenOptions};
 use std::io::Write;
 use std::path::{Path, PathBuf};
@@ -39,12 +39,12 @@ impl Logger {
         if let Ok(exe_path) = std::env::current_exe() {
             if let Some(exe_dir) = exe_path.parent() {
                 let log_path = exe_dir.join(log_file);
-                
+
                 // Ensure parent directory exists
                 if let Some(parent) = log_path.parent() {
                     let _ = fs::create_dir_all(parent);
                 }
-                
+
                 return log_path;
             }
         }
@@ -53,12 +53,14 @@ impl Logger {
         PathBuf::from(log_file)
     }
 
-    /// Get default log file path
+    #[allow(dead_code)]
     pub fn default_log_path() -> String {
-        Self::resolve_log_path("logs/application.log").to_string_lossy().to_string()
+        Self::resolve_log_path("logs/application.log")
+            .to_string_lossy()
+            .to_string()
     }
 
-    pub fn with_file(mut self, path: &str) -> Self {
+    pub fn with_file(self, path: &str) -> Self {
         *self.file_path.lock().unwrap() = PathBuf::from(path);
         self
     }

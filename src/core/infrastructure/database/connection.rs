@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 // src/core/infrastructure/database/connection.rs
 // Database connection management
 
@@ -24,7 +25,7 @@ impl Database {
     }
 
     /// Get database connection
-    pub fn get_connection(&self) -> std::sync::MutexGuard<Connection> {
+    pub fn get_connection(&self) -> std::sync::MutexGuard<'_, Connection> {
         self.conn.lock().unwrap()
     }
 
@@ -97,16 +98,12 @@ impl Database {
         let conn = self.conn.lock().unwrap();
         let rows_affected = conn.execute(sql, params)?;
 
-        Ok(
-            QueryResult::success(vec![], "Query executed successfully").with_rows_affected(rows_affected)
-        )
+        Ok(QueryResult::success(vec![], "Query executed successfully")
+            .with_rows_affected(rows_affected))
     }
 
     /// Helper function to extract column value from row
-    pub fn get_column_value(
-        row: &rusqlite::Row,
-        idx: usize,
-    ) -> SqliteResult<serde_json::Value> {
+    pub fn get_column_value(row: &rusqlite::Row, idx: usize) -> SqliteResult<serde_json::Value> {
         // Try different types
         if let Ok(val) = row.get::<_, i64>(idx) {
             return Ok(serde_json::Value::Number(val.into()));

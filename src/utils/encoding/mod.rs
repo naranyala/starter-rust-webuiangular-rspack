@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use base64::Engine;
 
 #[derive(Debug, Clone)]

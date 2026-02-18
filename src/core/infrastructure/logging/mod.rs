@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 // src/core/infrastructure/logging/mod.rs
 // Logging module - Application logging system
 

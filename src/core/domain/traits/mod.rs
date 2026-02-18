@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use crate::core::domain::entities::User;
 use anyhow::Result;
 

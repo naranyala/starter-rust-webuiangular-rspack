@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 // use_cases/handlers/sysinfo_handlers.rs
 // System information handlers for frontend integration
 

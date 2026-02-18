@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use std::io::{BufReader, Read, Write};
 
 pub struct CompressionUtils;

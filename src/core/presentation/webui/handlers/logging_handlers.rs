@@ -37,7 +37,7 @@ pub fn setup_logging_handlers(window: &mut webui_rs::webui::Window) {
 
         match serde_json::from_str::<FrontendLogEntry>(&data) {
             Ok(entry) => {
-                let target = format!("frontend::{}", entry.category);
+                let _target = format!("frontend::{}", entry.category);
                 let msg = format!("Session {}: {}", entry.session_id, entry.message);
 
                 match entry.level.to_uppercase().as_str() {

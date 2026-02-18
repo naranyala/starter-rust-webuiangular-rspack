@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use log::{debug, info};
 use webui_rs::webui;
 

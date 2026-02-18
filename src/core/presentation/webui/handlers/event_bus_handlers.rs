@@ -124,7 +124,7 @@ pub fn setup_event_bus_handlers(window: &mut webui_rs::webui::Window) {
         }
     });
 
-    window.bind("event:clear_history", move |event| {
+    window.bind("event:clear_history", move |_event| {
         GLOBAL_EVENT_BUS.clear_history();
     });
 

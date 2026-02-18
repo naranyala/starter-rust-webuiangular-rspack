@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 // use_cases/handlers/db_handlers.rs
 // Database-related API handlers for frontend integration
 
@@ -27,8 +28,7 @@ fn get_db() -> Option<Arc<Database>> {
 fn send_response(window: webui::Window, event_name: &str, response: &serde_json::Value) {
     let js = format!(
         "window.dispatchEvent(new CustomEvent('{}', {{ detail: {} }}))",
-        event_name,
-        response
+        event_name, response
     );
     webui::Window::from_id(window.id).run_js(&js);
 }
@@ -267,7 +267,8 @@ pub fn setup_db_handlers(window: &mut webui::Window) {
             Some(db) => {
                 let user_count = match db.query("SELECT COUNT(*) as count FROM users", &[]) {
                     Ok(result) => result
-                        .data.first()
+                        .data
+                        .first()
                         .and_then(|row| row.get("count"))
                         .and_then(|v| v.as_i64())
                         .unwrap_or(0),
