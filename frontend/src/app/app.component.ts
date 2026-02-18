@@ -1,5 +1,9 @@
-import { Component, signal, computed, OnInit } from '@angular/core';
+import { Component, signal, computed, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { getLogger } from '../logging/logger';
+import { ErrorModalComponent } from './shared/error-modal.component';
+import { GlobalErrorService } from '../error/global-error.service';
+import { appEventBus } from '../event-bus';
 
 declare const WinBox: any;
 
@@ -12,49 +16,54 @@ interface Card {
   content: string;
 }
 
-interface SidebarItem {
+interface WindowEntry {
   id: string;
-  icon: string;
-  label: string;
-  active?: boolean;
+  title: string;
+  minimized: boolean;
+  focused: boolean;
 }
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ErrorModalComponent],
   template: `
     <div class="app-container" [class.sidebar-collapsed]="sidebarCollapsed()" [class.bottom-panel-collapsed]="bottomPanelCollapsed()">
-      <!-- Sidebar -->
-      <aside class="sidebar">
-        <div class="sidebar-header">
-          <span class="logo">⚡</span>
-          @if (!sidebarCollapsed()) {
-            <span class="logo-text">TechHub</span>
-          }
+      <!-- Top Full-Width Panel -->
+      <div class="top-panel" [class.collapsed]="sidebarCollapsed()">
+        <div class="panel-main" (click)="toggleSidebar()">
+          <div class="top-bar-left">
+            <span class="top-brand-icon">⚡</span>
+            <span class="top-brand-name">TechHub</span>
+          </div>
+          <div class="top-bar-right">
+            <span>{{ windowEntries().length }} windows</span>
+            <span>{{ minimizedWindowCount() }} minimized</span>
+          </div>
         </div>
-        
-        <nav class="sidebar-nav">
-          @for (item of sidebarItems; track item.id) {
-            <button 
-              class="nav-item" 
-              [class.active]="item.active"
-              (click)="selectNavItem(item)"
+        <div class="panel-content">
+          <nav class="top-nav">
+            <button
+              class="nav-item"
+              [class.active]="!hasFocusedWindow()"
+              (click)="showMainMenu($event)"
             >
-              <span class="nav-icon">{{ item.icon }}</span>
-              @if (!sidebarCollapsed()) {
-                <span class="nav-label">{{ item.label }}</span>
-              }
+              <span class="nav-icon">🏠</span>
+              <span class="nav-label">Home</span>
             </button>
-          }
-        </nav>
-
-        <div class="sidebar-footer">
-          <button class="toggle-btn" (click)="toggleSidebar()">
-            <span class="toggle-icon">{{ sidebarCollapsed() ? '→' : '←' }}</span>
-          </button>
+            @for (windowEntry of windowEntries(); track windowEntry.id) {
+              <button
+                class="nav-item"
+                [class.active]="windowEntry.focused"
+                (click)="activateWindow(windowEntry.id, $event)"
+              >
+                <span class="nav-icon">{{ windowEntry.minimized ? '🗕' : '🗗' }}</span>
+                <span class="nav-label">{{ windowEntry.title }}</span>
+              </button>
+            }
+          </nav>
         </div>
-      </aside>
+      </div>
 
       <!-- Main Content -->
       <main class="main-content">
@@ -91,13 +100,9 @@ interface SidebarItem {
 
       <!-- Bottom Panel -->
       <div class="bottom-panel" [class.collapsed]="bottomPanelCollapsed()">
-        <div class="panel-main">
+        <div class="panel-main" (click)="toggleBottomPanel()">
           <div class="panel-left">
             <span class="panel-text">⚡ TechHub v1.0.0</span>
-          </div>
-          <div class="panel-toggle" (click)="toggleBottomPanel()">
-            <span class="panel-toggle-icon">{{ bottomPanelCollapsed() ? '▲' : '▼' }}</span>
-            <span class="panel-toggle-text">System Info</span>
           </div>
           <div class="panel-right">
             <span class="panel-text">12 technologies</span>
@@ -105,10 +110,16 @@ interface SidebarItem {
         </div>
         <div class="panel-content">
           <div class="panel-content-inner">
-            <span class="panel-text">WebUI (GTK/WebKit)</span>
+            <span class="panel-text">Runtime: WebUI (GTK/WebKit)</span>
+            <span class="panel-status">Status: Ready</span>
           </div>
         </div>
       </div>
+
+      <app-error-modal
+        [error]="globalErrorService.activeError()"
+        (dismissed)="globalErrorService.dismiss()"
+      />
     </div>
   `,
   styles: [`
@@ -123,54 +134,57 @@ interface SidebarItem {
       height: 100%;
     }
     
-    /* Sidebar */
-    .sidebar {
-      position: absolute;
-      left: 0;
+    /* Top Panel */
+    .top-panel {
+      position: fixed;
       top: 0;
-      bottom: 60px;
-      width: 220px;
-      background: #1a1a2e;
+      left: 0;
+      right: 0;
+      height: 72px;
+      background: linear-gradient(90deg, #151529 0%, #1a1a2e 100%);
       display: flex;
       flex-direction: column;
-      transition: transform 0.3s ease;
-      z-index: 100;
+      transition: height 0.3s ease;
+      z-index: 220;
     }
-    .sidebar-header {
-      padding: 20px;
+    .top-panel.collapsed {
+      height: 30px;
+    }
+    .top-bar-left {
       display: flex;
       align-items: center;
-      gap: 12px;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
+      gap: 8px;
     }
-    .logo {
-      font-size: 24px;
+    .top-brand-name {
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      padding-top: 2px;
     }
-    .logo-text {
-      font-size: 18px;
-      font-weight: bold;
-      color: white;
-    }
-    .sidebar-nav {
-      flex: 1;
-      padding: 12px 8px;
+    .top-bar-right {
       display: flex;
-      flex-direction: column;
-      gap: 4px;
+      align-items: center;
+      gap: 10px;
+      color: rgba(255,255,255,0.82);
+      font-size: 11px;
+      padding-top: 2px;
     }
     .nav-item {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 12px;
-      background: transparent;
+      gap: 8px;
+      justify-content: center;
+      min-width: 132px;
+      padding: 8px 12px;
+      background: rgba(255,255,255,0.06);
       border: none;
-      border-radius: 8px;
+      border-radius: 6px;
       color: rgba(255,255,255,0.7);
       cursor: pointer;
       transition: all 0.2s;
       text-align: left;
-      font-size: 14px;
+      font-size: 13px;
     }
     .nav-item:hover {
       background: rgba(255,255,255,0.1);
@@ -181,68 +195,38 @@ interface SidebarItem {
       color: white;
     }
     .nav-icon {
-      font-size: 18px;
-      width: 24px;
+      font-size: 14px;
       text-align: center;
     }
     .nav-label {
       white-space: nowrap;
     }
-    .sidebar-footer {
-      padding: 12px;
-      border-top: 1px solid rgba(255,255,255,0.1);
-    }
-    .toggle-btn {
+
+    .top-nav {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 10px;
+      flex-wrap: nowrap;
+      overflow-x: auto;
       width: 100%;
-      padding: 10px;
-      background: rgba(255,255,255,0.1);
-      border: none;
-      border-radius: 8px;
-      color: white;
-      cursor: pointer;
-      transition: background 0.2s;
     }
-    .toggle-btn:hover {
-      background: rgba(255,255,255,0.2);
-    }
-    
-    /* Collapsed sidebar */
-    .sidebar-collapsed .sidebar {
-      transform: translateX(-160px);
-    }
-    
+
     /* Main Content */
     .main-content {
       flex: 1;
-      margin-left: 220px;
-      margin-bottom: 60px;
+      margin-top: 72px;
+      margin-bottom: 58px;
       overflow-y: auto;
       padding: 40px 20px;
       background: #f5f5f5;
-      transition: margin-left 0.3s ease, margin-bottom 0.3s ease;
+      transition: margin-top 0.3s ease, margin-bottom 0.3s ease;
     }
     .sidebar-collapsed .main-content {
-      margin-left: 60px;
+      margin-top: 30px;
     }
     .bottom-panel-collapsed .main-content {
-      margin-bottom: 32px;
-    }
-    .bottom-panel-collapsed .sidebar {
-      bottom: 32px;
-    }
-    .header {
-      text-align: center;
-      margin-bottom: 32px;
-    }
-    h1 {
-      color: #1a1a2e;
-      margin: 0 0 8px;
-      font-size: 32px;
-    }
-    .subtitle {
-      color: #666;
-      margin: 0;
-      font-size: 16px;
+      margin-bottom: 30px;
     }
     .search-container {
       position: relative;
@@ -362,23 +346,24 @@ interface SidebarItem {
       bottom: 0;
       left: 0;
       right: 0;
-      height: 32px;
+      height: 30px;
       background: #1a1a2e;
       transition: height 0.3s ease;
       z-index: 200;
     }
     .bottom-panel.collapsed {
-      height: 32px;
+      height: 30px;
     }
     .bottom-panel:not(.collapsed) {
-      height: 60px;
+      height: 58px;
     }
     .panel-main {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      height: 32px;
+      height: 30px;
       padding: 0 16px;
+      cursor: pointer;
     }
     .panel-left {
       display: flex;
@@ -394,49 +379,36 @@ interface SidebarItem {
       color: rgba(255,255,255,0.8);
       font-size: 12px;
       white-space: nowrap;
-    }
-    .panel-divider {
-      color: rgba(255,255,255,0.3);
-      font-size: 12px;
-    }
-    .panel-toggle {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 12px;
-      cursor: pointer;
-      color: rgba(255,255,255,0.7);
-      transition: color 0.2s;
-      border-radius: 4px;
-    }
-    .panel-toggle:hover {
-      color: white;
-      background: rgba(255,255,255,0.1);
-    }
-    .panel-toggle-icon {
-      font-size: 10px;
-    }
-    .panel-toggle-text {
-      font-size: 11px;
-      font-weight: 500;
+      padding-top: 2px;
     }
     .panel-content {
       display: flex;
       align-items: center;
       justify-content: center;
-      height: 28px;
-      padding: 0 20px;
+      min-height: 56px;
+      padding: 8px 20px;
       opacity: 0;
       visibility: hidden;
       transition: opacity 0.2s, visibility 0.2s;
     }
+    .top-panel:not(.collapsed) .panel-content {
+      opacity: 1;
+      visibility: visible;
+      min-height: 42px;
+      padding: 10px 20px 4px;
+    }
     .bottom-panel:not(.collapsed) .panel-content {
       opacity: 1;
       visibility: visible;
+      min-height: 28px;
+      padding: 0 20px;
     }
     .panel-content-inner {
       display: flex;
       align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 1200px;
       gap: 12px;
     }
     .panel-status {
@@ -445,18 +417,15 @@ interface SidebarItem {
     }
   `]
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
+  readonly globalErrorService = inject(GlobalErrorService);
+  private readonly logger = getLogger('app.component');
   searchQuery = signal('');
   sidebarCollapsed = signal(false);
   bottomPanelCollapsed = signal(true);
+  windowEntries = signal<WindowEntry[]>([]);
   private existingBoxes: any[] = [];
-
-  sidebarItems: SidebarItem[] = [
-    { id: 'home', icon: '🏠', label: 'Home', active: true },
-    { id: 'cards', icon: '🎴', label: 'Cards' },
-    { id: 'favorites', icon: '⭐', label: 'Favorites' },
-    { id: 'settings', icon: '⚙️', label: 'Settings' },
-  ];
+  private appReadyUnsubscribe: (() => void) | null = null;
 
   cards: Card[] = [
     {
@@ -713,45 +682,74 @@ export class AppComponent implements OnInit {
   onSearch(event: Event): void {
     const value = (event.target as HTMLInputElement).value;
     this.searchQuery.set(value);
+    appEventBus.publish('search:updated', { query: value, length: value.length });
+    this.logger.debug('Search query updated', { length: value.length });
   }
 
   clearSearch(): void {
     this.searchQuery.set('');
+    appEventBus.publish('search:cleared', { timestamp: Date.now() });
+    this.logger.debug('Search query cleared');
   }
 
   toggleSidebar(): void {
     this.sidebarCollapsed.set(!this.sidebarCollapsed());
+    appEventBus.publish('ui:top-panel:toggled', { collapsed: this.sidebarCollapsed() });
+    this.logger.info('Top panel toggled', { collapsed: this.sidebarCollapsed() });
   }
 
   toggleBottomPanel(): void {
     this.bottomPanelCollapsed.set(!this.bottomPanelCollapsed());
+    appEventBus.publish('ui:bottom-panel:toggled', { collapsed: this.bottomPanelCollapsed() });
+    this.logger.info('Bottom panel toggled', { collapsed: this.bottomPanelCollapsed() });
   }
 
-  selectNavItem(item: SidebarItem): void {
-    this.sidebarItems = this.sidebarItems.map(i => ({
-      ...i,
-      active: i.id === item.id
-    }));
+  minimizedWindowCount(): number {
+    return this.windowEntries().filter((entry) => entry.minimized).length;
   }
 
   ngOnInit(): void {
+    this.appReadyUnsubscribe = appEventBus.subscribe(
+      'app:ready',
+      ({ timestamp }) => {
+        this.logger.info('Received app ready event', { timestamp });
+      },
+      { replayLast: true }
+    );
     this.closeAllBoxes();
     if (!window.WinBox) {
       window.WinBox = WinBox;
+      this.logger.warn('WinBox was missing on window and has been assigned from import');
     }
+    this.logger.info('App component initialized', {
+      cardsCount: this.cards.length,
+      sidebarCollapsed: this.sidebarCollapsed(),
+      bottomPanelCollapsed: this.bottomPanelCollapsed(),
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.appReadyUnsubscribe?.();
+    this.appReadyUnsubscribe = null;
   }
 
   closeAllBoxes(): void {
+    if (this.existingBoxes.length > 0) {
+      this.logger.debug('Closing existing WinBox instances', { count: this.existingBoxes.length });
+    }
     this.existingBoxes.forEach(box => {
       if (box) box.close();
     });
     this.existingBoxes = [];
+    this.windowEntries.set([]);
   }
 
   openCard(card: Card): void {
-    this.closeAllBoxes();
+    this.logger.info('Opening technology card', { id: card.id, title: card.title });
+    const windowId = `${card.id}-${Date.now()}`;
 
     const box = new WinBox({
+      id: windowId,
       title: `${card.icon} ${card.title}`,
       background: card.color,
       border: 0,
@@ -778,23 +776,110 @@ export class AppComponent implements OnInit {
         close: true,
       },
       onmaximize: () => {
-        const sidebarW = this.sidebarCollapsed() ? 60 : 220;
-        box.resize(window.innerWidth - sidebarW, window.innerHeight - 32);
-        box.move(sidebarW, 0);
+        const topPanelH = this.sidebarCollapsed() ? 30 : 72;
+        const bottomPanelH = this.bottomPanelCollapsed() ? 30 : 58;
+        box.resize(window.innerWidth, window.innerHeight - topPanelH - bottomPanelH);
+        box.move(0, topPanelH);
+      },
+      onfocus: () => {
+        this.markWindowFocused(windowId);
+      },
+      onminimize: () => {
+        this.markWindowMinimized(windowId);
       },
       onrestore: () => {
         box.resize('500px', '400px');
         box.move('center', 'center');
+        this.markWindowRestored(windowId);
       },
       onclose: () => {
         const index = this.existingBoxes.indexOf(box);
         if (index > -1) {
           this.existingBoxes.splice(index, 1);
         }
+        appEventBus.publish('window:closed', { id: windowId, title: card.title });
+        this.windowEntries.update(entries => entries.filter(entry => entry.id !== windowId));
+        this.logger.debug('WinBox closed', { remaining: this.existingBoxes.length });
         return true;
       }
     });
 
+    (box as any).__windowId = windowId;
     this.existingBoxes.push(box);
+    this.windowEntries.update(entries => [
+      ...entries.map(entry => ({ ...entry, focused: false })),
+      { id: windowId, title: card.title, minimized: false, focused: true }
+    ]);
+    appEventBus.publish('window:opened', { id: windowId, title: card.title });
+
+    try {
+      box.maximize();
+    } catch (error) {
+      this.logger.warn('Failed to auto-maximize WinBox on open', { windowId }, error);
+    }
+  }
+
+  activateWindow(windowId: string, event: Event): void {
+    event.stopPropagation();
+    const box = this.existingBoxes.find((entry: any) => entry?.__windowId === windowId);
+    if (!box) {
+      this.windowEntries.update(entries => entries.filter(entry => entry.id !== windowId));
+      return;
+    }
+
+    if (box.min) {
+      box.restore();
+    }
+    box.focus();
+    box.maximize();
+    appEventBus.publish('window:focused', { id: windowId });
+    this.logger.info('Activated window from top panel in maximized mode', { windowId });
+  }
+
+  showMainMenu(event: Event): void {
+    event.stopPropagation();
+    this.existingBoxes.forEach((box) => {
+      if (box && !box.min) {
+        box.minimize(true);
+      }
+    });
+    this.windowEntries.update((entries) =>
+      entries.map((entry) => ({ ...entry, minimized: true, focused: false }))
+    );
+    appEventBus.publish('window:home-selected', { count: this.existingBoxes.length });
+    this.logger.info('Home selected: minimized all windows');
+  }
+
+  hasFocusedWindow(): boolean {
+    return this.windowEntries().some((entry) => entry.focused);
+  }
+
+  private markWindowFocused(windowId: string): void {
+    appEventBus.publish('window:focused', { id: windowId });
+    this.windowEntries.update(entries =>
+      entries.map(entry => ({
+        ...entry,
+        focused: entry.id === windowId,
+        minimized: entry.id === windowId ? false : entry.minimized
+      }))
+    );
+  }
+
+  private markWindowMinimized(windowId: string): void {
+    appEventBus.publish('window:minimized', { id: windowId });
+    this.windowEntries.update(entries =>
+      entries.map(entry =>
+        entry.id === windowId ? { ...entry, minimized: true, focused: false } : entry
+      )
+    );
+  }
+
+  private markWindowRestored(windowId: string): void {
+    appEventBus.publish('window:restored', { id: windowId });
+    this.windowEntries.update(entries =>
+      entries.map(entry =>
+        entry.id === windowId ? { ...entry, minimized: false } : entry
+      )
+    );
   }
 }

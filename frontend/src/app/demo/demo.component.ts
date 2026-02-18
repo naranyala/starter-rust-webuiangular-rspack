@@ -1,6 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { getLogger } from '../../logging/logger';
+import { appEventBus } from '../../event-bus';
 
 interface CardItem {
   title: string;
@@ -228,6 +230,7 @@ interface CardItem {
   `],
 })
 export class DemoComponent {
+  private readonly logger = getLogger('demo.component');
   searchQuery = '';
 
   cards: CardItem[] = [
@@ -364,9 +367,10 @@ export class DemoComponent {
   openCard(card: CardItem): void {
     const WinBoxConstructor = (window as unknown as { WinBox: any }).WinBox;
     if (!WinBoxConstructor) {
-      console.error('WinBox is not loaded. Please check if winbox.bundle.min.js is included.');
+      this.logger.error('WinBox is not loaded for demo card popup', { cardTitle: card.title });
       return;
     }
+    this.logger.info('Opening demo card popup', { cardTitle: card.title });
     const _win = new WinBoxConstructor({
       title: card.title,
       background: card.color,
@@ -394,5 +398,7 @@ export class DemoComponent {
         this.setBackground(card.color);
       },
     });
+    _win.maximize();
+    appEventBus.publish('window:opened', { id: `demo-${card.title}`, title: card.title });
   }
 }

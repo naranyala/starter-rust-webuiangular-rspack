@@ -1,34 +1,23 @@
 use std::env;
 use std::fs;
 use std::path::Path;
-use std::time::Instant;
-
 fn main() {
-    let start_time = Instant::now();
     let project_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
-    
-    println!("cargo:warning========================================");
-    println!("cargo:warning=Starting Rust build pipeline");
-    println!("cargo:warning=Project: {}", project_dir);
-    println!("cargo:warning========================================");
 
-    let config_gen_start = Instant::now();
     generate_build_config(&project_dir);
-    println!("cargo:warning=[build.rs] Config generation: {:?}", config_gen_start.elapsed());
+    generate_embedded_frontend_assets(&project_dir);
 
     let src_dir = format!("{}/thirdparty/webui-c-src/src", project_dir);
     let civetweb_dir = format!("{}/civetweb", src_dir);
-
-    println!("cargo:warning=[build.rs] Compiling C library (webui + civetweb)...");
-    let compile_start = Instant::now();
 
     let mut build = cc::Build::new();
     build
         .include(format!("{}/thirdparty/webui-c-src/include", project_dir))
         .include(&src_dir)
         .include(&civetweb_dir)
-        .warnings(true)
+        .warnings(false)
         .flag("-fPIC")
+        .flag_if_supported("-w")
         .define("WEBUI_LOG", None)
         .define("USE_CIVETWEB", None)
         .define("NO_SSL", None)
@@ -39,18 +28,12 @@ fn main() {
     build.file(format!("{}/webui.c", src_dir));
     build.file(format!("{}/civetweb/civetweb.c", src_dir));
 
-    println!("cargo:warning=[build.rs]   Sources: webui.c, civetweb.c");
-    println!("cargo:warning=[build.rs]   Flags: -fPIC, WEBUI_LOG, USE_CIVETWEB, NO_SSL, NO_CACHING, USE_WEBSOCKET, USE_IPV6");
-
     build.compile("webui-2-static");
-    
-    println!("cargo:warning=[build.rs] C compilation: {:?}", compile_start.elapsed());
 
     println!("cargo:rustc-link-search=native=./");
     println!("cargo:rustc-link-lib=webui-2-static");
 
     let webui_root = format!("{}/thirdparty/webui-c-src", project_dir);
-    let mut c_files = 0;
     for entry in walkdir::WalkDir::new(&webui_root) {
         if let Ok(entry) = entry {
             if entry
@@ -59,11 +42,9 @@ fn main() {
                 .is_some_and(|ext| ext == "c" || ext == "h")
             {
                 println!("cargo:rerun-if-changed={}", entry.path().display());
-                c_files += 1;
             }
         }
     }
-    println!("cargo:warning=[build.rs] Watching {} C/H files for changes", c_files);
 
     let config_paths = [
         format!("{}/app.config.toml", project_dir),
@@ -72,19 +53,8 @@ fn main() {
     for config_path in &config_paths {
         if Path::new(config_path).exists() {
             println!("cargo:rerun-if-changed={}", config_path);
-            println!("cargo:warning=[build.rs] Config file: {}", config_path);
         }
     }
-
-    let post_build_path = format!("{}/post-build.sh", project_dir);
-    if Path::new(&post_build_path).exists() {
-        println!("cargo:warning=Run './post-build.sh' after build to rename executable");
-    }
-
-    println!("cargo:warning========================================");
-    println!("cargo:warning=Build pipeline setup completed");
-    println!("cargo:warning=Total build.rs time: {:?}", start_time.elapsed());
-    println!("cargo:warning========================================");
 }
 
 fn generate_build_config(project_dir: &str) {
@@ -100,8 +70,6 @@ fn generate_build_config(project_dir: &str) {
 
     for config_path in &config_paths {
         if let Ok(content) = fs::read_to_string(config_path) {
-            println!("cargo:warning=[build.rs] Found config at: {}", config_path);
-            
             if let Ok(config) = content.parse::<toml::Value>() {
                 if let Some(exe_name) = config
                     .get("executable")
@@ -163,7 +131,56 @@ pub fn get_log_file() -> &'static str {{
 
     if let Err(e) = fs::write(&build_config_path, build_config) {
         eprintln!("Warning: Failed to write build config: {}", e);
-    } else {
-        println!("cargo:warning=[build.rs] Generated build config: {}", build_config_path);
+    }
+}
+
+fn generate_embedded_frontend_assets(project_dir: &str) {
+    let out_dir = env::var("OUT_DIR").unwrap();
+    let generated_path = format!("{}/embedded_frontend.rs", out_dir);
+
+    let index_path = format!("{}/dist/index.html", project_dir);
+    let main_js_path = format!("{}/dist/static/js/main.js", project_dir);
+    let winbox_js_path = format!("{}/dist/static/js/winbox.min.js", project_dir);
+    let webui_js_path = format!("{}/dist/static/js/webui.js", project_dir);
+
+    for p in [&index_path, &main_js_path, &winbox_js_path, &webui_js_path] {
+        println!("cargo:rerun-if-changed={}", p);
+    }
+
+    let index = fs::read_to_string(&index_path).ok();
+    let main_js = fs::read_to_string(&main_js_path).ok();
+    let winbox_js = fs::read_to_string(&winbox_js_path).ok();
+    let webui_js = fs::read_to_string(&webui_js_path).ok();
+
+    let generated = match (index, main_js, winbox_js, webui_js) {
+        (Some(index), Some(main_js), Some(winbox_js), Some(webui_js)) => {
+            format!(
+                r#"// Auto-generated embedded frontend assets
+pub const EMBEDDED_FRONTEND_AVAILABLE: bool = true;
+pub const EMBEDDED_INDEX_HTML: &str = {};
+pub const EMBEDDED_MAIN_JS: &str = {};
+pub const EMBEDDED_WINBOX_JS: &str = {};
+pub const EMBEDDED_WEBUI_JS: &str = {};
+"#,
+                format!("{:?}", index),
+                format!("{:?}", main_js),
+                format!("{:?}", winbox_js),
+                format!("{:?}", webui_js),
+            )
+        }
+        _ => {
+            r#"// Auto-generated embedded frontend assets
+pub const EMBEDDED_FRONTEND_AVAILABLE: bool = false;
+pub const EMBEDDED_INDEX_HTML: &str = "";
+pub const EMBEDDED_MAIN_JS: &str = "";
+pub const EMBEDDED_WINBOX_JS: &str = "";
+pub const EMBEDDED_WEBUI_JS: &str = "";
+"#
+            .to_string()
+        }
+    };
+
+    if let Err(e) = fs::write(&generated_path, generated) {
+        eprintln!("Warning: Failed to write embedded frontend assets: {}", e);
     }
 }

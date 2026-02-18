@@ -87,8 +87,21 @@ build_frontend() {
 
     bun build-frontend.js
 
-    if [ ! -d "frontend/dist" ]; then
-        print_error "Frontend build failed - dist directory not found!"
+    local required_files=(
+        "frontend/dist/angular-rspack-demo/index.html"
+        "dist/index.html"
+        "dist/static/js/main.js"
+        "dist/static/js/winbox.min.js"
+        "dist/static/js/webui.js"
+    )
+    local missing=0
+    for f in "${required_files[@]}"; do
+        if [ ! -f "$f" ]; then
+            print_error "Frontend build failed - missing: $f"
+            missing=1
+        fi
+    done
+    if [ "$missing" -ne 0 ]; then
         exit 1
     fi
 
@@ -195,14 +208,21 @@ clean_all() {
         print_status "Frontend dist cleaned"
     fi
 
+    # Clean root runtime dist (used by backend/WebUI)
+    if [ -d "dist" ]; then
+        rm -rf dist
+        print_status "Root dist cleaned"
+    fi
+
+    # Clean generated runtime JS copies
+    rm -f static/js/main.js static/js/winbox.min.js
+    print_status "Generated static JS cleaned"
+
     # Clean caches
     if [ -d "frontend/node_modules/.cache" ]; then
         rm -rf frontend/node_modules/.cache
         print_status "Frontend cache cleaned"
     fi
-
-    # Remove lock files
-    rm -f Cargo.lock
 
     print_status "All build artifacts cleaned!"
 

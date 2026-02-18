@@ -4,6 +4,12 @@
 
 export const environment = {
   production: false,
+  logging: {
+    enabled: true,
+    minLevel: 'debug' as const,
+    maxEntries: 800,
+    redactKeys: ['password', 'token', 'secret', 'authorization', 'cookie'],
+  },
 };
 
 /*

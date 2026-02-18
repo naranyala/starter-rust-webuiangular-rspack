@@ -12,3 +12,9 @@ body {
   color: #333;
   line-height: 1.6;
 }
+
+/* Hide WinBox minimized titlebars globally; top panel owns minimize UX. */
+.winbox.min,
+body > .winbox.min {
+  display: none !important;
+}

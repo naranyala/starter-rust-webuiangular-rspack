@@ -72,9 +72,16 @@ print_info() {
 read_config() {
     print_step "Reading configuration..."
 
+    local config_file=""
     if [ -f "app.config.toml" ]; then
+        config_file="app.config.toml"
+    elif [ -f "config/app.config.toml" ]; then
+        config_file="config/app.config.toml"
+    fi
+
+    if [ -n "$config_file" ]; then
         # Read executable name
-        APP_NAME=$(grep -A1 '\[executable\]' app.config.toml 2>/dev/null | grep 'name' | cut -d'=' -f2 | tr -d ' "' || echo "app")
+        APP_NAME=$(grep -A1 '\[executable\]' "$config_file" 2>/dev/null | grep 'name' | cut -d'=' -f2 | tr -d ' "' || echo "app")
         # Read version
         APP_VERSION=$(grep '^version = ' Cargo.toml 2>/dev/null | cut -d'"' -f2 || echo "1.0.0")
     else
@@ -141,6 +148,25 @@ build_frontend() {
         print_status "Frontend built successfully"
     else
         print_warning "build-frontend.js not found, skipping frontend build"
+    fi
+
+    # Validate runtime frontend bundle required by WebUI
+    local required_files=(
+        "dist/index.html"
+        "dist/static/js/main.js"
+        "dist/static/js/winbox.min.js"
+        "dist/static/js/webui.js"
+    )
+    local missing=0
+    for f in "${required_files[@]}"; do
+        if [ ! -f "$f" ]; then
+            print_error "Missing frontend runtime file: $f"
+            missing=1
+        fi
+    done
+    if [ "$missing" -ne 0 ]; then
+        print_error "Frontend build output is incomplete. Aborting."
+        exit 1
     fi
 
     cd "$SCRIPT_DIR"
@@ -220,10 +246,21 @@ create_dist_package() {
     chmod +x "${output_dir}/${exe_name}"
     print_status "Copied executable: $exe_name"
 
-    # Copy static files (frontend)
+    # Copy static files (legacy assets)
     if [ -d "static" ]; then
         cp -r static "$output_dir/"
         print_status "Copied static files"
+    fi
+
+    # Copy runtime frontend bundle required by WebUI (dist/index.html + assets)
+    if [ -d "dist" ] && [ -f "dist/index.html" ]; then
+        mkdir -p "$output_dir/dist"
+        cp -r dist/static "$output_dir/dist/" 2>/dev/null || true
+        cp dist/index.html "$output_dir/dist/"
+        print_status "Copied frontend dist bundle"
+    else
+        print_error "Frontend dist/ bundle missing; cannot create runnable package"
+        return 1
     fi
 
     # Copy database (if exists)
@@ -291,16 +328,17 @@ create_startup_script() {
     local dir="$1"
     local script_file="${dir}/start.sh"
 
-    cat > "$script_file" << 'STARTUP_EOF'
+    cat > "$script_file" << STARTUP_EOF
 #!/bin/bash
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR"
+SCRIPT_DIR="\$(cd "\$(dirname "\${BASH_SOURCE[0]}")" && pwd)"
+cd "\$SCRIPT_DIR"
 
 # Set working directory
-export RUSTWEBUI_HOME="$SCRIPT_DIR"
+export RUSTWEBUI_HOME="\$SCRIPT_DIR"
+export RUSTWEBUI_DIST_DIR="\$SCRIPT_DIR/dist"
 
 # Run the application
-./app "$@"
+./${APP_NAME} "\$@"
 STARTUP_EOF
 
     chmod +x "$script_file"
@@ -409,9 +447,14 @@ verify_self_contained() {
         fi
     fi
 
-    # Check for static files
-    if [ ! -d "$dir/static" ]; then
-        print_warning "Static files directory not found"
+    # Check for frontend runtime bundle
+    if [ ! -f "$dir/dist/index.html" ]; then
+        print_error "Frontend dist/index.html not found"
+        return 1
+    fi
+    if [ ! -f "$dir/dist/static/js/main.js" ]; then
+        print_error "Frontend main bundle not found: $dir/dist/static/js/main.js"
+        return 1
     fi
 
     # Verify no external library dependencies (Linux)
