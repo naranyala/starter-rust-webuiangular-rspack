@@ -35,6 +35,13 @@ file = "logs/application.log"
 append = true
 # Append to existing log file or overwrite
 
+[communication]
+# Backend-Frontend communication settings
+transport = "webview_ffi"
+# Options: webview_ffi, http_rest, websocket
+serialization = "json"
+# Options: json, messagepack, cbor
+
 [features]
 dark_mode = true
 show_tray_icon = false

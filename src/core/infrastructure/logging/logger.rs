@@ -61,7 +61,9 @@ impl Logger {
     }
 
     pub fn with_file(self, path: &str) -> Self {
-        *self.file_path.lock().unwrap() = PathBuf::from(path);
+        if let Ok(mut guard) = self.file_path.lock() {
+            *guard = PathBuf::from(path);
+        }
         self
     }
 
@@ -81,11 +83,14 @@ impl Logger {
     }
 
     fn rotate_if_needed(&self) {
-        let path = self.file_path.lock().unwrap();
+        let Ok(path) = self.file_path.lock() else {
+            return;
+        };
         if let Ok(metadata) = fs::metadata(&*path) {
             if metadata.len() > self.max_file_size {
                 drop(metadata);
                 let path_str = path.to_string_lossy().to_string();
+                drop(path);
 
                 for i in (1..self.max_backup_files).rev() {
                     let old_path = format!("{}.{}", path_str, i);
@@ -97,7 +102,9 @@ impl Logger {
                 }
 
                 let backup_path = format!("{}.1", path_str);
-                let _ = fs::rename(&*path, &backup_path);
+                if let Ok(p) = self.file_path.lock() {
+                    let _ = fs::rename(&*p, &backup_path);
+                }
             }
         }
     }
@@ -105,10 +112,15 @@ impl Logger {
     fn write_to_file(&self, message: &str) {
         self.rotate_if_needed();
 
+        let path = match self.file_path.lock() {
+            Ok(p) => p,
+            Err(_) => return,
+        };
+
         if let Ok(mut file) = OpenOptions::new()
             .create(true)
             .append(true)
-            .open(self.file_path.lock().unwrap().as_path())
+            .open(path.as_path())
         {
             let _ = writeln!(file, "{}", message);
             let _ = file.flush();

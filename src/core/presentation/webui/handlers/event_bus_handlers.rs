@@ -92,7 +92,13 @@ pub fn setup_event_bus_handlers(window: &mut webui_rs::webui::Window) {
             limit: Some(50),
         });
 
-        let history = GLOBAL_EVENT_BUS.get_history(req.event_type.as_deref(), req.limit);
+        let history = match GLOBAL_EVENT_BUS.get_history(req.event_type.as_deref(), req.limit) {
+            Ok(h) => h,
+            Err(e) => {
+                log::error!("Failed to get event history: {}", e);
+                return;
+            }
+        };
 
         let events: Vec<serde_json::Value> = history
             .iter()
@@ -125,7 +131,9 @@ pub fn setup_event_bus_handlers(window: &mut webui_rs::webui::Window) {
     });
 
     window.bind("event:clear_history", move |_event| {
-        GLOBAL_EVENT_BUS.clear_history();
+        if let Err(e) = GLOBAL_EVENT_BUS.clear_history() {
+            log::error!("Failed to clear event history: {}", e);
+        }
     });
 
     info!("Event bus handlers initialized");

@@ -1,0 +1,173 @@
+<div class="app-container" [class.sidebar-collapsed]="sidebarCollapsed()" [class.bottom-panel-collapsed]="bottomPanelCollapsed()">
+  <div class="top-panel" [class.collapsed]="sidebarCollapsed()">
+    <div class="panel-main" (click)="toggleSidebar()">
+      <div class="top-bar-left">
+        <span class="top-brand-icon">⚡</span>
+        <span class="top-brand-name">TechHub</span>
+      </div>
+      <div class="top-bar-right">
+        <span>{{ windowEntries().length }} windows</span>
+        <span>{{ minimizedWindowCount() }} minimized</span>
+      </div>
+    </div>
+    <div class="panel-content">
+      <nav class="top-nav">
+        <button class="nav-item" [class.active]="!hasFocusedWindow()" (click)="showMainMenu($event)">
+          <span class="nav-icon">🏠</span>
+          <span class="nav-label">Home</span>
+        </button>
+        @for (windowEntry of windowEntries(); track windowEntry.id) {
+          <button class="nav-item" [class.active]="windowEntry.focused" (click)="activateWindow(windowEntry.id, $event)">
+            <span class="nav-icon">{{ windowEntry.minimized ? '🗕' : '🗗' }}</span>
+            <span class="nav-label">{{ windowEntry.title }}</span>
+          </button>
+        }
+      </nav>
+    </div>
+  </div>
+
+  <main class="main-content">
+    <div class="search-container">
+      <span class="search-icon">🔍</span>
+      <input type="text" class="search-input" placeholder="Fuzzy search technologies..." [value]="searchQuery()" (input)="onSearch($event)" />
+      @if (searchQuery()) {
+        <button type="button" class="clear-btn" (click)="clearSearch()">✕</button>
+      }
+    </div>
+    <div class="cards-grid">
+      @for (card of filteredCards(); track card.id) {
+        <article class="card" [style.border-left-color]="card.color" (click)="openCard(card)">
+          <div class="card-icon" [style.background]="card.color">{{ card.icon }}</div>
+          <h3 class="card-title">{{ card.title }}</h3>
+          <p class="card-description">{{ card.description }}</p>
+          <span class="click-hint">Click to open</span>
+        </article>
+      } @empty {
+        <div class="no-results">
+          <span class="no-results-icon">🔎</span>
+          <p>No matching cards for "{{ searchQuery() }}"</p>
+        </div>
+      }
+    </div>
+  </main>
+
+  <div class="bottom-panel" [class.collapsed]="bottomPanelCollapsed()">
+    <div class="ws-status-bar" [class.ws-connected]="wsConnectionState() === 'connected'" [class.ws-connecting]="wsConnectionState() === 'connecting'" [class.ws-disconnected]="wsConnectionState() === 'disconnected'" [class.ws-error]="wsConnectionState() === 'error'">
+      <div class="ws-status-main" (click)="toggleWsDetails()">
+        <div class="ws-status-indicator"></div>
+        <span class="ws-status-text">WebSocket: {{ wsConnectionState() }}{{ wsPort() ? ' :' + wsPort() : '' }}{{ wsLastError() ? ' - ' + wsLastError() : '' }}</span>
+      </div>
+      <button class="ws-toggle-btn" type="button" (click)="toggleWsDetails(); $event.stopPropagation()">
+        {{ wsDetailsExpanded() ? 'Collapse' : 'Expand' }}
+      </button>
+    </div>
+    @if (wsDetailsExpanded()) {
+      <div class="ws-details-panel">
+        <div class="ws-metrics-grid">
+          <div class="ws-metric-group">
+            <span class="ws-group-label">Connection</span>
+            <div class="ws-metrics-row">
+              <div class="ws-metric-item">
+                <span class="ws-metric-label">Status</span>
+                <span class="ws-metric-value" [class]="'ws-status-' + wsConnectionState()">{{ wsConnectionState() }}</span>
+              </div>
+              <div class="ws-metric-item">
+                <span class="ws-metric-label">Port</span>
+                <span class="ws-metric-value">{{ wsPort() || '-' }}</span>
+              </div>
+              <div class="ws-metric-item">
+                <span class="ws-metric-label">Latency</span>
+                <span class="ws-metric-value">{{ wsLatency() }}ms</span>
+              </div>
+            </div>
+          </div>
+          <div class="ws-metric-group">
+            <span class="ws-group-label">Reliability</span>
+            <div class="ws-metrics-row">
+              <div class="ws-metric-item">
+                <span class="ws-metric-label">Uptime</span>
+                <span class="ws-metric-value">{{ formatUptime(wsUptime()) }}</span>
+              </div>
+              <div class="ws-metric-item">
+                <span class="ws-metric-label">Reconnects</span>
+                <span class="ws-metric-value">{{ wsReconnects() }}</span>
+              </div>
+              <div class="ws-metric-item">
+                <span class="ws-metric-label">Ping</span>
+                <span class="ws-metric-value">{{ wsPingSuccess() }}%</span>
+              </div>
+            </div>
+          </div>
+          <div class="ws-metric-group">
+            <span class="ws-group-label">Calls</span>
+            <div class="ws-metrics-row">
+              <div class="ws-metric-item">
+                <span class="ws-metric-label">Total</span>
+                <span class="ws-metric-value">{{ wsTotalCalls() }}/{{ wsSuccessfulCalls() }}</span>
+              </div>
+              <div class="ws-metric-item ws-error-item">
+                <span class="ws-metric-label">Error</span>
+                <span class="ws-metric-value">{{ wsLastError() || '-' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <div class="bottom-panel-tabs">
+      @for (tab of bottomPanelTabs; track tab.id) {
+        <button class="bottom-panel-tab" [class.active]="activeBottomTab() === tab.id" (click)="selectBottomTab(tab.id, $event)">
+          <span class="tab-icon">{{ tab.icon }}</span>
+          <span class="tab-label">{{ tab.label }}</span>
+        </button>
+      }
+    </div>
+    <div class="panel-main" (click)="toggleBottomPanel()">
+      <div class="panel-left">
+        <span class="panel-text">⚡ TechHub v1.0.0</span>
+      </div>
+      <div class="panel-right">
+        <span class="panel-text">{{ getCurrentTabInfo() }}</span>
+      </div>
+    </div>
+    <div class="panel-content">
+      <div class="panel-content-inner">
+        @if (activeBottomTab() === 'overview') {
+          <div class="tab-content overview-content">
+            <span class="panel-text">Runtime: WebUI (GTK/WebKit)</span>
+            <span class="panel-status" [class.connected]="wsConnectionState() === 'connected'">Status: {{ wsConnectionState() === 'connected' ? 'Ready' : wsConnectionState() }}</span>
+          </div>
+        } @else if (activeBottomTab() === 'metrics') {
+          <div class="tab-content metrics-content">
+            <span class="panel-text">Memory: 24.5 MB</span>
+            <span class="panel-text">CPU: 2.3%</span>
+            <span class="panel-text">Windows: {{ windowEntries().length }}</span>
+          </div>
+        } @else if (activeBottomTab() === 'events') {
+          <div class="tab-content events-content">
+            <span class="panel-text">Events: 12 today</span>
+            <span class="panel-text">Errors: 0</span>
+            <span class="panel-text">Last: 2m ago</span>
+          </div>
+        } @else if (activeBottomTab() === 'connection') {
+          <div class="tab-content connection-content">
+            <div class="ws-mini-stats">
+              <span class="ws-mini-item"><span class="ws-mini-label">Latency:</span> {{ wsLatency() }}ms</span>
+              <span class="ws-mini-item"><span class="ws-mini-label">Uptime:</span> {{ formatUptime(wsUptime()) }}</span>
+              <span class="ws-mini-item"><span class="ws-mini-label">Calls:</span> {{ wsTotalCalls() }}/{{ wsSuccessfulCalls() }}</span>
+            </div>
+          </div>
+        } @else if (activeBottomTab() === 'info') {
+          <div class="tab-content info-content">
+            <span class="panel-text">Version: 1.0.0</span>
+            <span class="panel-text">Build: 2024.02.18</span>
+            <span class="panel-text">Tech: Angular + Rust</span>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <app-error-modal [error]="globalErrorService.activeError()" (dismissed)="globalErrorService.dismiss()" />
+</div>

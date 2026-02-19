@@ -88,7 +88,7 @@ build_frontend() {
     bun build-frontend.js
 
     local required_files=(
-        "frontend/dist/angular-rspack-demo/index.html"
+        "frontend/dist/browser/index.html"
         "dist/index.html"
         "dist/static/js/main.js"
         "dist/static/js/winbox.min.js"

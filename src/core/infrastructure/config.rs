@@ -15,6 +15,7 @@ pub struct AppConfig {
     pub database: DatabaseSettings,
     pub window: WindowSettings,
     pub logging: LoggingSettings,
+    pub communication: CommunicationSettings,
     pub features: FeatureSettings,
 }
 
@@ -56,6 +57,12 @@ pub struct LoggingSettings {
 }
 
 #[derive(Debug, Deserialize, Clone)]
+pub struct CommunicationSettings {
+    pub transport: Option<String>,
+    pub serialization: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Clone)]
 pub struct FeatureSettings {
     pub dark_mode: Option<bool>,
     pub show_tray_icon: Option<bool>,
@@ -90,6 +97,10 @@ impl Default for AppConfig {
                 level: String::from("info"),
                 file: String::from("application.log"),
                 append: Some(true),
+            },
+            communication: CommunicationSettings {
+                transport: Some(String::from("webview_ffi")),
+                serialization: Some(String::from("json")),
             },
             features: FeatureSettings {
                 dark_mode: Some(true),
@@ -176,6 +187,14 @@ impl AppConfig {
 
     pub fn is_append_log(&self) -> bool {
         self.logging.append.unwrap_or(true)
+    }
+
+    pub fn get_transport(&self) -> &str {
+        self.communication.transport.as_deref().unwrap_or("webview_ffi")
+    }
+
+    pub fn get_serialization(&self) -> &str {
+        self.communication.serialization.as_deref().unwrap_or("json")
     }
 
     pub fn is_dark_mode(&self) -> bool {

@@ -153,13 +153,13 @@ async function buildFrontend() {
     }
     logger.endStep(true);
 
-    // Step 2: Build with Rspack
-    logger.startStep('rspack-build', 'Running Rspack build');
+    // Step 2: Build with Angular CLI
+    logger.startStep('angular-build', 'Running Angular build');
     try {
       const buildStart = Date.now();
-      execSync('bun run rspack build', { stdio: VERBOSE ? 'inherit' : 'pipe' });
+      execSync('bun run ng build', { stdio: VERBOSE ? 'inherit' : 'pipe', cwd: frontendDir });
       const buildDuration = Date.now() - buildStart;
-      logger.stepLog(`Rspack build completed in ${buildDuration}ms`);
+      logger.stepLog(`Angular build completed in ${buildDuration}ms`);
     } catch (buildError) {
       logger.stepLog(`Build failed: ${buildError.message}`, 'ERROR');
       logger.endStep(false, buildError);
@@ -174,7 +174,8 @@ async function buildFrontend() {
     const rootStatic = path.join(projectRoot, 'static');
     const rootStaticJs = path.join(rootStatic, 'js');
     const rootStaticCss = path.join(rootStatic, 'css');
-    const rspackOutputDir = path.join(frontendDir, 'dist', 'angular-rspack-demo');
+    const angularOutputDir = path.join(frontendDir, 'dist', 'browser');
+    const frontendStatic = path.join(frontendDir, 'dist', 'static');
     const distStaticJs = path.join(rootDist, 'static', 'js');
     const distStaticCss = path.join(rootDist, 'static', 'css');
     
@@ -183,19 +184,19 @@ async function buildFrontend() {
     await fs.mkdir(rootStaticJs, { recursive: true });
     await fs.mkdir(rootStaticCss, { recursive: true });
 
-    // Find JS files in rspack output (they have hashed names like main.xxxx.js)
-    const mainJsFiles = (await fs.readdir(rspackOutputDir)).filter(f => f.startsWith('main.') && f.endsWith('.js') && !f.endsWith('.map'));
-    const winboxJsFiles = (await fs.readdir(rspackOutputDir)).filter(f => f.startsWith('winbox.') && f.endsWith('.js') && !f.endsWith('.map'));
+    // Find JS files in Angular output (they have hashed names like main-XXXX.js)
+    const mainJsFiles = (await fs.readdir(angularOutputDir)).filter(f => f.startsWith('main-') && f.endsWith('.js') && !f.endsWith('.map'));
+    const winboxJsFiles = (await fs.readdir(angularOutputDir)).filter(f => f.startsWith('winbox.') && f.endsWith('.js') && !f.endsWith('.map'));
 
     if (mainJsFiles.length === 0) {
-      throw new Error('No main JS file found in rspack output');
+      throw new Error('No main JS file found in Angular output');
     }
 
     const mainJsFile = mainJsFiles[0];
     const winboxJsFile = winboxJsFiles.length > 0 ? winboxJsFiles[0] : null;
 
     // Copy main JS file
-    const mainSrc = path.join(rspackOutputDir, mainJsFile);
+    const mainSrc = path.join(angularOutputDir, mainJsFile);
     const mainDestJs = path.join(distStaticJs, 'main.js');
     const mainDestRootJs = path.join(rootStaticJs, 'main.js');
     await fs.copyFile(mainSrc, mainDestJs);
@@ -204,7 +205,7 @@ async function buildFrontend() {
 
     // Copy winbox JS file
     if (winboxJsFile) {
-      const winboxSrc = path.join(rspackOutputDir, winboxJsFile);
+      const winboxSrc = path.join(angularOutputDir, winboxJsFile);
       const winboxDestJs = path.join(distStaticJs, 'winbox.min.js');
       const winboxDestRootJs = path.join(rootStaticJs, 'winbox.min.js');
       await fs.copyFile(winboxSrc, winboxDestJs);
@@ -213,12 +214,12 @@ async function buildFrontend() {
     }
     
     // Copy chunk files (numbered JS files like 319.xxxx.js, 427.xxxx.js, etc.)
-    const chunkFiles = (await fs.readdir(rspackOutputDir)).filter(
+    const chunkFiles = (await fs.readdir(angularOutputDir)).filter(
       f => /^\d+\.[a-f0-9]+\.js$/.test(f) && !f.endsWith('.map')
     );
     
     for (const chunkFile of chunkFiles) {
-      const src = path.join(rspackOutputDir, chunkFile);
+      const src = path.join(angularOutputDir, chunkFile);
       await fs.copyFile(src, path.join(distStaticJs, chunkFile));
       await fs.copyFile(src, path.join(rootStaticJs, chunkFile));
     }
@@ -226,17 +227,32 @@ async function buildFrontend() {
       logger.stepLog(`Copied ${chunkFiles.length} chunk files`);
     }
     
-    // Note: CSS is bundled into JS by rspack, so no separate CSS file to copy
+    // Note: CSS is bundled into JS by Angular, so no separate CSS file to copy
+    
+    // Step 4a: Copy winbox.min.js from node_modules
+    logger.startStep('copy-winbox', 'Copying WinBox');
+    const winboxSrc = path.join(frontendDir, 'node_modules', 'winbox', 'dist', 'winbox.bundle.min.js');
+    const winboxDest1 = path.join(rootStaticJs, 'winbox.min.js');
+    const winboxDest2 = path.join(distStaticJs, 'winbox.min.js');
+    if (await pathExists(winboxSrc)) {
+      await fs.copyFile(winboxSrc, winboxDest1);
+      await fs.copyFile(winboxSrc, winboxDest2);
+      logger.stepLog('Copied winbox.min.js');
+    } else {
+      logger.stepLog('Warning: winbox.min.js not found', 'WARN');
+    }
     logger.endStep(true);
 
-    // Step 4: Copy webui.js
+    // Step 4b: Copy webui.js
     logger.startStep('copy-webui', 'Copying WebUI bridge');
-    const webuiSrc = path.join(projectRoot, 'static', 'js', 'webui.js');
+    const webuiSrc = path.join(projectRoot, 'thirdparty', 'webui-c-src', 'bridge', 'webui.js');
     const webuiDest = path.join(rootStaticJs, 'webui.js');
     if (await pathExists(webuiSrc)) {
       await fs.copyFile(webuiSrc, webuiDest);
       await fs.copyFile(webuiSrc, path.join(distStaticJs, 'webui.js'));
       logger.stepLog('Copied webui.js');
+    } else {
+      logger.stepLog('Warning: webui.js not found at ' + webuiSrc, 'WARN');
     }
     logger.endStep(true);
 

@@ -4,6 +4,8 @@ use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
 
+use crate::core::error::{AppError, AppResult, ErrorValue, ErrorCode};
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct EventData {
     pub event_type: String,
@@ -62,24 +64,47 @@ impl EventBus {
 
     pub fn emit(&self, event_type: &str, payload: serde_json::Value) {
         let event = EventData::new(event_type, payload);
-        self.store_event(event);
+        let _ = self.store_event(event);
     }
 
     pub fn emit_with_source(&self, event_type: &str, payload: serde_json::Value, source: &str) {
         let event = EventData::new(event_type, payload).with_source(source);
-        self.store_event(event);
+        let _ = self.store_event(event);
     }
 
-    fn store_event(&self, event: EventData) {
-        let mut history = self.history.lock().unwrap();
+    fn store_event(&self, event: EventData) -> AppResult<()> {
+        let mut history = self
+            .history
+            .lock()
+            .map_err(|e| {
+                AppError::LockPoisoned(
+                    ErrorValue::new(ErrorCode::LockPoisoned, "Failed to acquire event bus lock")
+                        .with_cause(e.to_string())
+                        .with_context("operation", "store_event")
+                )
+            })?;
         history.push(event);
         if history.len() > self.max_history {
             history.remove(0);
         }
+        Ok(())
     }
 
-    pub fn get_history(&self, event_type: Option<&str>, limit: Option<usize>) -> Vec<EventData> {
-        let history = self.history.lock().unwrap();
+    pub fn get_history(
+        &self,
+        event_type: Option<&str>,
+        limit: Option<usize>,
+    ) -> AppResult<Vec<EventData>> {
+        let history = self
+            .history
+            .lock()
+            .map_err(|e| {
+                AppError::LockPoisoned(
+                    ErrorValue::new(ErrorCode::LockPoisoned, "Failed to acquire event bus lock")
+                        .with_cause(e.to_string())
+                        .with_context("operation", "get_history")
+                )
+            })?;
 
         let filtered: Vec<EventData> = match event_type {
             Some(et) => history
@@ -91,14 +116,24 @@ impl EventBus {
         };
 
         match limit {
-            Some(l) => filtered.into_iter().rev().take(l).collect(),
-            None => filtered,
+            Some(l) => Ok(filtered.into_iter().rev().take(l).collect()),
+            None => Ok(filtered),
         }
     }
 
-    pub fn clear_history(&self) {
-        let mut history = self.history.lock().unwrap();
+    pub fn clear_history(&self) -> AppResult<()> {
+        let mut history = self
+            .history
+            .lock()
+            .map_err(|e| {
+                AppError::LockPoisoned(
+                    ErrorValue::new(ErrorCode::LockPoisoned, "Failed to acquire event bus lock")
+                        .with_cause(e.to_string())
+                        .with_context("operation", "clear_history")
+                )
+            })?;
         history.clear();
+        Ok(())
     }
 
     pub fn listener_count(&self, _event_type: &str) -> usize {

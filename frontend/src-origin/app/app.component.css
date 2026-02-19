@@ -1,5 +1,0 @@
-/* App container - full width */
-:host {
-  display: block;
-  min-height: 100vh;
-}

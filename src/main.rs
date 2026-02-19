@@ -15,20 +15,19 @@ use core::{
 
 // Shared utilities
 mod utils;
-use utils::compression::CompressionUtils;
-use utils::crypto::{CryptoUtils, PasswordUtils};
-use utils::encoding::EncodingUtils;
-use utils::network::NetworkUtils;
-use utils::security::SecurityUtils;
-use utils::system::SystemUtils;
-use utils::validation::ValidationUtils;
 
 include!(concat!(env!("OUT_DIR"), "/embedded_frontend.rs"));
+
+mod utils_demo;
+use utils_demo::run_utilities_demo;
 
 #[allow(unused_variables)]
 fn main() {
     // Initialize dependency injection container
-    di::init_container();
+    if let Err(e) = di::init_container() {
+        eprintln!("Failed to initialize DI container: {}", e);
+        return;
+    }
     info!("Dependency injection container initialized");
 
     let container = di::get_container();
@@ -52,7 +51,10 @@ fn main() {
     };
 
     // Register configuration in the container
-    container.register_singleton(config.clone());
+    if let Err(e) = container.register_singleton(config.clone()) {
+        eprintln!("Failed to register config in DI container: {}", e);
+        return;
+    }
 
     // Initialize logging system with config settings
     if let Err(e) = logging::init_logging_with_config(
@@ -72,34 +74,73 @@ fn main() {
     );
     info!("=============================================");
 
+    // Get communication settings from config
+    let transport = config.get_transport();
+    let serialization = config.get_serialization();
+    
     // Display backend-frontend communication configuration
-    info!("Backend-Frontend Communication Configuration:");
-    info!("  ═══════════════════════════════════════════");
-    info!("  TRANSPORT OPTIONS:");
-    info!("  ┌─────────────────────────────────────────┐");
-    info!("  │ ✓ WebView FFI (Native Binding) [ACTIVE] │");
-    info!("  │   HTTP/REST (Not used)                  │");
-    info!("  │   WebSocket Emulation (UI display)      │");
-    info!("  └─────────────────────────────────────────┘");
-    info!("  SERIALIZATION OPTIONS:");
-    info!("  ┌────────────────────────────────────────────────────┐");
-    info!("  │ Format       │ Size    │ Speed   │ Readable      │");
-    info!("  ├────────────────────────────────────────────────────┤");
-    info!("  │ ✓ JSON       │ 1.0x    │ 1.0x    │ Yes [ACTIVE]  │");
-    info!("  │   MessagePack│ ~0.7x   │ ~1.5x   │ No (Binary)   │");
-    info!("  │   CBOR       │ ~0.6x   │ ~1.6x   │ No (Binary)   │");
-    info!("  └────────────────────────────────────────────────────┘");
-    info!("  SELECTED CONFIGURATION:");
-    info!("    Transport: WebView FFI (Native Binding)");
-    info!("    Serialization: JSON (serde_json)");
-    info!("    UI Status Display: WebSocket (emulated)");
-    info!("  ALTERNATIVE FORMATS AVAILABLE:");
-    info!("    - MessagePack: 30% smaller, 1.5x faster (binary)");
-    info!("    - CBOR: 40% smaller, 1.6x faster (RFC 7049)");
-    info!("  COMMUNICATION FLOW:");
-    info!("    Frontend JS --[JSON]--> window.bind() --> Rust Backend");
-    info!("    Rust Backend --[JSON]--> window.run_js() --> Frontend JS");
-    info!("  ═══════════════════════════════════════════");
+    info!("═══════════════════════════════════════════════════════");
+    info!("  BACKEND-FRONTEND COMMUNICATION");
+    info!("═══════════════════════════════════════════════════════");
+    info!("");
+    info!("  TRANSPORT LAYER:");
+    info!("  ┌──────────────────┬────────────────────────────────┐");
+    info!("  │ Option           │ Description                    │");
+    info!("  ├──────────────────┼────────────────────────────────┤");
+    let webview_active = if transport == "webview_ffi" { "✓ [ACTIVE]" } else { "  " };
+    info!("  │ webview_ffi      │ Native WebView binding{}    │", webview_active);
+    let http_active = if transport == "http_rest" { "✓ [ACTIVE]" } else { "  " };
+    info!("  │ http_rest        │ HTTP/REST API{}             │", http_active);
+    let ws_active = if transport == "websocket" { "✓ [ACTIVE]" } else { "  " };
+    info!("  │ websocket        │ WebSocket connection{}       │", ws_active);
+    info!("  └──────────────────┴────────────────────────────────┘");
+    info!("");
+    info!("  SERIALIZATION FORMAT:");
+    info!("  ┌──────────────┬────────┬────────┬─────────────────────┐");
+    info!("  │ Format       │ Size   │ Speed  │ Description         │");
+    info!("  ├──────────────┼────────┼────────┼─────────────────────┤");
+    let json_active = if serialization == "json" { "✓ [ACTIVE]" } else { "   " };
+    info!("  │ JSON         │ 1.0x   │ 1.0x   │ Human readable{}    │", json_active);
+    let msgpack_active = if serialization == "messagepack" { "✓ [ACTIVE]" } else { "   " };
+    info!("  │ MessagePack  │ ~0.7x  │ ~1.5x  │ Binary, compact{}   │", msgpack_active);
+    let cbor_active = if serialization == "cbor" { "✓ [ACTIVE]" } else { "   " };
+    info!("  │ CBOR         │ ~0.6x  │ ~1.6x  │ RFC 7049{}          │", cbor_active);
+    info!("  └──────────────┴────────┴────────┴─────────────────────┘");
+    info!("");
+    info!("  SELECTED: {} + {}", 
+        match transport {
+            "webview_ffi" => "WebView FFI (Native Binding)",
+            "http_rest" => "HTTP/REST",
+            "websocket" => "WebSocket",
+            _ => "WebView FFI",
+        },
+        match serialization {
+            "json" => "JSON (serde_json)",
+            "messagepack" => "MessagePack (rmp-serde)",
+            "cbor" => "CBOR (serde_cbor)",
+            _ => "JSON",
+        }
+    );
+    info!("");
+    info!("  DATA FLOW:");
+    match transport {
+        "webview_ffi" => {
+            info!("    Frontend JS ──[{}]──> window.bind() ──> Rust Backend", 
+                serialization.to_uppercase());
+            info!("    Rust Backend ─[{}]──> window.run_js() ──> Frontend JS", 
+                serialization.to_uppercase());
+        },
+        "http_rest" => {
+            info!("    Frontend JS ──[HTTP/JSON]──> REST API ──> Rust Backend");
+            info!("    Rust Backend ─[HTTP/JSON]──> REST API ──> Frontend JS");
+        },
+        "websocket" => {
+            info!("    Frontend JS ──[WS/JSON]──> WebSocket Server ──> Rust Backend");
+            info!("    Rust Backend ─[WS/JSON]──> WebSocket Server ──> Frontend JS");
+        },
+        _ => {}
+    }
+    info!("═══════════════════════════════════════════════════════");
 
     info!("Application starting...");
 
@@ -131,63 +172,16 @@ fn main() {
     };
 
     // Register database in the container
-    container.register_singleton(Arc::clone(&db));
+    if let Err(e) = container.register_singleton(Arc::clone(&db)) {
+        eprintln!("Failed to register database in DI container: {}", e);
+        return;
+    }
 
     // Initialize database handlers with the database instance
     presentation::db_handlers::init_database(Arc::clone(&db));
 
     // Demonstrate utility usage
-    info!("=== Utility Modules Demonstration ===");
-
-    // System utilities
-    let sys_info = SystemUtils::get_system_info();
-    info!("OS: {} {}", sys_info.os_name, sys_info.os_version);
-    info!("Hostname: {}", sys_info.hostname);
-    info!("CPU Cores: {}", sys_info.cpu_cores);
-
-    // File utilities
-    let home_dir = SystemUtils::get_home_dir();
-    if let Some(home) = home_dir {
-        info!("Home directory: {}", home.display());
-    }
-
-    // DateTime utilities
-    let now = chrono::Utc::now();
-    info!("Current time: {}", now.format("%Y-%m-%d %H:%M:%S UTC"));
-
-    // Crypto utilities
-    let test_hash = CryptoUtils::sha256("test_data");
-    info!("SHA256 hash: {}", test_hash);
-
-    let password = "MySecurePassword123!";
-    let _hashed = PasswordUtils::hash_password(password).unwrap();
-    info!("Password hashed successfully");
-
-    // Validation utilities
-    let email = "test@example.com";
-    let email_valid = ValidationUtils::is_valid_email(email);
-    info!("Email '{}' valid: {}", email, email_valid);
-
-    // Encoding utilities
-    let original = "Hello, World!";
-    let encoded = EncodingUtils::encode_base64(original.as_bytes());
-    info!("Base64 encoded: {}", encoded);
-
-    // Network utilities
-    let local_ip = NetworkUtils::get_local_ip();
-    info!("Local IP: {:?}", local_ip);
-
-    // Process utilities
-    info!("Current PID: {}", std::process::id());
-
-    // Compression utilities
-    let test_data = b"Test compression data for demonstration purposes.";
-    let compressed = CompressionUtils::compress_gzip(test_data).unwrap();
-    info!("Gzip compression: {} -> {} bytes", test_data.len(), compressed.len());
-
-    // Security utilities
-    let is_admin = SecurityUtils::check_admin();
-    info!("Running as admin: {}", is_admin);
+    run_utilities_demo();
 
     // Create a new window
     let mut my_window = webui::Window::new();
@@ -274,16 +268,20 @@ fn resolve_frontend_dist() -> Option<(PathBuf, PathBuf)> {
     if let Ok(exe_path) = std::env::current_exe() {
         if let Some(exe_dir) = exe_path.parent() {
             candidates.push(exe_dir.join("dist"));
+            candidates.push(exe_dir.join("dist").join("browser"));
             if let Some(target_dir) = exe_dir.parent() {
                 candidates.push(target_dir.join("dist"));
+                candidates.push(target_dir.join("dist").join("browser"));
             }
         }
     }
 
     candidates.push(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("dist"));
+    candidates.push(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("dist").join("browser"));
 
     if let Ok(cwd) = std::env::current_dir() {
         candidates.push(cwd.join("dist"));
+        candidates.push(cwd.join("dist").join("browser"));
     }
 
     for dist_dir in candidates {

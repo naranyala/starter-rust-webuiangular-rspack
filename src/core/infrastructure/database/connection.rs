@@ -7,6 +7,7 @@ use rusqlite::{Connection, Result as SqliteResult};
 use std::sync::{Arc, Mutex};
 
 use super::models::QueryResult;
+use crate::core::error::{AppError, AppResult, ErrorValue, ErrorCode};
 
 /// Database manager with raw query support
 pub struct Database {
@@ -25,13 +26,21 @@ impl Database {
     }
 
     /// Get database connection
-    pub fn get_connection(&self) -> std::sync::MutexGuard<'_, Connection> {
-        self.conn.lock().unwrap()
+    pub fn get_connection(&self) -> AppResult<std::sync::MutexGuard<'_, Connection>> {
+        self.conn
+            .lock()
+            .map_err(|e| {
+                AppError::LockPoisoned(
+                    ErrorValue::new(ErrorCode::LockPoisoned, "Failed to acquire database connection lock")
+                        .with_cause(e.to_string())
+                        .with_context("operation", "get_connection")
+                )
+            })
     }
 
     /// Initialize the database with tables
-    pub fn init(&self) -> SqliteResult<()> {
-        let conn = self.conn.lock().unwrap();
+    pub fn init(&self) -> AppResult<()> {
+        let conn = self.get_connection()?;
 
         // Create users table
         conn.execute(
@@ -64,8 +73,8 @@ impl Database {
     }
 
     /// Execute a raw SELECT query and return results as JSON
-    pub fn query(&self, sql: &str, params: &[&dyn rusqlite::ToSql]) -> SqliteResult<QueryResult> {
-        let conn = self.conn.lock().unwrap();
+    pub fn query(&self, sql: &str, params: &[&dyn rusqlite::ToSql]) -> AppResult<QueryResult> {
+        let conn = self.get_connection()?;
 
         let mut stmt = conn.prepare(sql)?;
         let column_names: Vec<String> = stmt
@@ -94,8 +103,8 @@ impl Database {
     }
 
     /// Execute a raw INSERT, UPDATE, or DELETE query
-    pub fn execute(&self, sql: &str, params: &[&dyn rusqlite::ToSql]) -> SqliteResult<QueryResult> {
-        let conn = self.conn.lock().unwrap();
+    pub fn execute(&self, sql: &str, params: &[&dyn rusqlite::ToSql]) -> AppResult<QueryResult> {
+        let conn = self.get_connection()?;
         let rows_affected = conn.execute(sql, params)?;
 
         Ok(QueryResult::success(vec![], "Query executed successfully")
@@ -132,7 +141,7 @@ mod tests {
 
     #[test]
     fn test_database_init() {
-        let db = Database::new(":memory:").unwrap();
+        let db = Database::new(":memory:").expect("Failed to create in-memory database");
         assert!(db.init().is_ok());
     }
 }
