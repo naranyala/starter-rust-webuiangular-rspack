@@ -2,7 +2,7 @@
 
 ## Overview
 
-The application implements a bidirectional communication layer between frontend (JavaScript) and backend (Rust) using the WebUI framework's binding system.
+The application implements a bidirectional communication layer between frontend (Angular/TypeScript) and backend (Rust) using the WebUI framework's binding system.
 
 ## Communication Flow
 
@@ -32,14 +32,14 @@ Rust handlers are registered with WebUI:
 window.bind("get_users", |event| {
     // Handle get_users request
     let users = db.get_all_users()?;
-    
+
     // Send response to frontend
     let response = serde_json::json!({
         "success": true,
         "data": users,
         "count": users.len()
     });
-    
+
     send_response(window, "db_response", &response);
 });
 ```
@@ -50,10 +50,11 @@ JavaScript sends requests to backend:
 
 ```javascript
 // Call backend function
-window.__webui__.call('get_users', JSON.stringify({}));
+window.get_users();
 
-// Or using WebUIBridge
-await window.WebUIBridge.callRustFunction('get_users', {});
+// Or with parameters via element name
+const elementName = `create_user:${name}:${email}:${role}:${status}`;
+window.create_user(elementName);
 ```
 
 ### Frontend Event Listening
@@ -89,11 +90,12 @@ GLOBAL_EVENT_BUS.emit("user.created", json!({
 }));
 ```
 
-**Subscribe to Event:**
+**Get History:**
 ```rust
-GLOBAL_EVENT_BUS.subscribe("user.created", |event| {
-    log::info!("User created: {:?}", event);
-});
+let events = GLOBAL_EVENT_BUS.get_history(
+    Some("user.created"),
+    Some(10)
+)?;
 ```
 
 ### Frontend Event Bus
@@ -101,15 +103,11 @@ GLOBAL_EVENT_BUS.subscribe("user.created", |event| {
 Frontend has its own event bus for component communication:
 
 ```typescript
-import { EventBus } from '@core/error';
-
-const eventBus = EventBus.getInstance();
-
 // Publish
-eventBus.publish('user.updated', { id: 123 });
+this.eventBus.publish('user.updated', { id: 123 });
 
 // Subscribe
-const unsubscribe = eventBus.subscribe('user.updated', (payload) => {
+const unsubscribe = this.eventBus.subscribe('user.updated', (payload) => {
     console.log('User updated:', payload);
 });
 
@@ -134,23 +132,24 @@ All communication uses JSON for data serialization:
 }
 ```
 
-**Response Format:**
+**Success Response Format:**
 ```json
 {
   "success": true,
-  "data": [...],
-  "count": 10,
+  "data": {...},
   "message": "Operation completed"
 }
 ```
 
-**Error Format:**
+**Error Response Format:**
 ```json
 {
   "success": false,
+  "data": null,
   "error": {
-    "code": "NOT_FOUND",
+    "code": "RESOURCE_NOT_FOUND",
     "message": "User not found",
+    "field": "id",
     "context": {
       "user_id": "123"
     }
@@ -174,10 +173,8 @@ match get_user(id) {
     Err(e) => {
         let response = json!({
             "success": false,
-            "error": {
-                "code": e.code(),
-                "message": e.to_string()
-            }
+            "data": null,
+            "error": e.to_value().to_response()
         });
         send_response(window, "user_response", &response);
     }
@@ -186,17 +183,15 @@ match get_user(id) {
 
 ### Frontend Error Handling
 
-```javascript
-try {
-    const result = await callBackend('get_user', { id: 123 });
-    if (result.success) {
-        displayUser(result.data);
-    } else {
-        showError(result.error.message);
-    }
-} catch (error) {
-    logError(error);
-    showGenericError();
+```typescript
+const result = await getUsers();
+
+if (result.ok) {
+    // Success path
+    displayUser(result.value);
+} else {
+    // Error path - error is a value
+    errorService.report(result.error);
 }
 ```
 
@@ -235,7 +230,7 @@ Fire-and-forget commands:
 
 ```javascript
 // Frontend
-callBackend('log_message', { level: 'info', message: 'User action' });
+window.log_message(JSON.stringify({ level: 'info', message: 'User action' }));
 
 // Backend
 window.bind("log_message", |event| {
@@ -244,16 +239,15 @@ window.bind("log_message", |event| {
 });
 ```
 
-## WebSocket Emulation
+## Connection Status
 
-The bottom panel displays WebSocket-style connection status:
+The application displays connection status information:
 
 - Status: connected, connecting, disconnected, retrying, error
 - Port: Backend server port
 - Latency: Average ping/pong latency
 - Uptime: Connection uptime
 - Reconnects: Number of reconnection attempts
-- Ping Success: Heartbeat success rate
 - Total Calls: Successful/Total backend calls
 
 ## Security Considerations
@@ -268,18 +262,18 @@ fn create_user(name: &str, email: &str) -> Result<User> {
     if name.is_empty() {
         return validation_error!("name", "Name is required");
     }
-    
+
     if !is_valid_email(email) {
         return validation_error!("email", "Invalid email format");
     }
-    
+
     // Proceed with creation
 }
 ```
 
 ### Error Message Sanitization
 
-Error messages sent to frontend are sanitized:
+Error messages sent to frontend are sanitized to avoid leaking internal details:
 
 ```rust
 let safe_message = sanitize_error_message(&error);
@@ -308,7 +302,7 @@ const results = await Promise.all([
 
 Frequent events are debounced:
 
-```javascript
+```typescript
 const debouncedSearch = debounce(async (query) => {
     const results = await callBackend('search', { query });
     displayResults(results);
@@ -330,6 +324,6 @@ INFO [Communication] Backend -> Frontend: JSON response sent
 
 Frontend events are logged to console and backend:
 
-```javascript
+```typescript
 logger.info('Calling backend: get_users', { params });
 ```

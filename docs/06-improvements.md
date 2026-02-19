@@ -10,20 +10,19 @@ Create more granular submodules within presentation layer for different UI compo
 
 ### Implementation
 ```
-src/presentation/
-├── webui/
-│   ├── handlers/
-│   │   ├── db_handlers.rs
-│   │   ├── sysinfo_handlers.rs
-│   │   ├── logging_handlers.rs
-│   │   └── event_bus_handlers.rs
-│   ├── components/
-│   │   ├── windows.rs
-│   │   ├── dialogs.rs
-│   │   └── notifications.rs
-│   └── state/
-│       ├── app_state.rs
-│       └── ui_state.rs
+src/core/presentation/webui/
++-- handlers/
+|   +-- db_handlers.rs
+|   +-- sysinfo_handlers.rs
+|   +-- logging_handlers.rs
+|   +-- event_bus_handlers.rs
++-- components/
+|   +-- windows.rs
+|   +-- dialogs.rs
+|   +-- notifications.rs
++-- state/
+    +-- app_state.rs
+    +-- ui_state.rs
 ```
 
 ## 2. Documentation Organization
@@ -37,22 +36,25 @@ Create a centralized docs/ directory with structured documentation.
 ### Implementation
 ```
 docs/
-├── 01-overview.md           # Project overview and features
-├── 02-architecture.md       # Architecture and structure
-├── 03-build-system.md       # Build system and configuration
-├── 04-communication.md      # Frontend-backend communication
-├── 05-dependencies.md       # Dependencies reference
-├── 06-improvements.md       # This file
-├── api/                     # API documentation
-│   ├── backend/            # Backend API reference
-│   └── frontend/           # Frontend API reference
-├── guides/                  # How-to guides
-│   ├── getting-started.md
-│   ├── adding-features.md
-│   └── deployment.md
-└── architecture/            # Architecture decision records
-    ├── adr-001-mvvm.md
-    └── adr-002-webui.md
++-- 01-introduction.md        # Project overview and features
++-- 02-architecture.md        # Architecture and structure
++-- 03-build-system.md        # Build system and configuration
++-- 04-communication.md       # Frontend-backend communication
++-- 05-dependencies.md        # Dependencies reference
++-- 06-improvements.md        # This file
++-- 07-getting-started.md     # Getting started guide
++-- 08-project-structure.md   # Project structure details
++-- 09-errors-as-values.md    # Error handling guide
++-- api/                      # API documentation
+|   +-- backend/              # Backend API reference
+|   +-- frontend/             # Frontend API reference
++-- guides/                   # How-to guides
+|   +-- getting-started.md
+|   +-- adding-features.md
+|   +-- deployment.md
++-- architecture/             # Architecture decision records
+    +-- adr-001-mvvm.md
+    +-- adr-002-webui.md
 ```
 
 ## 3. Configuration Management
@@ -65,7 +67,7 @@ Implement a unified configuration management system with better validation and t
 
 ### Implementation
 ```rust
-// src/infrastructure/config/mod.rs
+// src/core/infrastructure/config/mod.rs
 pub struct Config {
     pub app: AppConfig,
     pub database: DatabaseConfig,
@@ -97,17 +99,17 @@ Add dedicated tests/ directories for unit, integration, and end-to-end tests.
 ### Implementation
 ```
 tests/
-├── unit/                   # Unit tests
-│   ├── domain/
-│   ├── application/
-│   └── infrastructure/
-├── integration/            # Integration tests
-│   ├── database.rs
-│   ├── api.rs
-│   └── webui.rs
-└── e2e/                    # End-to-end tests
-    ├── smoke.rs
-    └── features/
++-- unit/                   # Unit tests
+|   +-- domain/
+|   +-- application/
+|   +-- infrastructure/
++-- integration/            # Integration tests
+|   +-- database.rs
+|   +-- api.rs
+|   +-- webui.rs
++-- e2e/                    # End-to-end tests
+    +-- smoke.rs
+    +-- features/
 ```
 
 ### Test Commands
@@ -136,14 +138,14 @@ Implement a more streamlined asset pipeline with clear separation between develo
 ### Implementation
 ```
 assets/
-├── source/                 # Source assets
-│   ├── images/
-│   ├── fonts/
-│   └── icons/
-├── generated/              # Generated assets
-│   ├── sprites/
-│   └── bundles/
-└── runtime/                # Runtime assets (copied to static/)
++-- source/                 # Source assets
+|   +-- images/
+|   +-- fonts/
+|   +-- icons/
++-- generated/              # Generated assets
+|   +-- sprites/
+|   +-- bundles/
++-- runtime/                # Runtime assets (copied to static/)
 ```
 
 ### Build Script
@@ -165,7 +167,7 @@ Establish consistent error handling patterns using centralized error types and R
 
 ### Implementation
 ```rust
-// src/error/mod.rs
+// src/core/error/mod.rs
 pub enum AppError {
     Domain(DomainError),
     Infrastructure(InfrastructureError),
@@ -219,7 +221,6 @@ Organize dependencies by functionality and consider feature flags for optional c
 # Core
 webui-rs = { ... }
 serde = { ... }
-tokio = { ... }
 
 # Database
 rusqlite = { ... }
@@ -244,10 +245,10 @@ Add .github/workflows/ directory with automated testing, building, and deploymen
 ### Implementation
 ```
 .github/
-└── workflows/
-    ├── ci.yml              # Continuous integration
-    ├── release.yml         # Release automation
-    └── deploy.yml          # Deployment workflow
++-- workflows/
+    +-- ci.yml              # Continuous integration
+    +-- release.yml         # Release automation
+    +-- deploy.yml          # Deployment workflow
 ```
 
 ### CI Workflow
@@ -276,10 +277,10 @@ Implement environment-specific configuration files (dev, staging, prod) with app
 ### Implementation
 ```
 config/
-├── default.toml            # Default configuration
-├── development.toml        # Development overrides
-├── staging.toml            # Staging overrides
-└── production.toml         # Production overrides
++-- default.toml            # Default configuration
++-- development.toml        # Development overrides
++-- staging.toml            # Staging overrides
++-- production.toml         # Production overrides
 ```
 
 ### Loading Logic

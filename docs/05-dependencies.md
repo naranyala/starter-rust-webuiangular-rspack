@@ -35,11 +35,6 @@
 - **Features**: bundled
 - **Purpose**: SQLite database operations
 
-#### Async Runtime
-- **Package**: tokio
-- **Features**: full
-- **Purpose**: Async runtime for concurrent operations
-
 #### Logging
 - **Package**: log (0.4)
 - **Purpose**: Logging facade
@@ -62,13 +57,6 @@
 #### Utilities
 - **Package**: lazy_static (1.4)
 - **Purpose**: Lazy static initialization
-
-- **Package**: regex (1.10)
-- **Purpose**: Regular expression matching
-
-- **Package**: uuid (1.0)
-- **Features**: v4, serde
-- **Purpose**: UUID generation
 
 ### Security Dependencies
 
@@ -175,9 +163,6 @@
 - **Package**: num_cpus (1.17)
 - **Purpose**: CPU count
 
-- **Package**: libc (0.2)
-- **Purpose**: Low-level system access
-
 ### Encoding
 
 - **Package**: ascii85 (0.2)
@@ -217,29 +202,42 @@
 
 ## Frontend Dependencies (TypeScript/JavaScript)
 
+### Framework
+- **Package**: @angular/core (19.x)
+- **Purpose**: Angular framework
+
+- **Package**: @angular/common (19.x)
+- **Purpose**: Angular common module
+
+- **Package**: @angular/forms (19.x)
+- **Purpose**: Angular forms module
+
+- **Package**: @angular/platform-browser (19.x)
+- **Purpose**: Angular platform browser
+
+- **Package**: @angular/router (19.x)
+- **Purpose**: Angular router
+
 ### Build Tools
-
-- **Package**: @rspack/core
-- **Purpose**: Fast bundler
-
-- **Package**: @rspack/cli
-- **Purpose**: Rspack CLI
 
 - **Package**: typescript
 - **Purpose**: TypeScript compiler
 
-- **Package**: bun
-- **Purpose**: Package manager and runtime
+- **Package**: @angular-devkit/build-angular
+- **Purpose**: Angular build system
 
-### Runtime Libraries
-
-- **Package**: mitt
-- **Purpose**: Event emitter (3KB)
+- **Package**: @angular/cli
+- **Purpose**: Angular CLI
 
 ### Development Tools
 
 - **Package**: @biomejs/biome
 - **Purpose**: Linter and formatter
+
+### Runtime Libraries
+
+- **Package**: winbox
+- **Purpose**: Window management library
 
 ## Build Dependencies
 
@@ -261,7 +259,6 @@
 #### Core Application
 - webui-rs
 - serde, serde_json
-- tokio
 - log, env_logger
 
 #### Data Layer
@@ -324,11 +321,11 @@ cargo audit
 ### Core Flow
 ```
 main.rs
-  -> domain (entities, traits)
-  -> application (handlers, services)
-  -> infrastructure (config, database, di, event_bus, logging)
-  -> presentation (webui handlers)
-  -> shared/utils (utilities)
+  -> core/domain (entities, traits)
+  -> core/application (handlers, services)
+  -> core/infrastructure (config, database, di, event_bus, logging)
+  -> core/presentation (webui handlers)
+  -> utils (utilities)
 ```
 
 ### External Services

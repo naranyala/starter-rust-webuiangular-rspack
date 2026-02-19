@@ -2,71 +2,81 @@
 
 ## Build Pipeline Overview
 
-The project uses a sophisticated build pipeline orchestrated by multiple scripts and tools:
+The project uses a sophisticated build pipeline orchestrated by multiple scripts and tools.
 
-### Master Build Script (run.sh)
+## Master Build Script (run.sh)
 
 The main entry point for building and running the application.
 
-**Usage:**
+### Usage
 ```bash
 ./run.sh                    # Build and run in development mode
 ./run.sh --release          # Build optimized release version
 ./run.sh --build            # Build only (frontend + backend)
 ./run.sh --build-frontend   # Build frontend only
+./run.sh --build-rust       # Build Rust backend only
+./run.sh --run              # Run existing build
 ./run.sh --clean            # Clean all build artifacts
+./run.sh --rebuild          # Clean and rebuild
 ./run.sh --help             # Show help message
 ```
 
-### Frontend Build (build-frontend.js)
+### Build Steps
+1. Check prerequisites (Cargo, Bun)
+2. Install frontend dependencies
+3. Build frontend with Angular/Rspack
+4. Copy static assets
+5. Build Rust backend with Cargo
+6. Run post-build processing
+7. Launch application (if --run specified)
 
-JavaScript-based frontend build orchestration using Bun and Rspack.
+## Frontend Build (build-frontend.js)
 
-**Features:**
+JavaScript-based frontend build orchestration.
+
+### Features
 - Dependency installation with Bun
-- Production build with Rspack
+- Production build with Angular CLI
 - Asset copying to static directory
-- WebUI bridge library compilation
+- WebUI bridge library handling
 - Index.html patching with correct paths
 
-**Build Steps:**
+### Build Steps
 1. Install dependencies with Bun
-2. Run Rspack production build
+2. Run Angular production build
 3. Copy static assets to root directory
-4. Build WebUI bridge library
-5. Patch index.html with correct paths
+4. Patch index.html with correct paths
 
-### Rust Build Script (build.rs)
+## Rust Build Script (build.rs)
 
 Rust build script that compiles C dependencies during the build process.
 
-**Responsibilities:**
+### Responsibilities
 - Compile WebUI C library
-- Compile CivetWeb embedded web server
 - Generate build configuration from app.config.toml
 - Set up linker flags for native dependencies
 - Watch for file changes during development
 
-**Generated Configuration:**
+### Generated Configuration
 - Package name and version
 - Executable name
 - Default log level
 - Default log file path
 
-### Post-Build Script (post-build.sh)
+## Post-Build Script (post-build.sh)
 
 Handles post-build processing and executable preparation.
 
-**Features:**
+### Features
 - Executable renaming based on configuration
 - Platform-specific post-processing
 - Distribution preparation
 
-### Distribution Builder (build-dist.sh)
+## Distribution Builder (build-dist.sh)
 
 Cross-platform distribution package builder.
 
-**Usage:**
+### Usage
 ```bash
 ./build-dist.sh build         # Build distribution package
 ./build-dist.sh build-release # Build release distribution
@@ -79,7 +89,7 @@ Cross-platform distribution package builder.
 
 TOML-based configuration file controlling application behavior.
 
-**Sections:**
+### Sections
 
 #### [app]
 - name: Application name
@@ -131,7 +141,6 @@ Runtime configuration can be overridden via environment variables:
 ## Build Workflows
 
 ### Development Workflow
-
 ```bash
 # Initial setup
 ./run.sh
@@ -144,7 +153,6 @@ tail -f application.log
 ```
 
 ### Production Build
-
 ```bash
 # Build optimized release
 ./run.sh --release
@@ -154,7 +162,6 @@ tail -f application.log
 ```
 
 ### Clean Build
-
 ```bash
 # Clean all artifacts
 ./run.sh --clean
@@ -166,12 +173,12 @@ tail -f application.log
 ## Build Output
 
 ### Development Build
-- Binary: target/debug/rustwebui-app
+- Binary: target/debug/app
 - Frontend: static/js/, static/css/
 - Logs: application.log
 
 ### Release Build
-- Binary: target/release/rustwebui-app
+- Binary: target/release/app
 - Optimized with LTO
 - Smaller binary size
 
@@ -231,6 +238,6 @@ tail -f application.log
 - Cache Bun dependencies
 
 ### Build Times
-- Development build: ~30-60 seconds
-- Release build: ~2-5 minutes
-- Frontend only: ~5-10 seconds
+- Development build: 30-60 seconds
+- Release build: 2-5 minutes
+- Frontend only: 5-10 seconds

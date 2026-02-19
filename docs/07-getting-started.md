@@ -14,6 +14,10 @@
 - Installation: https://bun.sh/
 - Verification: `bun --version`
 
+#### Node.js (alternative to Bun)
+- Version: 18 or later
+- Installation: https://nodejs.org/
+
 #### C Compiler
 - Linux: GCC or Clang
 - macOS: Xcode Command Line Tools
@@ -56,7 +60,7 @@ xcode-select --install
 ### Clone Repository
 ```bash
 git clone <repository-url>
-cd starter-rust-webuivanilla-rspack
+cd starter-rust-webuiangular-rspack
 ```
 
 ### Verify Prerequisites
@@ -97,6 +101,9 @@ The script will:
 # Build frontend only
 ./run.sh --build-frontend
 
+# Build Rust only
+./run.sh --build-rust
+
 # Clean and rebuild
 ./run.sh --clean && ./run.sh
 ```
@@ -115,8 +122,8 @@ The script will:
 # Build for current platform
 ./build-dist.sh build
 
-# Build for all platforms (requires cross-compilation setup)
-./build-dist.sh build-all
+# Build release distribution
+./build-dist.sh build-release
 ```
 
 ## Configuration
@@ -172,7 +179,7 @@ export APP_CONFIG=/path/to/config.toml
 cargo build
 
 # Use gdb/lldb
-gdb ./target/debug/rustwebui-app
+gdb ./target/debug/app
 
 # View logs
 tail -f application.log
@@ -194,10 +201,7 @@ dark_mode = true
 cargo test
 
 # Run frontend tests
-cd frontend && bun test
-
-# Run all tests
-./run.sh --test
+cd frontend && npm test
 ```
 
 ## Common Tasks
@@ -206,27 +210,27 @@ cd frontend && bun test
 
 1. Create domain entity:
 ```bash
-# src/domain/entities/my_feature.rs
+# src/core/domain/entities/my_feature.rs
 ```
 
 2. Create application handler:
 ```bash
-# src/application/handlers/my_feature_handlers.rs
+# src/core/application/handlers/my_feature_handlers.rs
 ```
 
 3. Register WebUI binding:
 ```bash
-# src/presentation/webui/handlers/my_feature_handlers.rs
+# src/core/presentation/webui/handlers/my_feature_handlers.rs
 ```
 
 4. Add frontend component:
 ```bash
-# frontend/src/components/MyFeature.ts
+# frontend/src/views/my-feature/
 ```
 
 ### Add Database Table
 
-1. Update schema in `src/infrastructure/database.rs`:
+1. Update schema in `src/core/infrastructure/database/connection.rs`:
 ```rust
 conn.execute(
     "CREATE TABLE IF NOT EXISTS my_table (
@@ -237,7 +241,7 @@ conn.execute(
 )?;
 ```
 
-2. Add entity in `src/domain/entities/mod.rs`:
+2. Add entity in `src/core/domain/entities/mod.rs`:
 ```rust
 pub struct MyEntity {
     pub id: i64,
@@ -245,7 +249,7 @@ pub struct MyEntity {
 }
 ```
 
-3. Add repository methods in `src/infrastructure/database.rs`
+3. Add repository methods in `src/core/infrastructure/database/`
 
 ### Add New Endpoint
 
@@ -328,16 +332,16 @@ xcode-select --install
 
 After getting started:
 
-1. Read Architecture documentation to understand the codebase
-2. Review Communication guide for frontend-backend interaction
-3. Check Dependencies reference for available libraries
-4. Explore Examples directory for reference implementations
-5. Review Improvements for enhancement ideas
+1. Read [Architecture](02-architecture.md) to understand the codebase
+2. Review [Project Structure](08-project-structure.md) for repository layout
+3. Check [Communication](04-communication.md) for frontend-backend interaction
+4. Explore [Dependencies](05-dependencies.md) for available libraries
+5. Review [Improvements](06-improvements.md) for enhancement ideas
 
 ## Resources
 
 - Rust Documentation: https://doc.rust-lang.org/
 - WebUI Documentation: https://github.com/webui-dev/rust-webui
 - SQLite Documentation: https://www.sqlite.org/docs.html
-- Rspack Documentation: https://rspack.dev/
+- Angular Documentation: https://angular.dev/
 - Bun Documentation: https://bun.sh/docs
