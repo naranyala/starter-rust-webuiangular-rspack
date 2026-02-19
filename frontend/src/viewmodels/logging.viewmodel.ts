@@ -92,8 +92,33 @@ export class LoggingViewModel {
     console[method](`${prefix} ${entry.message}`, entry.context);
   }
 
+  private backendSink(entry: LogEntry): void {
+    try {
+      if (typeof window !== 'undefined') {
+        const win = window as unknown as { log_message?: (data: string) => void };
+        if (typeof win.log_message === 'function') {
+          const payload = {
+            message: entry.message,
+            level: entry.level.toUpperCase(),
+            meta: entry.context,
+            category: entry.namespace,
+            session_id: 'frontend',
+            frontend_timestamp: entry.timestamp,
+          };
+          win.log_message(JSON.stringify(payload));
+        }
+      }
+    } catch {
+      // Silently fail if WebUI is not available
+    }
+  }
+
   enableConsoleSink(): void {
     this.addSink(this.consoleSink.bind(this));
+  }
+
+  enableBackendSink(): void {
+    this.addSink(this.backendSink.bind(this));
   }
 }
 

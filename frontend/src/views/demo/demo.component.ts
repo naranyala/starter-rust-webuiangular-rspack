@@ -204,6 +204,7 @@ import { CardItem } from '../../models';
 export class DemoComponent {
   private readonly logger = getLogger('demo.component');
   searchQuery = '';
+  private existingWindows = new Map<string, any>();
 
   cards: CardItem[] = [
     {
@@ -271,13 +272,24 @@ export class DemoComponent {
   }
 
   openCard(card: CardItem): void {
+    const windowId = `demo-${card.title}`;
+    
+    const existingWindow = this.existingWindows.get(card.title);
+    if (existingWindow) {
+      if (existingWindow.min) existingWindow.restore();
+      existingWindow.focus();
+      existingWindow.maximize();
+      this.windowState.sendStateChange(windowId, 'focused', card.title);
+      this.eventBus.publish('window:refocused', { id: windowId, title: card.title });
+      return;
+    }
+
     const WinBoxConstructor = (window as unknown as { WinBox: any }).WinBox;
     if (!WinBoxConstructor) {
       this.logger.error('WinBox is not loaded', { cardTitle: card.title });
       return;
     }
 
-    const windowId = `demo-${card.title}`;
     const _win = new WinBoxConstructor({
       title: card.title,
       background: card.color,
@@ -289,7 +301,13 @@ export class DemoComponent {
       onfocus: function () {
         this.setBackground(card.color);
       },
+      onclose: () => {
+        this.existingWindows.delete(card.title);
+        this.windowState.sendStateChange(windowId, 'closed', card.title);
+      }
     });
+
+    this.existingWindows.set(card.title, _win);
 
     _win.maximize();
     this.windowState.sendStateChange(windowId, 'focused', card.title);
@@ -299,7 +317,6 @@ export class DemoComponent {
     _win.on('minimize', () => this.windowState.sendStateChange(windowId, 'minimized', card.title));
     _win.on('restore', () => this.windowState.sendStateChange(windowId, 'restored', card.title));
     _win.on('maximize', () => this.windowState.sendStateChange(windowId, 'maximized', card.title));
-    _win.on('close', () => this.windowState.sendStateChange(windowId, 'closed', card.title));
 
     this.eventBus.publish('window:opened', { id: windowId, title: card.title });
   }

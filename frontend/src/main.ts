@@ -5,7 +5,7 @@ import { bootstrapApplication } from '@angular/platform-browser';
 import { ErrorHandler } from '@angular/core';
 import { AppComponent } from './views/app.component';
 import { environment } from './environments/environment';
-import { clearLogHistory, configureLogging, getLogHistory, getLogger } from './viewmodels/logger';
+import { clearLogHistory, configureLogging, getLogHistory, getLogger, backend } from './viewmodels/logger';
 import { GlobalErrorHandler } from './core/global-error.handler';
 import { EventBusViewModel } from './viewmodels/event-bus.viewmodel';
 import { GlobalErrorService } from './core/global-error.service';
@@ -14,6 +14,7 @@ const eventBus = new EventBusViewModel<Record<string, unknown>>();
 eventBus.init('app', 300);
 
 configureLogging(environment.logging);
+backend.enableBackendSink();
 const logger = getLogger('bootstrap');
 
 const debugApiWindow = window as unknown as {

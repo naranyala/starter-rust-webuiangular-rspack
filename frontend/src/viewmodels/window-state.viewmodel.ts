@@ -82,9 +82,11 @@ export class WindowStateViewModel {
     };
 
     try {
-      if (typeof window !== 'undefined' && (window as unknown as { Webui?: { call?: unknown } }).Webui) {
-        const webui = (window as unknown as { Webui: { call: (windowId: number, eventName: string, data: string) => void } }).Webui;
-        webui.call(0, 'window_state_change', JSON.stringify(event));
+      if (typeof window !== 'undefined') {
+        const win = window as unknown as { window_state_change?: (data: string) => void };
+        if (typeof win.window_state_change === 'function') {
+          win.window_state_change(JSON.stringify(event));
+        }
       }
     } catch {
       // Silently fail if WebUI is not available

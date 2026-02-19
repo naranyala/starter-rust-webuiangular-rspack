@@ -7,6 +7,19 @@ import { EventBusViewModel } from '../viewmodels/event-bus.viewmodel';
 import { WindowStateViewModel } from '../viewmodels/window-state.viewmodel';
 import { Card, BottomPanelTab, WindowEntry } from '../models';
 
+interface ConnectionStats {
+  state: string;
+  connected: boolean;
+  lastError: string | null;
+  port: string | null;
+  latency: number;
+  uptime: number;
+  reconnects: number;
+  pingSuccess: number;
+  totalCalls: number;
+  successfulCalls: number;
+}
+
 declare const WinBox: any;
 
 @Component({
@@ -68,6 +81,69 @@ declare const WinBox: any;
       </main>
 
       <div class="bottom-panel" [class.collapsed]="bottomPanelCollapsed()">
+        <div class="ws-status-bar" [class.ws-connected]="wsConnectionState() === 'connected'" [class.ws-connecting]="wsConnectionState() === 'connecting'" [class.ws-disconnected]="wsConnectionState() === 'disconnected'" [class.ws-error]="wsConnectionState() === 'error'">
+          <div class="ws-status-main" (click)="toggleWsDetails()">
+            <div class="ws-status-indicator"></div>
+            <span class="ws-status-text">WebSocket: {{ wsConnectionState() }}{{ wsPort() ? ' :' + wsPort() : '' }}{{ wsLastError() ? ' - ' + wsLastError() : '' }}</span>
+          </div>
+          <button class="ws-toggle-btn" type="button" (click)="toggleWsDetails(); $event.stopPropagation()">
+            {{ wsDetailsExpanded() ? 'Collapse' : 'Expand' }}
+          </button>
+        </div>
+        @if (wsDetailsExpanded()) {
+          <div class="ws-details-panel">
+            <div class="ws-metrics-grid">
+              <div class="ws-metric-group">
+                <span class="ws-group-label">Connection</span>
+                <div class="ws-metrics-row">
+                  <div class="ws-metric-item">
+                    <span class="ws-metric-label">Status</span>
+                    <span class="ws-metric-value" [class]="'ws-status-' + wsConnectionState()">{{ wsConnectionState() }}</span>
+                  </div>
+                  <div class="ws-metric-item">
+                    <span class="ws-metric-label">Port</span>
+                    <span class="ws-metric-value">{{ wsPort() || '-' }}</span>
+                  </div>
+                  <div class="ws-metric-item">
+                    <span class="ws-metric-label">Latency</span>
+                    <span class="ws-metric-value">{{ wsLatency() }}ms</span>
+                  </div>
+                </div>
+              </div>
+              <div class="ws-metric-group">
+                <span class="ws-group-label">Reliability</span>
+                <div class="ws-metrics-row">
+                  <div class="ws-metric-item">
+                    <span class="ws-metric-label">Uptime</span>
+                    <span class="ws-metric-value">{{ formatUptime(wsUptime()) }}</span>
+                  </div>
+                  <div class="ws-metric-item">
+                    <span class="ws-metric-label">Reconnects</span>
+                    <span class="ws-metric-value">{{ wsReconnects() }}</span>
+                  </div>
+                  <div class="ws-metric-item">
+                    <span class="ws-metric-label">Ping</span>
+                    <span class="ws-metric-value">{{ wsPingSuccess() }}%</span>
+                  </div>
+                </div>
+              </div>
+              <div class="ws-metric-group">
+                <span class="ws-group-label">Calls</span>
+                <div class="ws-metrics-row">
+                  <div class="ws-metric-item">
+                    <span class="ws-metric-label">Total</span>
+                    <span class="ws-metric-value">{{ wsTotalCalls() }}/{{ wsSuccessfulCalls() }}</span>
+                  </div>
+                  <div class="ws-metric-item ws-error-item">
+                    <span class="ws-metric-label">Error</span>
+                    <span class="ws-metric-value">{{ wsLastError() || '-' }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+
         <div class="bottom-panel-tabs">
           @for (tab of bottomPanelTabs; track tab.id) {
             <button class="bottom-panel-tab" [class.active]="activeBottomTab() === tab.id" (click)="selectBottomTab(tab.id, $event)">
@@ -89,7 +165,7 @@ declare const WinBox: any;
             @if (activeBottomTab() === 'overview') {
               <div class="tab-content overview-content">
                 <span class="panel-text">Runtime: WebUI (GTK/WebKit)</span>
-                <span class="panel-status">Status: Ready</span>
+                <span class="panel-status" [class.connected]="wsConnectionState() === 'connected'">Status: {{ wsConnectionState() === 'connected' ? 'Ready' : wsConnectionState() }}</span>
               </div>
             } @else if (activeBottomTab() === 'metrics') {
               <div class="tab-content metrics-content">
@@ -102,6 +178,14 @@ declare const WinBox: any;
                 <span class="panel-text">Events: 12 today</span>
                 <span class="panel-text">Errors: 0</span>
                 <span class="panel-text">Last: 2m ago</span>
+              </div>
+            } @else if (activeBottomTab() === 'connection') {
+              <div class="tab-content connection-content">
+                <div class="ws-mini-stats">
+                  <span class="ws-mini-item"><span class="ws-mini-label">Latency:</span> {{ wsLatency() }}ms</span>
+                  <span class="ws-mini-item"><span class="ws-mini-label">Uptime:</span> {{ formatUptime(wsUptime()) }}</span>
+                  <span class="ws-mini-item"><span class="ws-mini-label">Calls:</span> {{ wsTotalCalls() }}/{{ wsSuccessfulCalls() }}</span>
+                </div>
               </div>
             } @else if (activeBottomTab() === 'info') {
               <div class="tab-content info-content">
@@ -153,9 +237,40 @@ declare const WinBox: any;
     .no-results { grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: #888; }
     .no-results-icon { font-size: 48px; display: block; margin-bottom: 16px; opacity: 0.5; }
     
-    .bottom-panel { position: fixed; bottom: 0; left: 0; right: 0; height: 30px; background: #1a1a2e; transition: height 0.3s ease; z-index: 200; }
+    .bottom-panel { position: fixed; bottom: 0; left: 0; right: 0; height: 30px; background: #1a1a2e; transition: height 0.3s ease; z-index: 200; display: flex; flex-direction: column; }
     .bottom-panel.collapsed { height: 30px; }
-    .bottom-panel:not(.collapsed) { height: 88px; }
+    .bottom-panel:not(.collapsed) { height: 168px; }
+    
+    .ws-status-bar { display: flex; justify-content: space-between; align-items: center; height: 28px; padding: 0 12px; background: #0f0f1a; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .ws-status-main { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    .ws-status-indicator { width: 8px; height: 8px; border-radius: 50%; background: #666; }
+    .ws-connected .ws-status-indicator { background: #4ade80; }
+    .ws-connecting .ws-status-indicator { background: #3b82f6; }
+    .ws-disconnected .ws-status-indicator { background: #666; }
+    .ws-error .ws-status-indicator { background: #ef4444; }
+    .ws-status-text { color: rgba(255,255,255,0.85); font-size: 12px; font-family: monospace; }
+    .ws-toggle-btn { background: rgba(255,255,255,0.1); border: none; color: rgba(255,255,255,0.7); padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; transition: all 0.2s; }
+    .ws-toggle-btn:hover { background: rgba(255,255,255,0.2); color: white; }
+    
+    .ws-details-panel { background: #151529; padding: 8px 16px; border-bottom: 1px solid rgba(255,255,255,0.1); max-height: 100px; overflow-y: auto; }
+    .ws-metrics-grid { display: flex; gap: 24px; flex-wrap: wrap; }
+    .ws-metric-group { display: flex; flex-direction: column; gap: 4px; min-width: 180px; }
+    .ws-group-label { color: rgba(255,255,255,0.5); font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .ws-metrics-row { display: flex; gap: 16px; }
+    .ws-metric-item { display: flex; flex-direction: column; gap: 2px; }
+    .ws-metric-label { color: rgba(255,255,255,0.6); font-size: 11px; }
+    .ws-metric-value { color: rgba(255,255,255,0.9); font-size: 12px; font-weight: 500; }
+    .ws-status-connected { color: #4ade80; }
+    .ws-status-connecting { color: #3b82f6; }
+    .ws-status-disconnected { color: #9ca3af; }
+    .ws-status-error { color: #ef4444; }
+    .ws-status-retrying { color: #fbbf24; }
+    .ws-error-item .ws-metric-value { color: #ef4444; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    
+    .ws-mini-stats { display: flex; gap: 20px; justify-content: center; width: 100%; }
+    .ws-mini-item { color: rgba(255,255,255,0.7); font-size: 12px; }
+    .ws-mini-label { color: rgba(255,255,255,0.5); margin-right: 4px; }
+    
     .bottom-panel-tabs { display: flex; align-items: center; gap: 4px; padding: 4px 8px 0; height: 28px; background: #0f0f1a; border-bottom: 1px solid rgba(255,255,255,0.1); }
     .bottom-panel-tab { display: flex; align-items: center; gap: 6px; padding: 4px 12px; background: transparent; border: none; border-radius: 6px 6px 0 0; color: rgba(255,255,255,0.6); cursor: pointer; transition: all 0.2s; font-size: 12px; white-space: nowrap; }
     .bottom-panel-tab:hover { background: rgba(255,255,255,0.1); color: white; }
@@ -164,7 +279,7 @@ declare const WinBox: any;
     .tab-label { white-space: nowrap; }
     .tab-content { display: flex; align-items: center; gap: 16px; width: 100%; }
     .tab-content .panel-text { padding-top: 0; }
-    .metrics-content, .events-content, .info-content { justify-content: center; }
+    .metrics-content, .events-content, .info-content, .connection-content { justify-content: center; }
     .overview-content { justify-content: space-between; }
     .panel-main { display: flex; justify-content: space-between; align-items: center; height: 30px; padding: 0 16px; cursor: pointer; }
     .panel-left { display: flex; align-items: center; gap: 8px; }
@@ -175,6 +290,7 @@ declare const WinBox: any;
     .bottom-panel:not(.collapsed) .panel-content { opacity: 1; visibility: visible; min-height: 30px; padding: 0 20px; }
     .panel-content-inner { display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 1200px; gap: 12px; }
     .panel-status { color: #4ade80; font-size: 12px; }
+    .panel-status.connected { color: #4ade80; }
   `]
 })
 export class AppComponent implements OnInit, OnDestroy {
@@ -189,15 +305,34 @@ export class AppComponent implements OnInit, OnDestroy {
   activeBottomTab = signal<string>('overview');
   windowEntries = signal<WindowEntry[]>([]);
   
+  wsConnectionState = signal('connecting');
+  wsDetailsExpanded = signal(false);
+  wsPort = signal<string | null>(null);
+  wsLatency = signal(0);
+  wsUptime = signal(0);
+  wsReconnects = signal(0);
+  wsPingSuccess = signal(100);
+  wsTotalCalls = signal(0);
+  wsSuccessfulCalls = signal(0);
+  wsLastError = signal<string | null>(null);
+
+  // Window positioning constants
+  private readonly WINDOW_TITLEBAR_HEIGHT = 30; // WinBox title bar height
+  private readonly WINDOW_BOTTOM_PADDING = 20; // Padding from bottom edge
+  private readonly WINDOW_SIDE_PADDING = 0; // No side padding - use full width
+  
   bottomPanelTabs: BottomPanelTab[] = [
     { id: 'overview', label: 'Overview', icon: '📊', content: 'System overview' },
     { id: 'metrics', label: 'Metrics', icon: '📈', content: 'Performance metrics' },
+    { id: 'connection', label: 'Connection', icon: '🔗', content: 'Connection stats' },
     { id: 'events', label: 'Events', icon: '🔔', content: 'Recent events' },
     { id: 'info', label: 'Info', icon: 'ℹ️', content: 'Application info' }
   ];
 
   private existingBoxes: any[] = [];
   private appReadyUnsubscribe: (() => void) | null = null;
+  private windowIdByCardId = new Map<number, string>();
+  private resizeHandler: (() => void) | null = null;
 
   cards: Card[] = [
     { id: 1, title: 'Angular', description: 'A platform for building mobile and desktop web applications with TypeScript.', icon: '🅰️', color: '#dd0031', content: '<h2>Angular</h2><p>Angular is a platform and framework for building single-page client applications using HTML and TypeScript.</p>' },
@@ -248,11 +383,15 @@ export class AppComponent implements OnInit, OnDestroy {
   toggleSidebar(): void {
     this.sidebarCollapsed.set(!this.sidebarCollapsed());
     this.eventBus.publish('ui:top-panel:toggled', { collapsed: this.sidebarCollapsed() });
+    // Wait for CSS transition (300ms) + small buffer to ensure DOM is updated
+    setTimeout(() => this.resizeAllWindows(), 320);
   }
 
   toggleBottomPanel(): void {
     this.bottomPanelCollapsed.set(!this.bottomPanelCollapsed());
     this.eventBus.publish('ui:bottom-panel:toggled', { collapsed: this.bottomPanelCollapsed() });
+    // Wait for CSS transition (300ms) + small buffer to ensure DOM is updated
+    setTimeout(() => this.resizeAllWindows(), 320);
   }
 
   selectBottomTab(tabId: string, event: Event): void {
@@ -260,11 +399,52 @@ export class AppComponent implements OnInit, OnDestroy {
     this.activeBottomTab.set(tabId);
     if (this.bottomPanelCollapsed()) this.bottomPanelCollapsed.set(false);
     this.eventBus.publish('ui:bottom-panel:tab-changed', { tabId });
+    // Wait for CSS transition (300ms) + small buffer to ensure DOM is updated
+    setTimeout(() => this.resizeAllWindows(), 320);
   }
 
   getCurrentTabInfo(): string {
     const tab = this.bottomPanelTabs.find(t => t.id === this.activeBottomTab());
     return tab ? tab.content : '';
+  }
+
+  toggleWsDetails(): void {
+    this.wsDetailsExpanded.set(!this.wsDetailsExpanded());
+    if (!this.wsDetailsExpanded()) {
+      this.bottomPanelCollapsed.set(true);
+    } else {
+      this.bottomPanelCollapsed.set(false);
+    }
+  }
+
+  formatUptime(ms: number): string {
+    const seconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+    if (days > 0) return `${days}d ${hours % 24}h ${minutes % 60}m`;
+    if (hours > 0) return `${hours}h ${minutes % 60}m ${seconds % 60}s`;
+    if (minutes > 0) return `${minutes}m ${seconds % 60}s`;
+    return `${seconds}s`;
+  }
+
+  private initWebSocketMonitor(): void {
+    this.wsConnectionState.set('connected');
+    
+    if (typeof window !== 'undefined') {
+      window.addEventListener('webui:status', ((event: CustomEvent) => {
+        const detail = event.detail;
+        if (detail?.state) {
+          this.wsConnectionState.set(detail.state);
+        }
+        if (detail?.detail?.port) {
+          this.wsPort.set(String(detail.detail.port));
+        }
+        if (detail?.detail?.error) {
+          this.wsLastError.set(detail.detail.error);
+        }
+      }) as EventListener);
+    }
   }
 
   minimizedWindowCount(): number {
@@ -273,6 +453,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.windowState.init();
+    this.initWebSocketMonitor();
     this.appReadyUnsubscribe = this.eventBus.subscribe('app:ready', (payload: unknown) => {
       const p = payload as { timestamp: number };
       this.logger.info('Received app ready event', { timestamp: p.timestamp });
@@ -282,22 +463,48 @@ export class AppComponent implements OnInit, OnDestroy {
       window.WinBox = WinBox;
       this.logger.warn('WinBox was missing on window and has been assigned');
     }
+    
+    // Listen for window resize events
+    if (typeof window !== 'undefined') {
+      this.resizeHandler = () => this.resizeAllWindows();
+      window.addEventListener('resize', this.resizeHandler);
+    }
+    
     this.logger.info('App component initialized', { cardsCount: this.cards.length });
   }
 
   ngOnDestroy(): void {
     this.appReadyUnsubscribe?.();
+    if (typeof window !== 'undefined' && this.resizeHandler) {
+      window.removeEventListener('resize', this.resizeHandler);
+      this.resizeHandler = null;
+    }
   }
 
   closeAllBoxes(): void {
     this.existingBoxes.forEach(box => { if (box) box.close(); });
     this.existingBoxes = [];
     this.windowEntries.set([]);
+    this.windowIdByCardId.clear();
   }
 
   openCard(card: Card): void {
+    const existingWindowId = this.windowIdByCardId.get(card.id);
+    if (existingWindowId) {
+      const existingBox = this.existingBoxes.find((box: any) => box?.__windowId === existingWindowId);
+      if (existingBox) {
+        if (existingBox.min) existingBox.restore();
+        existingBox.focus();
+        this.applyMaximizedState(existingBox);
+        this.markWindowFocused(existingWindowId);
+        this.eventBus.publish('window:refocused', { id: existingWindowId, title: card.title });
+        return;
+      }
+    }
+
     this.logger.info('Opening technology card', { id: card.id, title: card.title });
-    const windowId = `${card.id}-${Date.now()}`;
+    const windowId = `card-${card.id}`;
+    const windowRect = this.getAvailableWindowRect();
 
     const box = new WinBox({
       id: windowId,
@@ -305,20 +512,32 @@ export class AppComponent implements OnInit, OnDestroy {
       background: card.color,
       border: 0,
       radius: 8,
-      width: '500px',
-      height: '400px',
-      x: 'center',
-      y: 'center',
+      width: windowRect.width + 'px',
+      height: windowRect.height + 'px',
+      x: windowRect.left + 'px',
+      y: windowRect.top + 'px',
       html: `<div style="padding: 24px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; height: calc(100% - 40px); overflow: auto; box-sizing: border-box; background: #fafafa;">${card.content}</div>`,
       controls: { minimize: true, maximize: true, close: true },
       onfocus: () => this.markWindowFocused(windowId),
       onblur: () => this.windowState.sendStateChange(windowId, 'blurred', card.title),
       onminimize: () => this.markWindowMinimized(windowId),
-      onrestore: () => { box.resize('500px', '400px'); box.move('center', 'center'); this.markWindowRestored(windowId); },
-      onmaximize: () => this.windowState.sendStateChange(windowId, 'maximized', card.title),
+      onmaximize: () => {
+        (box as any).__isMaximized = true;
+        this.applyMaximizedState(box);
+        this.windowState.sendStateChange(windowId, 'maximized', card.title);
+      },
+      onrestore: () => {
+        (box as any).__isMaximized = false;
+        const rect = this.getAvailableWindowRect();
+        box.resize(rect.width + 'px', rect.height + 'px');
+        box.move(rect.top + 'px', rect.left + 'px');
+        this.markWindowRestored(windowId);
+        this.windowState.sendStateChange(windowId, 'restored', card.title);
+      },
       onclose: () => {
         const index = this.existingBoxes.indexOf(box);
         if (index > -1) this.existingBoxes.splice(index, 1);
+        this.windowIdByCardId.delete(card.id);
         this.eventBus.publish('window:closed', { id: windowId, title: card.title });
         this.windowState.sendStateChange(windowId, 'closed', card.title);
         this.windowEntries.update(entries => entries.filter(entry => entry.id !== windowId));
@@ -328,12 +547,29 @@ export class AppComponent implements OnInit, OnDestroy {
 
     (box as any).__windowId = windowId;
     (box as any).__cardTitle = card.title;
+    (box as any).__cardId = card.id;
+    (box as any).__isMaximized = true; // Start maximized by default
     this.existingBoxes.push(box);
+    this.windowIdByCardId.set(card.id, windowId);
     this.windowEntries.update(entries => [...entries.map(e => ({ ...e, focused: false })), { id: windowId, title: card.title, minimized: false, focused: true }]);
     this.eventBus.publish('window:opened', { id: windowId, title: card.title });
     this.windowState.sendStateChange(windowId, 'focused', card.title);
 
-    try { box.maximize(); } catch { /* ignore */ }
+    // Apply maximized state (window starts maximized)
+    this.applyMaximizedState(box);
+  }
+
+  private applyMaximizedState(box: any): void {
+    // Use setTimeout to ensure WinBox's native maximize completes first
+    setTimeout(() => {
+      const rect = this.getAvailableWindowRect();
+      try {
+        box.resize(rect.width + 'px', rect.height + 'px');
+        box.move(rect.top + 'px', rect.left + 'px');
+      } catch {
+        // Ignore resize errors
+      }
+    }, 10);
   }
 
   activateWindow(windowId: string, event: Event): void {
@@ -342,7 +578,10 @@ export class AppComponent implements OnInit, OnDestroy {
     if (!box) { this.windowEntries.update(entries => entries.filter(entry => entry.id !== windowId)); return; }
     if (box.min) box.restore();
     box.focus();
-    box.maximize();
+    // Apply maximized state if window was maximized
+    if ((box as any).__isMaximized) {
+      this.applyMaximizedState(box);
+    }
     this.eventBus.publish('window:focused', { id: windowId });
   }
 
@@ -378,5 +617,62 @@ export class AppComponent implements OnInit, OnDestroy {
   private getWindowTitle(windowId: string): string {
     const entry = this.windowEntries().find(e => e.id === windowId);
     return entry?.title ?? 'Unknown';
+  }
+
+  private getTopPanelElement(): HTMLElement | null {
+    if (typeof document === 'undefined') return null;
+    return document.querySelector('.top-panel') as HTMLElement | null;
+  }
+
+  private getBottomPanelElement(): HTMLElement | null {
+    if (typeof document === 'undefined') return null;
+    return document.querySelector('.bottom-panel') as HTMLElement | null;
+  }
+
+  private getTopPanelHeight(): number {
+    const panel = this.getTopPanelElement();
+    return panel ? panel.offsetHeight : 72;
+  }
+
+  private getBottomPanelHeight(): number {
+    const panel = this.getBottomPanelElement();
+    return panel ? panel.offsetHeight : 88;
+  }
+
+  private getAvailableWindowHeight(): number {
+    const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 600;
+    const topHeight = this.getTopPanelHeight();
+    const bottomHeight = this.getBottomPanelHeight();
+    const availableHeight = viewportHeight - topHeight - bottomHeight - this.WINDOW_BOTTOM_PADDING;
+    return Math.max(200, availableHeight); // Minimum height of 200px
+  }
+
+  private getAvailableWindowRect(): { top: number; height: number; width: number; left: number } {
+    const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 600;
+    const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 800;
+    const topHeight = this.getTopPanelHeight();
+    const bottomHeight = this.getBottomPanelHeight();
+    
+    return {
+      top: topHeight, // Title bar sits directly below top panel
+      height: this.getAvailableWindowHeight(),
+      width: viewportWidth - (2 * this.WINDOW_SIDE_PADDING),
+      left: this.WINDOW_SIDE_PADDING
+    };
+  }
+
+  private resizeAllWindows(): void {
+    const rect = this.getAvailableWindowRect();
+    this.existingBoxes.forEach((box: any) => {
+      if (box && !box.min) {
+        try {
+          // Always apply the current available rect (respects panel heights)
+          box.resize(rect.width + 'px', rect.height + 'px');
+          box.move(rect.top + 'px', rect.left + 'px');
+        } catch {
+          // Ignore resize errors
+        }
+      }
+    });
   }
 }

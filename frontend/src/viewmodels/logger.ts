@@ -78,7 +78,7 @@ function createRootLogger(backend: LoggingViewModel): Logger {
   return new Logger(backend, 'frontend');
 }
 
-const backend = new LoggingViewModel();
+export const backend = new LoggingViewModel();
 export const rootLogger = createRootLogger(backend);
 
 export function configureLogging(options: Partial<LoggerOptions>): Logger {
