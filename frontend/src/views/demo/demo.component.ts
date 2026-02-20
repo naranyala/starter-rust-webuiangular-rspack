@@ -4,7 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { getLogger } from '../../viewmodels/logger';
 import { EventBusViewModel } from '../../viewmodels/event-bus.viewmodel';
 import { WindowStateViewModel } from '../../viewmodels/window-state.viewmodel';
-import { CardItem } from '../../models';
+import { CardItem, WindowStateEvent } from '../../models';
+import { WinBoxService, WinBoxInstance } from '../../core/winbox.service';
 
 @Component({
   selector: 'app-demo',
@@ -204,7 +205,7 @@ import { CardItem } from '../../models';
 export class DemoComponent {
   private readonly logger = getLogger('demo.component');
   searchQuery = '';
-  private existingWindows = new Map<string, any>();
+  private existingWindows = new Map<string, WinBoxInstance>();
 
   cards: CardItem[] = [
     {
@@ -257,6 +258,7 @@ export class DemoComponent {
   ];
 
   constructor(
+    private readonly winboxService: WinBoxService,
     private readonly eventBus: EventBusViewModel<Record<string, unknown>>,
     private readonly windowState: WindowStateViewModel
   ) {}
@@ -273,7 +275,7 @@ export class DemoComponent {
 
   openCard(card: CardItem): void {
     const windowId = `demo-${card.title}`;
-    
+
     const existingWindow = this.existingWindows.get(card.title);
     if (existingWindow) {
       if (existingWindow.min) existingWindow.restore();
@@ -284,40 +286,35 @@ export class DemoComponent {
       return;
     }
 
-    const WinBoxConstructor = (window as unknown as { WinBox: any }).WinBox;
-    if (!WinBoxConstructor) {
-      this.logger.error('WinBox is not loaded', { cardTitle: card.title });
-      return;
-    }
-
-    const _win = new WinBoxConstructor({
+    // Create window using WinBoxService - start maximized
+    const box = this.winboxService.create({
       title: card.title,
       background: card.color,
       width: '600px',
       height: '500px',
       x: 'center',
       y: 'center',
+      max: true,
       html: `<div style="padding: 20px; color: #333; height: 100%; overflow: auto; background: white;">${card.content}</div>`,
-      onfocus: function () {
+      onfocus: function (this: WinBoxInstance) {
         this.setBackground(card.color);
       },
       onclose: () => {
         this.existingWindows.delete(card.title);
         this.windowState.sendStateChange(windowId, 'closed', card.title);
+        return true;
       }
     });
 
-    this.existingWindows.set(card.title, _win);
+    if (!box) {
+      this.logger.error('Failed to create WinBox window', { cardTitle: card.title });
+      return;
+    }
 
-    _win.maximize();
+    this.existingWindows.set(card.title, box);
+
+    // WinBoxService creates windows already maximized when max: true
     this.windowState.sendStateChange(windowId, 'focused', card.title);
-
-    _win.on('focus', () => this.windowState.sendStateChange(windowId, 'focused', card.title));
-    _win.on('blur', () => this.windowState.sendStateChange(windowId, 'blurred', card.title));
-    _win.on('minimize', () => this.windowState.sendStateChange(windowId, 'minimized', card.title));
-    _win.on('restore', () => this.windowState.sendStateChange(windowId, 'restored', card.title));
-    _win.on('maximize', () => this.windowState.sendStateChange(windowId, 'maximized', card.title));
-
     this.eventBus.publish('window:opened', { id: windowId, title: card.title });
   }
 }

@@ -1,8 +1,24 @@
 
+# Rust build output
 target/
-dist/
-static/
 
+# Frontend dependencies and build
 frontend/node_modules
 frontend/dist
 frontend/.angular
+frontend/.rspack
+
+# Application runtime files
+*.db
+*.log
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db

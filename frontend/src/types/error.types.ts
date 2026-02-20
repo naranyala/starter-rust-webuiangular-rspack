@@ -244,33 +244,97 @@ export function internalError(message: string, cause?: string): ErrorValue {
 
 /**
  * Convert an ErrorValue to a user-friendly message
+ * This function should provide helpful, actionable messages for users
  */
 export function toUserMessage(error: ErrorValue): string {
   // For validation errors, show field-specific messages
   if (error.field && error.code === ErrorCode.ValidationFailed) {
     return `${error.field}: ${error.message}`;
   }
-  
+
   // For already exists errors
   if (error.code === ErrorCode.DbAlreadyExists) {
-    return error.message;
+    return error.message || 'This item already exists.';
   }
-  
+
   // For not found errors
-  if (error.code === ErrorCode.ResourceNotFound || 
+  if (error.code === ErrorCode.ResourceNotFound ||
       error.code === ErrorCode.DbNotFound ||
-      error.code === ErrorCode.UserNotFound) {
-    return error.message;
+      error.code === ErrorCode.UserNotFound ||
+      error.code === ErrorCode.EntityNotFound) {
+    return error.message || 'The requested item was not found.';
   }
-  
-  // For internal errors, show a generic message to users
-  if (error.code === ErrorCode.InternalError || 
+
+  // For database errors
+  if (error.code === ErrorCode.DbConnectionFailed) {
+    return 'Unable to connect to the database. Please check your connection and try again.';
+  }
+  if (error.code === ErrorCode.DbQueryFailed) {
+    return error.message?.includes('duplicate') 
+      ? 'A record with this information already exists.'
+      : error.message?.includes('constraint')
+        ? 'This operation would violate a database rule.'
+        : 'A database operation failed. Please try again.';
+  }
+  if (error.code === ErrorCode.DbConstraintViolation) {
+    return 'This action would violate a data rule. Please check your input.';
+  }
+
+  // For configuration errors
+  if (error.code === ErrorCode.ConfigNotFound) {
+    return 'Configuration not found. Please check your settings.';
+  }
+  if (error.code === ErrorCode.ConfigInvalid) {
+    return 'Invalid configuration. Please review your settings.';
+  }
+  if (error.code === ErrorCode.ConfigMissingField) {
+    return error.message || 'Required configuration is missing.';
+  }
+
+  // For serialization errors
+  if (error.code === ErrorCode.SerializationFailed ||
+      error.code === ErrorCode.DeserializationFailed) {
+    return 'Failed to process data. Please check your input and try again.';
+  }
+  if (error.code === ErrorCode.InvalidFormat) {
+    return error.message || 'The data format is invalid.';
+  }
+
+  // For validation errors (without field)
+  if (error.code === ErrorCode.ValidationFailed) {
+    return error.message || 'Validation failed. Please check your input.';
+  }
+  if (error.code === ErrorCode.MissingRequiredField) {
+    return error.message || 'A required field is missing.';
+  }
+  if (error.code === ErrorCode.InvalidFieldValue) {
+    return error.message || 'A field contains an invalid value.';
+  }
+
+  // For system errors - provide more helpful messages
+  if (error.code === ErrorCode.InternalError ||
       error.code === ErrorCode.LockPoisoned) {
-    return 'An unexpected error occurred. Please try again.';
+    // If we have a specific message, show it (without technical details)
+    if (error.message && !error.message.includes('stack')) {
+      return error.message;
+    }
+    // Add context-aware messages
+    if (error.context && error.context.operation) {
+      return `Failed to ${error.context.operation}. Please try again.`;
+    }
+    return 'An unexpected error occurred. Please try again. If the problem persists, check the technical details below.';
   }
-  
-  // Default: show the message
-  return error.message;
+
+  // For unknown errors, try to extract useful information
+  if (error.code === ErrorCode.Unknown) {
+    if (error.message && error.message.length < 200) {
+      return error.message;
+    }
+    return 'An unknown error occurred. Please check the technical details for more information.';
+  }
+
+  // Default: show the message if available, otherwise generic
+  return error.message || 'An error occurred. Please try again.';
 }
 
 /**

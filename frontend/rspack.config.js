@@ -10,11 +10,10 @@ const HtmlRspackPlugin = require('html-rspack-plugin');
  */
 module.exports = {
   entry: {
-    winbox: 'winbox/dist/winbox.bundle.min.js',
     main: './src/main.ts',
   },
   output: {
-    path: path.resolve(__dirname, 'dist/angular-rspack-demo'),
+    path: path.resolve(__dirname, 'dist/browser'),
     filename: '[name].[contenthash].js',
     chunkFilename: '[name].[contenthash].js',
     clean: true,
@@ -85,7 +84,6 @@ module.exports = {
     new HtmlRspackPlugin({
       template: './src/index.html',
       scriptLoading: 'blocking',
-      entryNames: ['winbox', 'main'],
     }),
   ],
   optimization: {

@@ -110,6 +110,7 @@ impl ErrorValue {
         }
     }
 
+    #[allow(dead_code)]
     pub fn with_details(mut self, details: impl Into<String>) -> Self {
         self.details = Some(details.into());
         self
@@ -165,6 +166,7 @@ impl fmt::Display for ErrorValue {
 
 /// Application error enum using structured error values
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub enum AppError {
     Database(ErrorValue),
     DependencyInjection(ErrorValue),
@@ -194,6 +196,7 @@ impl AppError {
     }
 
     /// Convert to JSON for frontend consumption
+    #[allow(dead_code)]
     pub fn to_json(&self) -> serde_json::Value {
         self.to_value().to_response()
     }
@@ -265,6 +268,7 @@ impl<T, E: fmt::Display> ToAppResult<T> for Result<T, E> {
 pub mod errors {
     use super::*;
 
+    #[allow(dead_code)]
     pub fn db_not_found(entity: &str, id: impl fmt::Display) -> AppError {
         AppError::NotFound(
             ErrorValue::new(ErrorCode::DbNotFound, format!("{} not found: {}", entity, id))
@@ -273,6 +277,7 @@ pub mod errors {
         )
     }
 
+    #[allow(dead_code)]
     pub fn validation_failed(field: &str, message: &str) -> AppError {
         AppError::Validation(
             ErrorValue::new(ErrorCode::ValidationFailed, message.to_string())
@@ -280,6 +285,7 @@ pub mod errors {
         )
     }
 
+    #[allow(dead_code)]
     pub fn not_found(resource: &str, id: impl fmt::Display) -> AppError {
         AppError::NotFound(
             ErrorValue::new(ErrorCode::ResourceNotFound, format!("{} not found: {}", resource, id))
@@ -287,6 +293,7 @@ pub mod errors {
         )
     }
 
+    #[allow(dead_code)]
     pub fn internal(message: &str) -> AppError {
         AppError::LockPoisoned(
             ErrorValue::new(ErrorCode::InternalError, message.to_string())

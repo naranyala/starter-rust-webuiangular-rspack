@@ -91,8 +91,8 @@ build_frontend() {
         "frontend/dist/browser/index.html"
         "dist/index.html"
         "dist/static/js/main.js"
-        "dist/static/js/winbox.min.js"
         "dist/static/js/webui.js"
+        "dist/static/css/winbox.min.css"
     )
     local missing=0
     for f in "${required_files[@]}"; do

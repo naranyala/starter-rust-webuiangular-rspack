@@ -138,7 +138,32 @@ async function buildFrontend() {
   const frontendDir = path.join(projectRoot, 'frontend');
   const distPath = path.join(frontendDir, 'dist');
 
+  // Ensure project root directories exist (not symlinks)
+  const rootDist = path.join(projectRoot, 'dist');
+  const rootStatic = path.join(projectRoot, 'static');
+  const rootStaticJs = path.join(rootStatic, 'js');
+  const rootStaticCss = path.join(rootStatic, 'css');
+
   try {
+    // Check if rootDist or rootStatic are symlinks and remove them
+    for (const dir of [rootDist, rootStatic]) {
+      try {
+        const stat = await fs.lstat(dir);
+        if (stat.isSymbolicLink()) {
+          await fs.unlink(dir);
+          logger.debug(`Removed symlink: ${dir}`);
+        }
+      } catch {
+        // Directory doesn't exist, will create it
+      }
+    }
+
+    // Create required directories
+    await fs.mkdir(rootStaticJs, { recursive: true });
+    await fs.mkdir(rootStaticCss, { recursive: true });
+    await fs.mkdir(path.join(rootDist, 'static', 'js'), { recursive: true });
+    await fs.mkdir(path.join(rootDist, 'static', 'css'), { recursive: true });
+
     process.chdir(frontendDir);
 
     // Step 1: Install dependencies
@@ -169,20 +194,10 @@ async function buildFrontend() {
 
     // Step 3: Copy assets to project root dist/ and static/
     logger.startStep('copy-assets', 'Copying built assets');
-    
-    const rootDist = path.join(projectRoot, 'dist');
-    const rootStatic = path.join(projectRoot, 'static');
-    const rootStaticJs = path.join(rootStatic, 'js');
-    const rootStaticCss = path.join(rootStatic, 'css');
+
     const angularOutputDir = path.join(frontendDir, 'dist', 'browser');
-    const frontendStatic = path.join(frontendDir, 'dist', 'static');
     const distStaticJs = path.join(rootDist, 'static', 'js');
     const distStaticCss = path.join(rootDist, 'static', 'css');
-    
-    await fs.mkdir(distStaticJs, { recursive: true });
-    await fs.mkdir(distStaticCss, { recursive: true });
-    await fs.mkdir(rootStaticJs, { recursive: true });
-    await fs.mkdir(rootStaticCss, { recursive: true });
 
     // Find JS files in Angular output (they have hashed names like main-XXXX.js)
     const mainJsFiles = (await fs.readdir(angularOutputDir)).filter(f => f.startsWith('main-') && f.endsWith('.js') && !f.endsWith('.map'));
@@ -229,17 +244,29 @@ async function buildFrontend() {
     
     // Note: CSS is bundled into JS by Angular, so no separate CSS file to copy
     
-    // Step 4a: Copy winbox.min.js from node_modules
+    // Step 4a: Copy winbox.min.js and winbox.min.css from node_modules
     logger.startStep('copy-winbox', 'Copying WinBox');
-    const winboxSrc = path.join(frontendDir, 'node_modules', 'winbox', 'dist', 'winbox.bundle.min.js');
-    const winboxDest1 = path.join(rootStaticJs, 'winbox.min.js');
-    const winboxDest2 = path.join(distStaticJs, 'winbox.min.js');
-    if (await pathExists(winboxSrc)) {
-      await fs.copyFile(winboxSrc, winboxDest1);
-      await fs.copyFile(winboxSrc, winboxDest2);
+    const winboxJsSrc = path.join(frontendDir, 'node_modules', 'winbox', 'dist', 'winbox.bundle.min.js');
+    const winboxCssSrc = path.join(frontendDir, 'node_modules', 'winbox', 'dist', 'css', 'winbox.min.css');
+    const winboxJsDest1 = path.join(rootStaticJs, 'winbox.min.js');
+    const winboxJsDest2 = path.join(distStaticJs, 'winbox.min.js');
+    const winboxCssDest1 = path.join(rootStaticCss, 'winbox.min.css');
+    const winboxCssDest2 = path.join(distStaticCss, 'winbox.min.css');
+    
+    if (await pathExists(winboxJsSrc)) {
+      await fs.copyFile(winboxJsSrc, winboxJsDest1);
+      await fs.copyFile(winboxJsSrc, winboxJsDest2);
       logger.stepLog('Copied winbox.min.js');
     } else {
       logger.stepLog('Warning: winbox.min.js not found', 'WARN');
+    }
+    
+    if (await pathExists(winboxCssSrc)) {
+      await fs.copyFile(winboxCssSrc, winboxCssDest1);
+      await fs.copyFile(winboxCssSrc, winboxCssDest2);
+      logger.stepLog('Copied winbox.min.css');
+    } else {
+      logger.stepLog('Warning: winbox.min.css not found', 'WARN');
     }
     logger.endStep(true);
 
@@ -268,10 +295,12 @@ async function buildFrontend() {
   <meta charset="utf-8">
   <title>Rust WebUI Application</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="./static/css/winbox.min.css">
 </head>
 <body>
   <app-root></app-root>
 
+  <!-- WinBox must be loaded before main.js -->
   <script src="./static/js/winbox.min.js"></script>
   <script src="./static/js/webui.js"></script>
   <script src="./static/js/main.js"></script>
