@@ -1,6 +1,5 @@
 import 'zone.js';
 import '@angular/compiler';
-import './winbox-loader';
 import { bootstrapApplication } from '@angular/platform-browser';
 import { ErrorHandler } from '@angular/core';
 import { AppComponent } from './views/app.component';
