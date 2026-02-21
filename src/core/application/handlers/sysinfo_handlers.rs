@@ -154,8 +154,9 @@ fn get_disk_info() -> serde_json::Value {
 
     if let Ok(output) = Command::new("df")
         .args(["-h", "-P", "-x", "tmpfs", "-x", "devtmpfs"])
-        .output()
-        && let Ok(stdout) = String::from_utf8(output.stdout) {
+        .output() 
+    {
+        if let Ok(stdout) = String::from_utf8(output.stdout) {
             for line in stdout.lines().skip(1) {
                 let parts: Vec<&str> = line.split_whitespace().collect();
                 if parts.len() >= 6 {
@@ -170,6 +171,7 @@ fn get_disk_info() -> serde_json::Value {
                 }
             }
         }
+    }
 
     serde_json::Value::Array(disks)
 }
@@ -177,8 +179,8 @@ fn get_disk_info() -> serde_json::Value {
 fn get_uptime() -> String {
     if let Ok(content) = std::fs::read_to_string("/proc/uptime") {
         let parts: Vec<&str> = content.split_whitespace().collect();
-        if let Some(uptime_str) = parts.first()
-            && let Ok(uptime_secs) = uptime_str.parse::<f64>() {
+        if let Some(uptime_str) = parts.first() {
+            if let Ok(uptime_secs) = uptime_str.parse::<f64>() {
                 let days = (uptime_secs / 86400.0) as u64;
                 let hours = ((uptime_secs % 86400.0) / 3600.0) as u64;
                 let minutes = ((uptime_secs % 3600.0) / 60.0) as u64;
@@ -186,6 +188,7 @@ fn get_uptime() -> String {
 
                 return format!("{}d {}h {}m {}s", days, hours, minutes, seconds);
             }
+        }
     }
     "unknown".to_string()
 }

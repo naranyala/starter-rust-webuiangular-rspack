@@ -1,7 +1,7 @@
 // src/core/plugins/plugin.interface.ts
 // Plugin system interfaces
 
-import { Type } from '@angular/core';
+import type { Type } from '@angular/core';
 
 export interface PluginManifest {
   id: string;
@@ -14,9 +14,9 @@ export interface PluginManifest {
 
 export interface Plugin {
   readonly manifest: PluginManifest;
-  
+
   initialize(): Promise<void> | void;
-  
+
   destroy(): Promise<void> | void;
 }
 
@@ -35,7 +35,7 @@ export enum PluginState {
   Initializing = 'initializing',
   Active = 'active',
   Failed = 'failed',
-  Destroyed = 'destroyed'
+  Destroyed = 'destroyed',
 }
 
 export interface PluginInfo {

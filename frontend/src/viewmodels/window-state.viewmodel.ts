@@ -1,8 +1,8 @@
 import { Injectable, signal } from '@angular/core';
-import { WindowEntry, WindowState, WindowStateEvent } from '../models';
+import type { WindowEntry, WindowState, WindowStateEvent } from '../models';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class WindowStateViewModel {
   private readonly windowEntries = signal<WindowEntry[]>([]);
@@ -19,27 +19,27 @@ export class WindowStateViewModel {
   }
 
   getMinimizedCount(): number {
-    return this.windowEntries().filter((entry) => entry.minimized).length;
+    return this.windowEntries().filter(entry => entry.minimized).length;
   }
 
   hasFocusedWindow(): boolean {
-    return this.windowEntries().some((entry) => entry.focused);
+    return this.windowEntries().some(entry => entry.focused);
   }
 
   addWindow(id: string, title: string): void {
-    this.windowEntries.update((entries) => [
-      ...entries.map((entry) => ({ ...entry, focused: false })),
+    this.windowEntries.update(entries => [
+      ...entries.map(entry => ({ ...entry, focused: false })),
       { id, title, minimized: false, focused: true },
     ]);
   }
 
   removeWindow(id: string): void {
-    this.windowEntries.update((entries) => entries.filter((entry) => entry.id !== id));
+    this.windowEntries.update(entries => entries.filter(entry => entry.id !== id));
   }
 
   focusWindow(id: string): void {
-    this.windowEntries.update((entries) =>
-      entries.map((entry) => ({
+    this.windowEntries.update(entries =>
+      entries.map(entry => ({
         ...entry,
         focused: entry.id === id,
         minimized: entry.id === id ? false : entry.minimized,
@@ -48,18 +48,16 @@ export class WindowStateViewModel {
   }
 
   minimizeWindow(id: string): void {
-    this.windowEntries.update((entries) =>
-      entries.map((entry) =>
+    this.windowEntries.update(entries =>
+      entries.map(entry =>
         entry.id === id ? { ...entry, minimized: true, focused: false } : entry
       )
     );
   }
 
   restoreWindow(id: string): void {
-    this.windowEntries.update((entries) =>
-      entries.map((entry) =>
-        entry.id === id ? { ...entry, minimized: false } : entry
-      )
+    this.windowEntries.update(entries =>
+      entries.map(entry => (entry.id === id ? { ...entry, minimized: false } : entry))
     );
   }
 
@@ -68,8 +66,8 @@ export class WindowStateViewModel {
   }
 
   minimizeAllWindows(): void {
-    this.windowEntries.update((entries) =>
-      entries.map((entry) => ({ ...entry, minimized: true, focused: false }))
+    this.windowEntries.update(entries =>
+      entries.map(entry => ({ ...entry, minimized: true, focused: false }))
     );
   }
 

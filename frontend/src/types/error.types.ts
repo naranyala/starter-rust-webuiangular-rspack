@@ -13,31 +13,34 @@ export enum ErrorCode {
   DbConstraintViolation = 'DB_CONSTRAINT_VIOLATION',
   DbNotFound = 'DB_NOT_FOUND',
   DbAlreadyExists = 'DB_ALREADY_EXISTS',
-  
+
   // Configuration errors (2000-2999)
   ConfigNotFound = 'CONFIG_NOT_FOUND',
   ConfigInvalid = 'CONFIG_INVALID',
   ConfigMissingField = 'CONFIG_MISSING_FIELD',
-  
+
   // Serialization errors (3000-3999)
   SerializationFailed = 'SERIALIZATION_FAILED',
   DeserializationFailed = 'DESERIALIZATION_FAILED',
   InvalidFormat = 'INVALID_FORMAT',
-  
+
   // Validation errors (4000-4999)
   ValidationFailed = 'VALIDATION_FAILED',
   MissingRequiredField = 'MISSING_REQUIRED_FIELD',
   InvalidFieldValue = 'INVALID_FIELD_VALUE',
-  
+
   // Not found errors (5000-5999)
   ResourceNotFound = 'RESOURCE_NOT_FOUND',
   UserNotFound = 'USER_NOT_FOUND',
   EntityNotFound = 'ENTITY_NOT_FOUND',
-  
+
   // System errors (6000-6999)
   LockPoisoned = 'LOCK_POISONED',
   InternalError = 'INTERNAL_ERROR',
-  
+
+  // Plugin errors (7000-7999)
+  Plugin = 'PLUGIN',
+
   // Custom/unknown
   Unknown = 'UNKNOWN',
 }
@@ -104,9 +107,7 @@ export function isSuccess<T>(response: ApiResponse<T>): response is SuccessRespo
  * Result type for operations that can fail
  * This is the functional programming approach to error handling
  */
-export type Result<T, E = ErrorValue> = 
-  | { ok: true; value: T }
-  | { ok: false; error: E };
+export type Result<T, E = ErrorValue> = { ok: true; value: T } | { ok: false; error: E };
 
 /**
  * Helper to create a successful Result
@@ -149,10 +150,7 @@ export function toResult<T>(response: ApiResponse<T>): Result<T, ErrorValue> {
 /**
  * Map a Result's success value
  */
-export function mapResult<T, U>(
-  result: Result<T>,
-  fn: (value: T) => U
-): Result<U> {
+export function mapResult<T, U>(result: Result<T>, fn: (value: T) => U): Result<U> {
   if (isOk(result)) {
     return ok(fn(result.value));
   }
@@ -162,10 +160,7 @@ export function mapResult<T, U>(
 /**
  * Map a Result's error value
  */
-export function mapError<T, E, F>(
-  result: Result<T, E>,
-  fn: (error: E) => F
-): Result<T, F> {
+export function mapError<T, E, F>(result: Result<T, E>, fn: (error: E) => F): Result<T, F> {
   if (isErr(result)) {
     return err(fn(result.error));
   }
@@ -175,10 +170,7 @@ export function mapError<T, E, F>(
 /**
  * Chain Result operations (flat map)
  */
-export function andThen<T, U>(
-  result: Result<T>,
-  fn: (value: T) => Result<U>
-): Result<U> {
+export function andThen<T, U>(result: Result<T>, fn: (value: T) => Result<U>): Result<U> {
   if (isOk(result)) {
     return fn(result.value);
   }
@@ -243,6 +235,17 @@ export function internalError(message: string, cause?: string): ErrorValue {
 }
 
 /**
+ * Create a generic error with code and message
+ */
+export function createError(code: ErrorCode, message: string, details?: string): ErrorValue {
+  return {
+    code,
+    message,
+    details,
+  };
+}
+
+/**
  * Convert an ErrorValue to a user-friendly message
  * This function should provide helpful, actionable messages for users
  */
@@ -258,10 +261,12 @@ export function toUserMessage(error: ErrorValue): string {
   }
 
   // For not found errors
-  if (error.code === ErrorCode.ResourceNotFound ||
-      error.code === ErrorCode.DbNotFound ||
-      error.code === ErrorCode.UserNotFound ||
-      error.code === ErrorCode.EntityNotFound) {
+  if (
+    error.code === ErrorCode.ResourceNotFound ||
+    error.code === ErrorCode.DbNotFound ||
+    error.code === ErrorCode.UserNotFound ||
+    error.code === ErrorCode.EntityNotFound
+  ) {
     return error.message || 'The requested item was not found.';
   }
 
@@ -270,7 +275,7 @@ export function toUserMessage(error: ErrorValue): string {
     return 'Unable to connect to the database. Please check your connection and try again.';
   }
   if (error.code === ErrorCode.DbQueryFailed) {
-    return error.message?.includes('duplicate') 
+    return error.message?.includes('duplicate')
       ? 'A record with this information already exists.'
       : error.message?.includes('constraint')
         ? 'This operation would violate a database rule.'
@@ -292,8 +297,10 @@ export function toUserMessage(error: ErrorValue): string {
   }
 
   // For serialization errors
-  if (error.code === ErrorCode.SerializationFailed ||
-      error.code === ErrorCode.DeserializationFailed) {
+  if (
+    error.code === ErrorCode.SerializationFailed ||
+    error.code === ErrorCode.DeserializationFailed
+  ) {
     return 'Failed to process data. Please check your input and try again.';
   }
   if (error.code === ErrorCode.InvalidFormat) {
@@ -312,14 +319,13 @@ export function toUserMessage(error: ErrorValue): string {
   }
 
   // For system errors - provide more helpful messages
-  if (error.code === ErrorCode.InternalError ||
-      error.code === ErrorCode.LockPoisoned) {
+  if (error.code === ErrorCode.InternalError || error.code === ErrorCode.LockPoisoned) {
     // If we have a specific message, show it (without technical details)
     if (error.message && !error.message.includes('stack')) {
       return error.message;
     }
     // Add context-aware messages
-    if (error.context && error.context.operation) {
+    if (error.context?.operation) {
       return `Failed to ${error.context.operation}. Please try again.`;
     }
     return 'An unexpected error occurred. Please try again. If the problem persists, check the technical details below.';

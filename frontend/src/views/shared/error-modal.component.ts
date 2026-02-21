@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { RootErrorState } from '../../core/global-error.service';
-import { ErrorCode } from '../../types/error.types';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
+import type { RootErrorState } from '../../core/global-error.service';
+import { ErrorCode } from '../../types';
 
 @Component({
   selector: 'app-error-modal',
@@ -86,7 +86,8 @@ import { ErrorCode } from '../../types/error.types';
       </div>
     }
   `,
-  styles: [`
+  styles: [
+    `
     .error-backdrop {
       position: fixed;
       inset: 0;
@@ -376,7 +377,8 @@ import { ErrorCode } from '../../types/error.types';
     .copy-details-btn:hover {
       background: rgba(255, 255, 255, 0.2);
     }
-  `],
+  `,
+  ],
 })
 export class ErrorModalComponent {
   @Input() error: RootErrorState | null = null;
@@ -414,7 +416,9 @@ export class ErrorModalComponent {
     }
   }
 
-  getContextEntries(context: Record<string, string> | undefined | null): Array<{ key: string; value: string }> {
+  getContextEntries(
+    context: Record<string, string> | undefined | null
+  ): Array<{ key: string; value: string }> {
     if (!context) return [];
     try {
       return Object.entries(context).map(([key, value]) => ({ key, value }));
@@ -442,11 +446,11 @@ export class ErrorModalComponent {
   }
 
   copyDetails(details: string): void {
-    navigator.clipboard.writeText(details).then(() => {
-      // Could show a toast notification here
-      console.log('Details copied to clipboard');
-    }).catch(err => {
-      console.error('Failed to copy details:', err);
-    });
+    navigator.clipboard
+      .writeText(details)
+      .then(() => {})
+      .catch(err => {
+        console.error('Failed to copy details:', err);
+      });
   }
 }

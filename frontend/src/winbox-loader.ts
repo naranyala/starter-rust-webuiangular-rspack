@@ -1,6 +1,6 @@
 // WinBox loads itself onto window.WinBox via side-effect import
 import 'winbox';
-import { getLogger } from './viewmodels/logger';
+import { getLogger } from './viewmodels/logger.viewmodel';
 
 const logger = getLogger('winbox');
 

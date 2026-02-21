@@ -75,9 +75,10 @@ fn generate_build_config(project_dir: &str) {
                     .get("executable")
                     .and_then(|e| e.get("name"))
                     .and_then(|n| n.as_str())
-                    && !exe_name.is_empty() 
                 {
-                    executable_name = exe_name.to_string();
+                    if !exe_name.is_empty() {
+                        executable_name = exe_name.to_string();
+                    }
                 }
                 
                 if let Some(log) = config.get("logging") {

@@ -3,7 +3,7 @@ const HtmlRspackPlugin = require('html-rspack-plugin');
 
 /**
  * Rspack configuration for Angular with Bun runtime
- * 
+ *
  * This configuration uses esbuild to compile TypeScript and relies on
  * Angular's JIT compiler in the browser.
  * SSR is disabled for WebUI compatibility.
@@ -43,7 +43,7 @@ module.exports = {
       },
       {
         test: /\.[cm]?ts$/,
-        exclude: /[\/\\](?:core-js|zone\.js)[\/\\]/,
+        exclude: /[/\\](?:core-js|zone\.js)[/\\]/,
         use: {
           loader: 'esbuild-loader',
           options: {

@@ -33,20 +33,18 @@ export interface EventBusStats {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class EventBusViewModel<Events extends object> {
   private subscriptions = new Map<keyof Events & string, Map<number, InternalSubscription>>();
   private anySubscriptions = new Map<number, AnyHandler>();
-  private history: Array<BusEvent<keyof Events & string, unknown>> = [];
+  private history: BusEvent<keyof Events & string, unknown>[] = [];
   private nextId = 1;
   private enabled = signal(true);
-  private namespace = 'app';
   private maxHistory = 300;
+  private namespace = '';
 
   readonly isEnabled = this.enabled.asReadonly();
-
-  constructor() {}
 
   init(namespace: string, maxHistory: number): void {
     this.namespace = namespace;
@@ -103,7 +101,11 @@ export class EventBusViewModel<Events extends object> {
     };
   }
 
-  publish<K extends keyof Events & string>(name: K, payload: Events[K], options: PublishOptions = {}): void {
+  publish<K extends keyof Events & string>(
+    name: K,
+    payload: Events[K],
+    options: PublishOptions = {}
+  ): void {
     if (!this.enabled()) {
       return;
     }
@@ -153,17 +155,17 @@ export class EventBusViewModel<Events extends object> {
     }
   }
 
-  getHistory<K extends keyof Events & string>(name?: K, limit?: number): Array<BusEvent<K, Events[K]>> {
+  getHistory<K extends keyof Events & string>(name?: K, limit?: number): BusEvent<K, Events[K]>[] {
     let data = this.history;
     if (name) {
-      data = data.filter((entry) => entry.name === name);
+      data = data.filter(entry => entry.name === name);
     }
 
     if (typeof limit === 'number' && limit > 0) {
       data = data.slice(-limit);
     }
 
-    return data as Array<BusEvent<K, Events[K]>>;
+    return data as BusEvent<K, Events[K]>[];
   }
 
   getLast<K extends keyof Events & string>(name: K): BusEvent<K, Events[K]> | undefined {

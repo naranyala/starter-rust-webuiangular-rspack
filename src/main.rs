@@ -9,7 +9,8 @@ use webui_rs::webui::bindgen::webui_set_port;
 // MVVM: Core - Domain, Application, Infrastructure, Presentation
 mod core;
 use core::{
-    infrastructure::{config::AppConfig, database::Database, logging, di},
+    infrastructure::{config::AppConfig, database::Database, logging, di, error_handler},
+    error::ErrorCode,
     presentation,
 };
 
@@ -23,9 +24,19 @@ use utils_demo::run_utilities_demo;
 
 #[allow(unused_variables)]
 fn main() {
+    // Initialize enhanced error handling with panic hook
+    error_handler::init_error_handling();
+
     // Initialize dependency injection container
     if let Err(e) = di::init_container() {
         eprintln!("Failed to initialize DI container: {}", e);
+        error_handler::record_error(
+            error_handler::ErrorSeverity::Critical,
+            "MAIN",
+            ErrorCode::InternalError,
+            format!("Failed to initialize DI container: {}", e),
+            None,
+        );
         return;
     }
     info!("Dependency injection container initialized");
@@ -210,6 +221,7 @@ fn main() {
     presentation::logging_handlers::setup_logging_handlers(&mut my_window);
     presentation::event_bus_handlers::setup_event_bus_handlers(&mut my_window);
     presentation::window_state_handler::setup_window_state_handlers(&mut my_window);
+    presentation::error_handlers::setup_error_handlers(&mut my_window);
 
     // Get window settings from config
     let window_title = config.get_window_title();
@@ -253,6 +265,9 @@ fn main() {
 
     // Wait until all windows are closed
     webui::wait();
+
+    // Print error summary before shutdown
+    error_handler::print_error_summary();
 
     info!("Application shutting down...");
     info!("=============================================");

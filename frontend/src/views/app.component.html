@@ -25,16 +25,16 @@
     
     <div class="top-panel__content">
       <nav class="top-nav">
-        <button class="top-nav__item" 
-                [class.active]="!hasFocusedWindow()" 
+        <button type="button" class="top-nav__item"
+                [class.active]="!hasFocusedWindow()"
                 (click)="showMainMenu($event)"
                 title="Show all windows">
           <span class="top-nav__icon">🏠</span>
           <span class="top-nav__label">Home</span>
         </button>
-        
+
         @for (windowEntry of windowEntries(); track windowEntry.id) {
-          <button class="top-nav__item" 
+          <button type="button" class="top-nav__item"
                   [class.active]="windowEntry.focused"
                   [class.minimized]="windowEntry.minimized"
                   (click)="activateWindow(windowEntry.id, $event)"
@@ -134,7 +134,7 @@
           <!-- Tabs -->
           <div class="bottom-tabs">
             @for (tab of bottomPanelTabs; track tab.id) {
-              <button class="bottom-tabs__tab" 
+              <button type="button" class="bottom-tabs__tab"
                       [class.active]="activeBottomTab() === tab.id"
                       (click)="selectBottomTab(tab.id, $event)">
                 <span class="bottom-tabs__icon">{{ tab.icon }}</span>

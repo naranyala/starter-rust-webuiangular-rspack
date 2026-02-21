@@ -132,12 +132,14 @@ impl AppConfig {
         }
 
         // Also check APP_CONFIG environment variable
-        if config_content.is_none()
-            && let Ok(env_path) = env::var("APP_CONFIG")
-                && Path::new(&env_path).exists() {
+        if config_content.is_none() {
+            if let Ok(env_path) = env::var("APP_CONFIG") {
+                if Path::new(&env_path).exists() {
                     config_content = Some(fs::read_to_string(&env_path)?);
                     config_path = env_path;
                 }
+            }
+        }
 
         // Try to parse TOML if config found
         if let Some(content) = config_content {

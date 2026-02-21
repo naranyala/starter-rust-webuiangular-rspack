@@ -1,17 +1,7 @@
 import { Injectable, signal } from '@angular/core';
-import { getLogger } from '../viewmodels/logger';
+import { ErrorCode, type ErrorValue, err, isOk, ok, type Result, toUserMessage } from '../types';
 import { EventBusViewModel } from '../viewmodels/event-bus.viewmodel';
-import {
-  ErrorValue,
-  ErrorCode,
-  Result,
-  ok,
-  err,
-  isOk,
-  isErr,
-  toUserMessage,
-  logError,
-} from '../types/error.types';
+import { getLogger } from '../viewmodels/logger.viewmodel';
 
 export interface RootErrorState {
   id: number;
@@ -29,7 +19,7 @@ export interface RootErrorContext {
 
 /**
  * Global error service implementing "errors as values" pattern
- * 
+ *
  * Usage:
  * 1. Report errors as values: errorService.report(err)
  * 2. Handle Results: errorService.handleResult(result, 'Operation failed')
@@ -44,8 +34,11 @@ export class GlobalErrorService {
   readonly activeError = signal<RootErrorState | null>(null);
 
   constructor() {
-    const debugWindow = window as unknown as { __FRONTEND_EVENT_BUS__?: EventBusViewModel<Record<string, unknown>> };
-    this.eventBus = debugWindow.__FRONTEND_EVENT_BUS__ ?? new EventBusViewModel<Record<string, unknown>>();
+    const debugWindow = window as unknown as {
+      __FRONTEND_EVENT_BUS__?: EventBusViewModel<Record<string, unknown>>;
+    };
+    this.eventBus =
+      debugWindow.__FRONTEND_EVENT_BUS__ ?? new EventBusViewModel<Record<string, unknown>>();
   }
 
   /**
@@ -126,7 +119,11 @@ export class GlobalErrorService {
   /**
    * Create a not found error
    */
-  notFoundError(resource: string, id: string | number, context: RootErrorContext = {}): RootErrorState {
+  notFoundError(
+    resource: string,
+    id: string | number,
+    context: RootErrorContext = {}
+  ): RootErrorState {
     const error: ErrorValue = {
       code: ErrorCode.ResourceNotFound,
       message: `${resource} not found: ${id}`,
@@ -214,12 +211,16 @@ export class GlobalErrorService {
   }
 
   private logError(state: RootErrorState, error: ErrorValue): void {
-    this.logger.error('Root error captured', {
-      id: state.id,
-      source: state.source,
-      title: state.title,
-      timestamp: state.timestamp,
-      code: error.code,
-    }, error);
+    this.logger.error(
+      'Root error captured',
+      {
+        id: state.id,
+        source: state.source,
+        title: state.title,
+        timestamp: state.timestamp,
+        code: error.code,
+      },
+      error
+    );
   }
 }

@@ -1,3 +1,3 @@
-export * from './global-error.service';
+export * from './error-interceptor';
 export * from './global-error.handler';
-export * from './errors';
+export * from './global-error.service';

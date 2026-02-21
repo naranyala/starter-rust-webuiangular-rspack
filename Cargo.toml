@@ -1,7 +1,7 @@
 [package]
 name = "rustwebui-app"
 version = "1.0.0"
-edition = "2024"
+edition = "2021"
 description = "Rust WebUI Application with SQLite"
 authors = ["Developer"]
 
@@ -27,6 +27,7 @@ rusqlite = { version = "0.32", features = ["bundled"] }
 # Error handling
 anyhow = "1.0"
 thiserror = "1.0"
+backtrace = "0.3"
 
 # Configuration & System
 dirs = "5.0"

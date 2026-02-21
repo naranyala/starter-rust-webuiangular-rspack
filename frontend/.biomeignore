@@ -1,0 +1,44 @@
+# Biome ignore file
+# https://biomejs.dev/guides/ignoring-files/
+
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+.angular/
+out-tsc/
+coverage/
+
+# Target (Rust build output)
+../target/
+
+# Lock files
+bun.lock
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Minified/bundled files
+*.bundle.js
+*.min.js
+*.min.css
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/

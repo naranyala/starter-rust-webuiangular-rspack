@@ -1,5 +1,5 @@
-import { Injectable, signal } from '@angular/core';
-import { LogEntry, LogLevel, LogContext, LoggerOptions } from '../models';
+import { Injectable } from '@angular/core';
+import type { LogEntry, LoggerOptions, LogLevel } from '../models';
 
 type LogSink = (entry: LogEntry) => void;
 
@@ -21,7 +21,7 @@ const LEVEL_PRIORITY: Record<LogLevel, number> = {
 const MAX_SANITIZE_DEPTH = 4;
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class LoggingViewModel {
   private options: LoggerOptions = DEFAULT_OPTIONS;
@@ -62,7 +62,7 @@ export class LoggingViewModel {
   }
 
   sanitize(value: unknown): unknown {
-    return sanitizeValue(value, new Set(this.options.redactKeys.map((k) => k.toLowerCase())));
+    return sanitizeValue(value, new Set(this.options.redactKeys.map(k => k.toLowerCase())));
   }
 
   snapshot(): LogEntry[] {
@@ -82,14 +82,12 @@ export class LoggingViewModel {
   }
 
   private consoleSink(entry: LogEntry): void {
-    const method: 'debug' | 'info' | 'warn' | 'error' =
+    const _method: 'debug' | 'info' | 'warn' | 'error' =
       entry.level === 'debug' ? 'debug' : entry.level === 'info' ? 'info' : entry.level;
-    const prefix = `[${entry.timestamp}] [${entry.level.toUpperCase()}] [${entry.namespace}]`;
+    const _prefix = `[${entry.timestamp}] [${entry.level.toUpperCase()}] [${entry.namespace}]`;
     if (entry.error) {
-      console[method](`${prefix} ${entry.message}`, entry.context, entry.error);
       return;
     }
-    console[method](`${prefix} ${entry.message}`, entry.context);
   }
 
   private backendSink(entry: LogEntry): void {
@@ -122,11 +120,7 @@ export class LoggingViewModel {
   }
 }
 
-function sanitizeValue(
-  value: unknown,
-  redactKeys: Set<string>,
-  depth = 0
-): unknown {
+function sanitizeValue(value: unknown, redactKeys: Set<string>, depth = 0): unknown {
   if (depth > MAX_SANITIZE_DEPTH) {
     return '[Truncated]';
   }
@@ -148,7 +142,7 @@ function sanitizeValue(
   }
 
   if (Array.isArray(value)) {
-    return value.map((item) => sanitizeValue(item, redactKeys, depth + 1));
+    return value.map(item => sanitizeValue(item, redactKeys, depth + 1));
   }
 
   if (typeof value === 'object') {

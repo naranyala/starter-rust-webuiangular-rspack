@@ -1,11 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { getLogger } from '../../viewmodels/logger';
+import type { WinBoxInstance } from '../../core/winbox.service';
+import { WinBoxService } from '../../core/winbox.service';
+import type { CardItem } from '../../models';
 import { EventBusViewModel } from '../../viewmodels/event-bus.viewmodel';
+import { getLogger } from '../../viewmodels/logger.viewmodel';
 import { WindowStateViewModel } from '../../viewmodels/window-state.viewmodel';
-import { CardItem, WindowStateEvent } from '../../models';
-import { WinBoxService, WinBoxInstance } from '../../core/winbox.service';
 
 @Component({
   selector: 'app-demo',
@@ -47,7 +48,8 @@ import { WinBoxService, WinBoxInstance } from '../../core/winbox.service';
       </div>
     </div>
   `,
-  styles: [`
+  styles: [
+    `
     .demo-container {
       max-width: 1000px;
       margin: 0 auto;
@@ -200,7 +202,8 @@ import { WinBoxService, WinBoxInstance } from '../../core/winbox.service';
       .cards-grid { grid-template-columns: 1fr; }
       .demo-container h1 { font-size: 1.5rem; }
     }
-  `],
+  `,
+  ],
 })
 export class DemoComponent {
   private readonly logger = getLogger('demo.component');
@@ -210,7 +213,8 @@ export class DemoComponent {
   cards: CardItem[] = [
     {
       title: 'Angular',
-      description: 'A platform for building mobile and desktop web applications with TypeScript and component-based architecture.',
+      description:
+        'A platform for building mobile and desktop web applications with TypeScript and component-based architecture.',
       icon: '🅰️',
       color: '#e535ab',
       content: `<h2>Angular</h2><p>Angular is a development platform, built on TypeScript.</p><p><strong>Version:</strong> 19.x</p>`,
@@ -269,7 +273,8 @@ export class DemoComponent {
     }
     const query = this.searchQuery.toLowerCase().trim();
     return this.cards.filter(
-      (card) => card.title.toLowerCase().includes(query) || card.description.toLowerCase().includes(query)
+      card =>
+        card.title.toLowerCase().includes(query) || card.description.toLowerCase().includes(query)
     );
   }
 
@@ -303,7 +308,7 @@ export class DemoComponent {
         this.existingWindows.delete(card.title);
         this.windowState.sendStateChange(windowId, 'closed', card.title);
         return true;
-      }
+      },
     });
 
     if (!box) {

@@ -2,19 +2,9 @@ import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { GlobalErrorService } from '../../core/global-error.service';
-import { getLogger } from '../../viewmodels/logger';
-import {
-  getUsers,
-  createUser,
-  deleteUser,
-  User,
-  Result,
-  isOk,
-  isErr,
-  ErrorCode,
-  toUserMessage,
-  ErrorValue,
-} from '../../models';
+import { ErrorCode, type ErrorValue, isErr, isOk } from '../../types';
+import { createUser, deleteUser, getUsers, type User } from '../../viewmodels';
+import { getLogger } from '../../viewmodels/logger.viewmodel';
 
 interface UserForm {
   name: string;
@@ -223,7 +213,8 @@ interface UserForm {
       </section>
     </div>
   `,
-  styles: [`
+  styles: [
+    `
     .demo-container {
       max-width: 1000px;
       margin: 0 auto;
@@ -555,7 +546,8 @@ interface UserForm {
         flex-wrap: wrap;
       }
     }
-  `],
+  `,
+  ],
 })
 export class ErrorHandlingDemoComponent {
   readonly errorService = inject(GlobalErrorService);
@@ -704,19 +696,14 @@ const activeUsers = mapResult(
   }
 
   triggerValidationError(): void {
-    this.errorService.validationError(
-      'email',
-      'This email format is invalid',
-      { source: 'demo', title: 'Validation Example' }
-    );
+    this.errorService.validationError('email', 'This email format is invalid', {
+      source: 'demo',
+      title: 'Validation Example',
+    });
   }
 
   triggerNotFoundError(): void {
-    this.errorService.notFoundError(
-      'User',
-      999,
-      { source: 'demo', title: 'Not Found Example' }
-    );
+    this.errorService.notFoundError('User', 999, { source: 'demo', title: 'Not Found Example' });
   }
 
   async triggerDuplicateError(): Promise<void> {

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { getLogger } from '../viewmodels/logger';
+import { getLogger } from '../viewmodels/logger.viewmodel';
 
 export interface WinBoxOptions {
   id?: string;
@@ -25,7 +25,7 @@ export interface WinBoxOptions {
   onminimize?: () => void;
   onmaximize?: () => void;
   onrestore?: () => void;
-  onclose?: () => boolean | void;
+  onclose?: () => boolean | undefined;
   onresize?: (width: number, height: number) => void;
   onmove?: (x: number, y: number) => void;
 }
@@ -43,7 +43,11 @@ export interface WinBoxInstance {
   fullscreen: (value?: boolean) => WinBoxInstance;
   close: (force?: boolean) => boolean;
   move: (x?: number | string, y?: number | string, skipEvent?: boolean) => WinBoxInstance;
-  resize: (width?: number | string, height?: number | string, skipEvent?: boolean) => WinBoxInstance;
+  resize: (
+    width?: number | string,
+    height?: number | string,
+    skipEvent?: boolean
+  ) => WinBoxInstance;
   setTitle: (title: string) => WinBoxInstance;
   setIcon: (iconUrl: string) => WinBoxInstance;
   setBackground: (color: string) => WinBoxInstance;
@@ -53,7 +57,12 @@ export interface WinBoxInstance {
   addClass: (className: string) => WinBoxInstance;
   removeClass: (className: string) => WinBoxInstance;
   toggleClass: (className: string) => WinBoxInstance;
-  addControl: (control: { class?: string; image?: string; click?: (e: Event, win: WinBoxInstance) => void; index?: number }) => WinBoxInstance;
+  addControl: (control: {
+    class?: string;
+    image?: string;
+    click?: (e: Event, win: WinBoxInstance) => void;
+    index?: number;
+  }) => WinBoxInstance;
   removeControl: (controlClass: string) => WinBoxInstance;
   hide: (value?: boolean) => WinBoxInstance;
   show: (value?: boolean) => WinBoxInstance;
@@ -70,7 +79,7 @@ export interface WinBoxInstance {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class WinBoxService {
   private readonly logger = getLogger('winbox.service');
@@ -83,7 +92,9 @@ export class WinBoxService {
       this.winboxConstructor = (window as any).WinBox;
       this.logger.debug('WinBox found on window object');
     } else {
-      this.logger.warn('WinBox not found on window - it should be loaded from static/js/winbox.min.js');
+      this.logger.warn(
+        'WinBox not found on window - it should be loaded from static/js/winbox.min.js'
+      );
     }
   }
 

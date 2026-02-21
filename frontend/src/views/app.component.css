@@ -118,7 +118,9 @@
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   opacity: 1;
   visibility: visible;
-  transition: opacity 0.2s, visibility 0.2s;
+  transition:
+    opacity 0.2s,
+    visibility 0.2s;
 }
 
 .top-collapsed .top-panel__content {
@@ -300,12 +302,14 @@
 }
 
 .card:focus-visible {
-  box-shadow: 0 0 0 3px #667eea, 0 8px 24px rgba(0, 0, 0, 0.12);
+  box-shadow:
+    0 0 0 3px #667eea,
+    0 8px 24px rgba(0, 0, 0, 0.12);
   transform: translateY(-4px);
 }
 
 .card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -381,8 +385,13 @@
 }
 
 @keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 .no-results__text {
@@ -545,7 +554,9 @@
   flex-direction: column;
   opacity: 1;
   visibility: visible;
-  transition: opacity 0.2s, visibility 0.2s;
+  transition:
+    opacity 0.2s,
+    visibility 0.2s;
 }
 
 .bottom-collapsed .bottom-panel__expanded {
@@ -590,7 +601,7 @@
 }
 
 .bottom-tabs__tab::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: 0;
   left: 50%;

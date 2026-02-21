@@ -16,5 +16,5 @@ body {
 /* Hide WinBox minimized titlebars globally; top panel owns minimize UX. */
 .winbox.min,
 body > .winbox.min {
-  display: none !important;
+  display: none;
 }

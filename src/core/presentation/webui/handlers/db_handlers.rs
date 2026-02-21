@@ -1,5 +1,6 @@
 use crate::core::error::{AppError, ErrorValue, ErrorCode};
 use crate::core::infrastructure::database::Database;
+use crate::core::infrastructure::error_handler;
 use log::{error, info};
 use std::sync::{Arc, Mutex};
 use webui_rs::webui;
@@ -70,6 +71,7 @@ fn handle_db_result<T: serde::Serialize>(
         }
         Err(e) => {
             error!("Database operation failed: {}", e);
+            error_handler::record_app_error("DB_HANDLER", &e);
             send_error_response(window, event_name, &e);
         }
     }
