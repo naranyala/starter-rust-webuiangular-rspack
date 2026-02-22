@@ -413,7 +413,7 @@
 }
 
 .bottom-panel {
-  height: 130px; /* Expanded: 40px bar + 90px content */
+  height: 50vh; /* Expanded: 40px bar + 50% viewport height */
 }
 
 .bottom-collapsed .bottom-panel {
@@ -633,16 +633,19 @@
 }
 
 .bottom-tabs__content {
-  padding: 12px 16px 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
 }
 
 .tab-panel {
+  flex: 1;
   display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  max-width: 1200px;
-  margin: 0 auto;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 12px 16px 16px;
 }
 
 .info-card {

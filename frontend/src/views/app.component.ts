@@ -7,6 +7,7 @@ import { EventBusViewModel } from '../viewmodels/event-bus.viewmodel';
 import { getLogger } from '../viewmodels/logger.viewmodel';
 import { WindowStateViewModel } from '../viewmodels/window-state.viewmodel';
 import { ErrorModalComponent } from './shared/error-modal.component';
+import { DevtoolsComponent } from './devtools/devtools.component';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Interface kept for documentation
 interface _ConnectionStats {
@@ -25,7 +26,7 @@ interface _ConnectionStats {
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, ErrorModalComponent],
+  imports: [CommonModule, ErrorModalComponent, DevtoolsComponent],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
 })
@@ -76,6 +77,19 @@ export class AppComponent implements OnInit, OnDestroy {
     return this.cards.filter(card =>
       `${card.title} ${card.description}`.toLowerCase().includes(query)
     );
+  });
+
+  totalErrors = computed(() => {
+    // Count errors from error service and interceptor
+    const errorWindow = window as unknown as {
+      __ERROR_INTERCEPTOR__?: { getStats: () => { total: number } };
+    };
+    const interceptorTotal = errorWindow.__ERROR_INTERCEPTOR__?.getStats().total ?? 0;
+    return interceptorTotal;
+  });
+
+  hasFocusedWindow = computed(() => {
+    return this.windowEntries().some(entry => entry.focused);
   });
 
   constructor() {
@@ -453,10 +467,6 @@ export class AppComponent implements OnInit, OnDestroy {
       entries.map(entry => ({ ...entry, minimized: true, focused: false }))
     );
     this.eventBus.publish('window:home-selected', { count: this.existingBoxes.length });
-  }
-
-  hasFocusedWindow(): boolean {
-    return this.windowEntries().some(entry => entry.focused);
   }
 
   private markWindowFocused(windowId: string): void {

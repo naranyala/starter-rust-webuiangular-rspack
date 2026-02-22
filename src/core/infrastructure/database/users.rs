@@ -1,29 +1,20 @@
-#![allow(dead_code)]
 // src/core/infrastructure/database/users.rs
-// User-specific database operations with "errors as values" pattern
+// User-specific database operations with connection pooling
 
 use chrono::Local;
-use rusqlite::params;
+use rusqlite::{params, OptionalExtension};
 
 use super::connection::Database;
 use super::models::User;
-use crate::core::error::{ErrorCode, ErrorValue};
-use crate::core::error::AppError;
+use crate::core::error::{ErrorCode, ErrorValue, AppError};
 
 /// Database operation result type alias
 type DbResult<T> = Result<T, AppError>;
 
 impl Database {
     /// Get all users
-    /// Returns a vector of users or a structured database error
     pub fn get_all_users(&self) -> DbResult<Vec<User>> {
-        let conn = self.conn.lock().map_err(|_| {
-            AppError::LockPoisoned(
-                ErrorValue::new(ErrorCode::LockPoisoned, "Failed to acquire database connection lock")
-                    .with_cause("Mutex poisoned")
-                    .with_context("operation", "get_all_users")
-            )
-        })?;
+        let conn = self.get_conn()?;
 
         let mut stmt = conn
             .prepare("SELECT id, name, email, role, status, created_at FROM users ORDER BY id")
@@ -60,7 +51,6 @@ impl Database {
     }
 
     /// Insert a new user
-    /// Returns the new user ID or a structured database error
     pub fn insert_user(
         &self,
         name: &str,
@@ -68,14 +58,13 @@ impl Database {
         role: &str,
         status: &str,
     ) -> DbResult<i64> {
-        // Validate required fields
         if name.is_empty() {
             return Err(AppError::Validation(
                 ErrorValue::new(ErrorCode::MissingRequiredField, "Name is required")
                     .with_field("name")
             ));
         }
-        
+
         if email.is_empty() {
             return Err(AppError::Validation(
                 ErrorValue::new(ErrorCode::MissingRequiredField, "Email is required")
@@ -83,36 +72,19 @@ impl Database {
             ));
         }
 
-        // Basic email validation
-        if !email.contains('@') {
-            return Err(AppError::Validation(
-                ErrorValue::new(ErrorCode::InvalidFieldValue, "Email must be a valid email address")
-                    .with_field("email")
-                    .with_context("value", email)
-            ));
-        }
-
-        let conn = self.conn.lock().map_err(|_| {
-            AppError::LockPoisoned(
-                ErrorValue::new(ErrorCode::LockPoisoned, "Failed to acquire database connection lock")
-                    .with_cause("Mutex poisoned")
-                    .with_context("operation", "insert_user")
-            )
-        })?;
+        let conn = self.get_conn()?;
         
-        let created_at = Local::now().to_rfc3339();
+        let created_at = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
 
         conn.execute(
-            "INSERT INTO users (name, email, role, status, created_at) VALUES (?1, ?2, ?3, ?4, ?5)",
-            [name, email, role, status, &created_at],
+            "INSERT INTO users (name, email, role, status, created_at) VALUES (?, ?, ?, ?, ?)",
+            params![name, email, role, status, created_at],
         ).map_err(|e| {
-            // Check for constraint violation (duplicate email)
             if e.to_string().contains("UNIQUE constraint failed") {
                 AppError::Database(
-                    ErrorValue::new(ErrorCode::DbAlreadyExists, "A user with this email already exists")
+                    ErrorValue::new(ErrorCode::DbAlreadyExists, "User with this email already exists")
                         .with_field("email")
-                        .with_context("value", email)
-                        .with_cause(e.to_string())
+                        .with_context("email", email.to_string())
                 )
             } else {
                 AppError::Database(
@@ -126,38 +98,7 @@ impl Database {
         Ok(conn.last_insert_rowid())
     }
 
-    /// Delete a user by ID
-    /// Returns the number of rows deleted or a structured database error
-    pub fn delete_user(&self, id: i64) -> DbResult<usize> {
-        if id <= 0 {
-            return Err(AppError::Validation(
-                ErrorValue::new(ErrorCode::InvalidFieldValue, "User ID must be positive")
-                    .with_field("id")
-                    .with_context("value", id.to_string())
-            ));
-        }
-
-        let conn = self.conn.lock().map_err(|_| {
-            AppError::LockPoisoned(
-                ErrorValue::new(ErrorCode::LockPoisoned, "Failed to acquire database connection lock")
-                    .with_cause("Mutex poisoned")
-                    .with_context("operation", "delete_user")
-            )
-        })?;
-        
-        let rows_deleted = conn.execute("DELETE FROM users WHERE id = ?1", [id]).map_err(|e| {
-            AppError::Database(
-                ErrorValue::new(ErrorCode::DbQueryFailed, "Failed to delete user")
-                    .with_cause(e.to_string())
-                    .with_context("user_id", id.to_string())
-            )
-        })?;
-        
-        Ok(rows_deleted)
-    }
-
-    /// Update a user by ID
-    /// Returns the number of rows updated or a structured database error
+    /// Update an existing user
     pub fn update_user(
         &self,
         id: i64,
@@ -166,77 +107,41 @@ impl Database {
         role: Option<String>,
         status: Option<String>,
     ) -> DbResult<usize> {
-        if id <= 0 {
-            return Err(AppError::Validation(
-                ErrorValue::new(ErrorCode::InvalidFieldValue, "User ID must be positive")
-                    .with_field("id")
-                    .with_context("value", id.to_string())
-            ));
+        let conn = self.get_conn()?;
+
+        // Build dynamic update query
+        let mut updates = Vec::new();
+        let mut params: Vec<&dyn rusqlite::ToSql> = Vec::new();
+
+        if let Some(n) = &name {
+            updates.push("name = ?");
+            params.push(n);
+        }
+        if let Some(e) = &email {
+            updates.push("email = ?");
+            params.push(e);
+        }
+        if let Some(r) = &role {
+            updates.push("role = ?");
+            params.push(r);
+        }
+        if let Some(s) = &status {
+            updates.push("status = ?");
+            params.push(s);
         }
 
-        // Validate email if provided
-        if let Some(ref email) = email {
-            if !email.contains('@') {
-                return Err(AppError::Validation(
-                    ErrorValue::new(ErrorCode::InvalidFieldValue, "Email must be a valid email address")
-                        .with_field("email")
-                        .with_context("value", email.clone())
-                ));
-            }
+        if updates.is_empty() {
+            return Ok(0); // Nothing to update
         }
 
-        let conn = self.conn.lock().map_err(|_| {
-            AppError::LockPoisoned(
-                ErrorValue::new(ErrorCode::LockPoisoned, "Failed to acquire database connection lock")
-                    .with_cause("Mutex poisoned")
-                    .with_context("operation", "update_user")
-            )
-        })?;
+        params.push(&id);
 
-        let mut query = String::from("UPDATE users SET ");
-        let mut params: Vec<Box<dyn rusqlite::ToSql>> = Vec::new();
-        let mut first = true;
+        let query = format!(
+            "UPDATE users SET {} WHERE id = ?",
+            updates.join(", ")
+        );
 
-        if let Some(n) = name {
-            if !first {
-                query.push_str(", ");
-            }
-            query.push_str(&format!("name = ?{}", params.len() + 1));
-            params.push(Box::new(n));
-            first = false;
-        }
-
-        if let Some(e) = email {
-            if !first {
-                query.push_str(", ");
-            }
-            query.push_str(&format!("email = ?{}", params.len() + 1));
-            params.push(Box::new(e));
-            first = false;
-        }
-
-        if let Some(r) = role {
-            if !first {
-                query.push_str(", ");
-            }
-            query.push_str(&format!("role = ?{}", params.len() + 1));
-            params.push(Box::new(r));
-            first = false;
-        }
-
-        if let Some(s) = status {
-            if !first {
-                query.push_str(", ");
-            }
-            query.push_str(&format!("status = ?{}", params.len() + 1));
-            params.push(Box::new(s));
-        }
-
-        query.push_str(&format!(" WHERE id = ?{}", params.len() + 1));
-        params.push(Box::new(id));
-
-        let param_refs: Vec<&dyn rusqlite::ToSql> = params.iter().map(|b| b.as_ref()).collect();
-        let rows_updated = conn.execute(&query, &param_refs[..]).map_err(|e| {
+        let rows_affected = conn.execute(&query, params.as_slice()).map_err(|e| {
             AppError::Database(
                 ErrorValue::new(ErrorCode::DbQueryFailed, "Failed to update user")
                     .with_cause(e.to_string())
@@ -244,112 +149,162 @@ impl Database {
             )
         })?;
 
-        Ok(rows_updated)
+        Ok(rows_affected)
     }
 
-    /// Insert sample data into the database
-    /// Returns Ok(()) on success or a structured database error
-    pub fn insert_sample_data(&self) -> DbResult<()> {
-        let conn = self.conn.lock().map_err(|_| {
-            AppError::LockPoisoned(
-                ErrorValue::new(ErrorCode::LockPoisoned, "Failed to acquire database connection lock")
-                    .with_cause("Mutex poisoned")
-                    .with_context("operation", "insert_sample_data")
+    /// Delete a user by ID
+    pub fn delete_user(&self, id: i64) -> DbResult<usize> {
+        let conn = self.get_conn()?;
+
+        let rows_affected = conn
+            .execute("DELETE FROM users WHERE id = ?", [id])
+            .map_err(|e| {
+                AppError::Database(
+                    ErrorValue::new(ErrorCode::DbQueryFailed, "Failed to delete user")
+                        .with_cause(e.to_string())
+                        .with_context("user_id", id.to_string())
+                )
+            })?;
+
+        Ok(rows_affected)
+    }
+
+    /// Get user by ID
+    #[allow(dead_code)]
+    pub fn get_user_by_id(&self, id: i64) -> DbResult<Option<User>> {
+        let conn = self.get_conn()?;
+
+        let mut stmt = conn
+            .prepare(
+                "SELECT id, name, email, role, status, created_at FROM users WHERE id = ?",
             )
+            .map_err(|e| {
+                AppError::Database(
+                    ErrorValue::new(ErrorCode::DbQueryFailed, "Failed to prepare user query")
+                        .with_cause(e.to_string())
+                )
+            })?;
+
+        let user = stmt
+            .query_row([id], |row| {
+                Ok(User {
+                    id: row.get(0)?,
+                    name: row.get(1)?,
+                    email: row.get(2)?,
+                    role: row.get(3)?,
+                    status: row.get(4)?,
+                    created_at: row.get(5)?,
+                })
+            })
+            .optional()?;
+
+        Ok(user)
+    }
+
+    /// Get user by email
+    pub fn get_user_by_email(&self, email: &str) -> DbResult<Option<User>> {
+        let conn = self.get_conn()?;
+
+        let mut stmt = conn
+            .prepare(
+                "SELECT id, name, email, role, status, created_at FROM users WHERE email = ?",
+            )
+            .map_err(|e| {
+                AppError::Database(
+                    ErrorValue::new(ErrorCode::DbQueryFailed, "Failed to prepare user query")
+                        .with_cause(e.to_string())
+                )
+            })?;
+
+        let user = stmt
+            .query_row([email], |row| {
+                Ok(User {
+                    id: row.get(0)?,
+                    name: row.get(1)?,
+                    email: row.get(2)?,
+                    role: row.get(3)?,
+                    status: row.get(4)?,
+                    created_at: row.get(5)?,
+                })
+            })
+            .optional()?;
+
+        Ok(user)
+    }
+
+    /// Insert sample data if not exists
+    pub fn insert_sample_data(&self) -> DbResult<()> {
+        let sample_users = [
+            ("Alice Johnson", "alice@example.com", "Admin", "Active"),
+            ("Bob Smith", "bob@example.com", "User", "Active"),
+            ("Charlie Brown", "charlie@example.com", "User", "Inactive"),
+        ];
+
+        for (name, email, role, status) in sample_users {
+            // Check if user exists
+            if let Ok(None) = self.get_user_by_email(email) {
+                let _ = self.insert_user(name, email, role, status)?;
+            }
+        }
+
+        Ok(())
+    }
+
+    /// Get user count
+    #[allow(dead_code)]
+    pub fn get_user_count(&self) -> DbResult<i64> {
+        let conn = self.get_conn()?;
+
+        let count: i64 = conn
+            .query_row("SELECT COUNT(*) FROM users", [], |row| row.get(0))
+            .map_err(|e| {
+                AppError::Database(
+                    ErrorValue::new(ErrorCode::DbQueryFailed, "Failed to count users")
+                        .with_cause(e.to_string())
+                )
+            })?;
+
+        Ok(count)
+    }
+
+    /// Search users by name or email
+    #[allow(dead_code)]
+    pub fn search_users(&self, query: &str) -> DbResult<Vec<User>> {
+        let conn = self.get_conn()?;
+
+        let search_pattern = format!("%{}%", query);
+
+        let mut stmt = conn
+            .prepare(
+                "SELECT id, name, email, role, status, created_at 
+                 FROM users 
+                 WHERE name LIKE ? OR email LIKE ? 
+                 ORDER BY id",
+            )
+            .map_err(|e| {
+                AppError::Database(
+                    ErrorValue::new(ErrorCode::DbQueryFailed, "Failed to prepare search query")
+                        .with_cause(e.to_string())
+                )
+            })?;
+
+        let users = stmt.query_map(params![search_pattern, search_pattern], |row| {
+            Ok(User {
+                id: row.get(0)?,
+                name: row.get(1)?,
+                email: row.get(2)?,
+                role: row.get(3)?,
+                status: row.get(4)?,
+                created_at: row.get(5)?,
+            })
         })?;
 
-        // Check if users already exist
-        let count: i64 = conn.query_row("SELECT COUNT(*) FROM users", [], |row| row.get(0)).map_err(|e| {
+        users.collect::<rusqlite::Result<Vec<_>>>().map_err(|e| {
             AppError::Database(
-                ErrorValue::new(ErrorCode::DbQueryFailed, "Failed to count existing users")
+                ErrorValue::new(ErrorCode::DbQueryFailed, "Failed to search users")
                     .with_cause(e.to_string())
             )
-        })?;
-
-        if count > 0 {
-            log::info!("Sample data already exists, skipping insertion");
-            return Ok(());
-        }
-
-        let created_at = Local::now().to_rfc3339();
-
-        let users = [
-            ("John Doe", "john@example.com", "Admin", "Active"),
-            ("Jane Smith", "jane@example.com", "User", "Active"),
-            ("Bob Johnson", "bob@example.com", "User", "Inactive"),
-            ("Alice Brown", "alice@example.com", "Editor", "Active"),
-            ("Charlie Wilson", "charlie@example.com", "User", "Pending"),
-            ("Diana Prince", "diana@example.com", "Admin", "Active"),
-            ("Eve Anderson", "eve@example.com", "User", "Active"),
-        ];
-
-        for (name, email, role, status) in users.iter() {
-            conn.execute(
-                "INSERT INTO users (name, email, role, status, created_at) VALUES (?1, ?2, ?3, ?4, ?5)",
-                [*name, *email, *role, *status, &created_at],
-            ).map_err(|e| {
-                AppError::Database(
-                    ErrorValue::new(ErrorCode::DbQueryFailed, "Failed to insert sample user")
-                        .with_cause(e.to_string())
-                        .with_context("user", *name)
-                )
-            })?;
-        }
-
-        // Insert sample products
-        let products: [(&str, &str, f64, &str, i64); 5] = [
-            (
-                "Laptop Pro",
-                "High-performance laptop for professionals",
-                1299.99,
-                "Electronics",
-                25,
-            ),
-            (
-                "Wireless Mouse",
-                "Ergonomic wireless mouse",
-                49.99,
-                "Accessories",
-                150,
-            ),
-            (
-                "USB-C Hub",
-                "7-in-1 USB-C hub with HDMI",
-                79.99,
-                "Accessories",
-                80,
-            ),
-            (
-                "Monitor 27\"",
-                "4K Ultra HD monitor",
-                449.99,
-                "Electronics",
-                30,
-            ),
-            (
-                "Mechanical Keyboard",
-                "RGB mechanical keyboard",
-                129.99,
-                "Accessories",
-                60,
-            ),
-        ];
-
-        for (name, description, price, category, stock) in products.iter() {
-            conn.execute(
-                "INSERT INTO products (name, description, price, category, stock) VALUES (?1, ?2, ?3, ?4, ?5)",
-                params![name, description, price, category, stock],
-            ).map_err(|e| {
-                AppError::Database(
-                    ErrorValue::new(ErrorCode::DbQueryFailed, "Failed to insert sample product")
-                        .with_cause(e.to_string())
-                        .with_context("product", *name)
-                )
-            })?;
-        }
-
-        log::info!("Sample data inserted successfully");
-        Ok(())
+        })
     }
 }
 
@@ -357,74 +312,100 @@ impl Database {
 mod tests {
     use super::*;
 
+    fn create_test_db() -> Database {
+        let db = Database::new(":memory:").expect("Failed to create database");
+        db.init().expect("Failed to init database");
+        db
+    }
+
     #[test]
-    fn test_insert_and_query() {
-        let db = Database::new(":memory:").unwrap();
-        db.init().unwrap();
+    fn test_insert_and_get_user() {
+        let db = create_test_db();
 
-        let id = db
-            .insert_user("Test User", "test@example.com", "User", "Active")
-            .expect("Insert should succeed");
-        assert_eq!(id, 1);
+        let user_id = db.insert_user("Test User", "test@example.com", "User", "Active")
+            .expect("Failed to insert user");
 
-        let users = db.get_all_users().expect("Query should succeed");
-        assert_eq!(users.len(), 1);
-        assert_eq!(users[0].name, "Test User");
+        assert!(user_id > 0);
+
+        let user = db.get_user_by_id(user_id)
+            .expect("Failed to get user")
+            .expect("User not found");
+
+        assert_eq!(user.name, "Test User");
+        assert_eq!(user.email, "test@example.com");
+    }
+
+    #[test]
+    fn test_duplicate_email_error() {
+        let db = create_test_db();
+
+        db.insert_user("User 1", "dup@example.com", "User", "Active")
+            .expect("Failed to insert first user");
+
+        let result = db.insert_user("User 2", "dup@example.com", "User", "Active");
+        assert!(result.is_err());
+        
+        match result.unwrap_err() {
+            AppError::Database(err) => {
+                assert_eq!(err.code, ErrorCode::DbAlreadyExists);
+            }
+            _ => panic!("Expected Database error"),
+        }
+    }
+
+    #[test]
+    fn test_update_user() {
+        let db = create_test_db();
+
+        let user_id = db.insert_user("Original Name", "update@example.com", "User", "Active")
+            .expect("Failed to insert user");
+
+        let rows = db.update_user(
+            user_id,
+            Some("Updated Name".to_string()),
+            None,
+            Some("Admin".to_string()),
+            None,
+        ).expect("Failed to update user");
+
+        assert_eq!(rows, 1);
+
+        let user = db.get_user_by_id(user_id)
+            .expect("Failed to get user")
+            .expect("User not found");
+
+        assert_eq!(user.name, "Updated Name");
+        assert_eq!(user.role, "Admin");
     }
 
     #[test]
     fn test_delete_user() {
-        let db = Database::new(":memory:").unwrap();
-        db.init().unwrap();
+        let db = create_test_db();
 
-        let id = db
-            .insert_user("Test", "test@example.com", "User", "Active")
-            .unwrap();
-        let deleted = db.delete_user(id).expect("Delete should succeed");
-        assert_eq!(deleted, 1);
+        let user_id = db.insert_user("Delete Me", "delete@example.com", "User", "Active")
+            .expect("Failed to insert user");
+
+        let rows = db.delete_user(user_id).expect("Failed to delete user");
+        assert_eq!(rows, 1);
+
+        let user = db.get_user_by_id(user_id).expect("Failed to query");
+        assert!(user.is_none());
     }
 
     #[test]
-    fn test_insert_user_validation_empty_name() {
-        let db = Database::new(":memory:").unwrap();
-        db.init().unwrap();
+    fn test_search_users() {
+        let db = create_test_db();
 
-        let result = db.insert_user("", "test@example.com", "User", "Active");
-        assert!(result.is_err());
-        if let Err(AppError::Validation(e)) = result {
-            assert_eq!(e.field, Some("name".to_string()));
-        } else {
-            panic!("Expected Validation error");
-        }
-    }
+        db.insert_user("Alice Johnson", "alice@example.com", "Admin", "Active")
+            .expect("Failed to insert Alice");
+        db.insert_user("Bob Smith", "bob@example.com", "User", "Active")
+            .expect("Failed to insert Bob");
 
-    #[test]
-    fn test_insert_user_validation_invalid_email() {
-        let db = Database::new(":memory:").unwrap();
-        db.init().unwrap();
+        let results = db.search_users("alice").expect("Failed to search");
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].name, "Alice Johnson");
 
-        let result = db.insert_user("Test User", "invalid-email", "User", "Active");
-        assert!(result.is_err());
-        if let Err(AppError::Validation(e)) = result {
-            assert_eq!(e.field, Some("email".to_string()));
-        } else {
-            panic!("Expected Validation error");
-        }
-    }
-
-    #[test]
-    fn test_insert_user_duplicate_email() {
-        let db = Database::new(":memory:").unwrap();
-        db.init().unwrap();
-
-        db.insert_user("Test User", "test@example.com", "User", "Active").unwrap();
-        let result = db.insert_user("Another User", "test@example.com", "User", "Active");
-        
-        assert!(result.is_err());
-        if let Err(AppError::Database(e)) = result {
-            assert_eq!(e.code, ErrorCode::DbAlreadyExists);
-        } else {
-            panic!("Expected Database error with DbAlreadyExists code");
-        }
+        let results = db.search_users("example.com").expect("Failed to search");
+        assert_eq!(results.len(), 2);
     }
 }

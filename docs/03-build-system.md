@@ -1,243 +1,120 @@
 # Build System
 
-## Build Pipeline Overview
+> **Note**: This document is being updated. For current build instructions, see:
+> - [Getting Started](07-getting-started.md) - Build commands and workflows
+> - [README.md](../README.md) - Quick start guide
 
-The project uses a sophisticated build pipeline orchestrated by multiple scripts and tools.
+## Overview
 
-## Master Build Script (run.sh)
+The project uses a multi-stage build pipeline orchestrated by shell scripts and build tools.
 
-The main entry point for building and running the application.
+## Build Scripts
 
-### Usage
+### run.sh (Main Entry Point)
+
+Located at repository root.
+
+**Usage**:
 ```bash
-./run.sh                    # Build and run in development mode
-./run.sh --release          # Build optimized release version
-./run.sh --build            # Build only (frontend + backend)
-./run.sh --build-frontend   # Build frontend only
-./run.sh --build-rust       # Build Rust backend only
-./run.sh --run              # Run existing build
-./run.sh --clean            # Clean all build artifacts
-./run.sh --rebuild          # Clean and rebuild
-./run.sh --help             # Show help message
+./run.sh                    # Build and run
+./run.sh --build            # Build only
+./run.sh --release          # Release build
+./run.sh --clean            # Clean artifacts
 ```
 
-### Build Steps
+**Build Steps**:
 1. Check prerequisites (Cargo, Bun)
 2. Install frontend dependencies
-3. Build frontend with Angular/Rspack
-4. Copy static assets
-5. Build Rust backend with Cargo
+3. Build frontend with Rspack
+4. Copy assets to static/
+5. Build Rust backend
 6. Run post-build processing
-7. Launch application (if --run specified)
+7. Launch application
 
-## Frontend Build (build-frontend.js)
+### build-frontend.js
 
-JavaScript-based frontend build orchestration.
+Frontend build orchestration.
 
-### Features
-- Dependency installation with Bun
-- Production build with Angular CLI
-- Asset copying to static directory
-- WebUI bridge library handling
-- Index.html patching with correct paths
+**Location**: Repository root
 
-### Build Steps
-1. Install dependencies with Bun
-2. Run Angular production build
-3. Copy static assets to root directory
-4. Patch index.html with correct paths
+**Responsibilities**:
+- Install dependencies with Bun
+- Run Angular/Rspack build
+- Copy assets to static directory
+- Patch index.html with correct paths
 
-## Rust Build Script (build.rs)
+### build.rs (Cargo Build Script)
 
-Rust build script that compiles C dependencies during the build process.
+Rust build script for compiling C dependencies.
 
-### Responsibilities
+**Location**: Repository root
+
+**Responsibilities**:
 - Compile WebUI C library
-- Generate build configuration from app.config.toml
-- Set up linker flags for native dependencies
-- Watch for file changes during development
+- Generate build configuration
+- Set linker flags
 
-### Generated Configuration
-- Package name and version
-- Executable name
-- Default log level
-- Default log file path
+### post-build.sh
 
-## Post-Build Script (post-build.sh)
+Post-build processing.
 
-Handles post-build processing and executable preparation.
+**Location**: Repository root
 
-### Features
-- Executable renaming based on configuration
-- Platform-specific post-processing
-- Distribution preparation
+**Responsibilities**:
+- Rename executables based on config
+- Platform-specific processing
 
-## Distribution Builder (build-dist.sh)
+### build-dist.sh
 
-Cross-platform distribution package builder.
+Distribution package builder.
 
-### Usage
+**Location**: Repository root
+
+**Usage**:
 ```bash
-./build-dist.sh build         # Build distribution package
-./build-dist.sh build-release # Build release distribution
-./build-dist.sh clean         # Clean distribution artifacts
-```
-
-## Configuration System
-
-### Application Configuration (app.config.toml)
-
-TOML-based configuration file controlling application behavior.
-
-### Sections
-
-#### [app]
-- name: Application name
-- version: Version string
-- description: Application description
-- author: Author information
-- website: Project website URL
-
-#### [executable]
-- name: Custom binary name (leave empty for default)
-
-#### [database]
-- path: SQLite database file path
-- create_sample_data: Whether to create sample data on first run
-
-#### [window]
-- title: Window title
-- width: Initial window width
-- height: Initial window height
-- min_width: Minimum window width
-- min_height: Minimum window height
-- resizable: Whether window is resizable
-
-#### [logging]
-- level: Log level (debug, info, warn, error)
-- file: Log file name (empty to disable file logging)
-- append: Append to existing log file or overwrite
-
-#### [features]
-- dark_mode: Enable dark mode
-- show_tray_icon: Show system tray icon
-
-### Configuration Loading
-
-Configuration is loaded at application startup:
-
-1. Check for app.config.toml in project root
-2. Check for config/app.config.toml
-3. Fall back to default configuration if not found
-4. Register configuration in DI container
-
-### Environment Variables
-
-Runtime configuration can be overridden via environment variables:
-
-- RUST_LOG: Override log level
-- Custom variables for feature flags
-
-## Build Workflows
-
-### Development Workflow
-```bash
-# Initial setup
-./run.sh
-
-# After code changes
-./run.sh --build
-
-# View logs
-tail -f application.log
-```
-
-### Production Build
-```bash
-# Build optimized release
-./run.sh --release
-
-# Create distribution package
 ./build-dist.sh build-release
 ```
 
-### Clean Build
-```bash
-# Clean all artifacts
-./run.sh --clean
+## Build Configuration
 
-# Rebuild from scratch
-./run.sh
+### Rust (Cargo.toml)
+
+```toml
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+```
+
+### Frontend (rspack.config.js)
+
+```javascript
+module.exports = {
+  entry: { main: './src/main.ts' },
+  output: {
+    path: path.resolve(__dirname, 'dist/browser'),
+    filename: '[name].[contenthash].js',
+  },
+  // ... more config
+};
 ```
 
 ## Build Output
 
-### Development Build
-- Binary: target/debug/app
-- Frontend: static/js/, static/css/
-- Logs: application.log
+### Debug Build
+```
+target/debug/app          # Rust executable
+frontend/dist/            # Frontend build
+```
 
 ### Release Build
-- Binary: target/release/app
-- Optimized with LTO
-- Smaller binary size
+```
+target/release/app        # Optimized executable
+frontend/dist/            # Production frontend
+```
 
-### Distribution Package
-- Platform-specific executable
-- Required runtime files
-- Configuration templates
+## Related Documentation
 
-## Prerequisites
-
-### Required Tools
-- Rust (latest stable)
-- Bun (JavaScript runtime)
-- GCC/Clang (C compiler)
-
-### System Dependencies
-
-#### Linux
-- libwebkit2gtk-4.0-dev
-- libgtk-3-dev
-- libjavascriptcoregtk-4.0-dev
-- libsoup2.4-dev
-
-#### macOS
-- Xcode Command Line Tools
-- WebView framework (included)
-
-#### Windows
-- Visual Studio Build Tools
-- WebView2 (included in Windows 10+)
-
-## Troubleshooting
-
-### Common Build Issues
-
-**WebUI compilation fails:**
-- Ensure GCC/Clang is installed
-- Check thirdparty/webui-c-src/ directory exists
-- Run: cargo clean && ./run.sh
-
-**Frontend build fails:**
-- Ensure Bun is installed: bun --version
-- Clear node_modules: rm -rf frontend/node_modules
-- Reinstall: cd frontend && bun install
-
-**Configuration not loaded:**
-- Check app.config.toml syntax
-- Verify file location (root or config/)
-- Check file permissions
-
-## Build Performance
-
-### Optimization Tips
-- Use --release for production builds
-- Enable LTO in Cargo.toml for smaller binaries
-- Use incremental compilation for development
-- Cache Bun dependencies
-
-### Build Times
-- Development build: 30-60 seconds
-- Release build: 2-5 minutes
-- Frontend only: 5-10 seconds
+- [Getting Started](07-getting-started.md) - Build commands
+- [Project Structure](08-project-structure.md) - File organization
+- [README.md](../README.md) - Quick reference

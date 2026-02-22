@@ -1,329 +1,202 @@
 # Communication Architecture
 
+> **Note**: This document is being updated. For current communication patterns, see:
+> - [Architecture](02-architecture.md) - Complete architecture guide
+> - [ERROR_HANDLING_GUIDE.md](../ERROR_HANDLING_GUIDE.md) - Error communication
+
 ## Overview
 
-The application implements a bidirectional communication layer between frontend (Angular/TypeScript) and backend (Rust) using the WebUI framework's binding system.
+The application uses **WebUI bindings** for bidirectional IPC between frontend (Angular/TypeScript) and backend (Rust).
 
 ## Communication Flow
 
-### Frontend to Backend
+### Frontend → Backend
 
-1. JavaScript triggers an event via WebUI binding
-2. Event payload is serialized to JSON
-3. Rust backend receives the event through bound handler
-4. Handler processes the request
-5. Response is prepared and serialized
+```javascript
+// 1. Frontend calls backend function
+window.get_users();
 
-### Backend to Frontend
-
-1. Rust backend prepares response data
-2. Response is serialized to JSON
-3. JavaScript event is dispatched via window.dispatchEvent
-4. Frontend event listener receives the response
-5. UI is updated based on response data
-
-## WebUI Bindings
-
-### Backend Binding Registration
-
-Rust handlers are registered with WebUI:
-
-```rust
+// 2. Backend receives event
 window.bind("get_users", |event| {
-    // Handle get_users request
-    let users = db.get_all_users()?;
+    // Handle request
+});
 
-    // Send response to frontend
-    let response = serde_json::json!({
-        "success": true,
-        "data": users,
-        "count": users.len()
-    });
+// 3. Backend sends response
+dispatch_event(window, "db_response", &response);
 
-    send_response(window, "db_response", &response);
+// 4. Frontend listens for response
+window.addEventListener('db_response', (event) => {
+    const data = event.detail;
+    // Update UI
 });
 ```
 
-### Frontend Event Dispatch
+### Backend → Frontend
 
-JavaScript sends requests to backend:
+```rust
+// 1. Backend prepares data
+let response = json!({
+    "success": true,
+    "data": users
+});
 
-```javascript
-// Call backend function
-window.get_users();
-
-// Or with parameters via element name
-const elementName = `create_user:${name}:${email}:${role}:${status}`;
-window.create_user(elementName);
+// 2. Dispatch JavaScript event
+let js = format!(
+    "window.dispatchEvent(new CustomEvent('users_loaded', {{ detail: {} }}))",
+    response
+);
+window.run_js(&js);
 ```
 
-### Frontend Event Listening
+## WebUI Bindings
 
-JavaScript listens for backend responses:
+### Backend Registration
 
-```javascript
-window.addEventListener('db_response', (event) => {
-    const response = event.detail;
-    if (response.success) {
-        // Handle successful response
-        console.log('Users:', response.data);
+```rust
+pub fn setup_db_handlers(window: &mut webui::Window) {
+    // Simple handler
+    window.bind("get_users", |event| {
+        let users = db.get_all_users()?;
+        send_response(window, "db_response", &users);
+    });
+    
+    // Handler with parameters (via element name)
+    window.bind("create_user", |event| {
+        let element_name = unsafe {
+            CStr::from_ptr(event.element).to_string_lossy()
+        };
+        let parts: Vec<&str> = element_name.split(':').collect();
+        let name = parts[1];
+        let email = parts[2];
+        
+        // Create user...
+    });
+}
+```
+
+### Frontend Usage
+
+```typescript
+// Call without parameters
+window.get_users();
+
+// Call with parameters (via element name convention)
+const elementName = `create_user:${name}:${email}:${role}`;
+window.create_user(elementName);
+
+// Listen for response
+window.addEventListener('db_response', (event: CustomEvent) => {
+    const { success, data, error } = event.detail;
+    if (success) {
+        console.log('Users:', data);
     } else {
-        // Handle error
-        console.error('Error:', response.error);
+        console.error('Error:', error);
     }
 });
 ```
 
 ## Event Bus System
 
-### Backend Event Bus
-
-The application includes an event bus for pub/sub messaging:
-
-**Publish Event:**
-```rust
-use crate::infrastructure::event_bus::GLOBAL_EVENT_BUS;
-
-GLOBAL_EVENT_BUS.emit("user.created", json!({
-    "user_id": 123,
-    "name": "John Doe"
-}));
-```
-
-**Get History:**
-```rust
-let events = GLOBAL_EVENT_BUS.get_history(
-    Some("user.created"),
-    Some(10)
-)?;
-```
-
 ### Frontend Event Bus
 
-Frontend has its own event bus for component communication:
-
 ```typescript
-// Publish
-this.eventBus.publish('user.updated', { id: 123 });
-
-// Subscribe
-const unsubscribe = this.eventBus.subscribe('user.updated', (payload) => {
-    console.log('User updated:', payload);
-});
-
-// Unsubscribe
-unsubscribe();
-```
-
-## Data Serialization
-
-### JSON Format
-
-All communication uses JSON for data serialization:
-
-**Request Format:**
-```json
-{
-  "event_type": "get_users",
-  "payload": {
-    "filter": "active"
-  },
-  "timestamp": 1234567890
-}
-```
-
-**Success Response Format:**
-```json
-{
-  "success": true,
-  "data": {...},
-  "message": "Operation completed"
-}
-```
-
-**Error Response Format:**
-```json
-{
-  "success": false,
-  "data": null,
-  "error": {
-    "code": "RESOURCE_NOT_FOUND",
-    "message": "User not found",
-    "field": "id",
-    "context": {
-      "user_id": "123"
-    }
+@Injectable({ providedIn: 'root' })
+export class EventBusViewModel<Events extends object> {
+  // Subscribe to event
+  subscribe<K extends keyof Events>(
+    name: K,
+    handler: Handler<Events[K]>
+  ): () => void {
+    // Register handler
+    // Return unsubscribe function
+  }
+  
+  // Publish event
+  publish<K extends keyof Events>(
+    name: K,
+    payload: Events[K]
+  ): void {
+    // Create event
+    // Add to history
+    // Dispatch to subscribers
   }
 }
+
+// Usage
+eventBus.subscribe('user:created', (payload) => {
+    console.log('User created:', payload);
+});
+
+eventBus.publish('user:created', { id: 123, name: 'Alice' });
 ```
 
-## Error Handling
-
-### Backend Error Response
+### Backend Event Bus
 
 ```rust
-match get_user(id) {
-    Ok(user) => {
-        let response = json!({
-            "success": true,
-            "data": user
-        });
-        send_response(window, "user_response", &response);
+pub struct EventBus {
+    subscribers: Mutex<HashMap<String, Vec<Handler>>>,
+}
+
+impl EventBus {
+    pub fn subscribe(&self, event: &str, handler: Handler) {
+        // Register handler
     }
-    Err(e) => {
-        let response = json!({
-            "success": false,
-            "data": null,
-            "error": e.to_value().to_response()
-        });
-        send_response(window, "user_response", &response);
+    
+    pub fn publish(&self, event: &str, payload: &Value) {
+        // Dispatch to all subscribers
     }
 }
 ```
 
-### Frontend Error Handling
+## Error Communication
+
+### Error Flow
+
+```
+User Action
+    ↓
+Frontend Component
+    ↓
+Backend Handler
+    ↓
+Error Occurs
+    ↓
+Error Handler (record error)
+    ↓
+Terminal Output (color-coded)
+    ↓
+Frontend Event (dispatched)
+    ↓
+Error Service (update state)
+    ↓
+Error Modal (display to user)
+```
+
+### Error Response Format
 
 ```typescript
-const result = await getUsers();
-
-if (result.ok) {
-    // Success path
-    displayUser(result.value);
-} else {
-    // Error path - error is a value
-    errorService.report(result.error);
+interface ErrorResponse {
+  success: false;
+  error: {
+    code: ErrorCode;
+    message: string;
+    details?: string;
+    field?: string;
+    context?: Record<string, string>;
+  };
 }
 ```
 
-## Communication Patterns
+## DevTools Monitoring
 
-### Request-Response
+The DevTools panel exposes all communication:
 
-Synchronous request with immediate response:
+- **Backend Tab**: View WebUI bindings, backend logs
+- **Frontend Tab**: View events, errors, event bus stats
+- **Events Tab**: View event history and payloads
 
-```javascript
-// Frontend
-const response = await callBackend('get_data', params);
+## Related Documentation
 
-// Backend
-window.bind("get_data", |event| {
-    let data = fetch_data();
-    send_response(window, "get_data_response", &data);
-});
-```
-
-### Publish-Subscribe
-
-Asynchronous event broadcasting:
-
-```javascript
-// Frontend - Subscribe
-window.addEventListener('data.updated', handleUpdate);
-
-// Backend - Publish
-GLOBAL_EVENT_BUS.emit("data.updated", payload);
-```
-
-### Command Pattern
-
-Fire-and-forget commands:
-
-```javascript
-// Frontend
-window.log_message(JSON.stringify({ level: 'info', message: 'User action' }));
-
-// Backend
-window.bind("log_message", |event| {
-    log::info!("Frontend: {}", event.payload);
-    // No response needed
-});
-```
-
-## Connection Status
-
-The application displays connection status information:
-
-- Status: connected, connecting, disconnected, retrying, error
-- Port: Backend server port
-- Latency: Average ping/pong latency
-- Uptime: Connection uptime
-- Reconnects: Number of reconnection attempts
-- Total Calls: Successful/Total backend calls
-
-## Security Considerations
-
-### Input Validation
-
-All frontend inputs are validated on the backend:
-
-```rust
-fn create_user(name: &str, email: &str) -> Result<User> {
-    // Validate input
-    if name.is_empty() {
-        return validation_error!("name", "Name is required");
-    }
-
-    if !is_valid_email(email) {
-        return validation_error!("email", "Invalid email format");
-    }
-
-    // Proceed with creation
-}
-```
-
-### Error Message Sanitization
-
-Error messages sent to frontend are sanitized to avoid leaking internal details:
-
-```rust
-let safe_message = sanitize_error_message(&error);
-let response = json!({
-    "success": false,
-    "error": safe_message
-});
-```
-
-## Performance Optimization
-
-### Batching
-
-Multiple operations can be batched:
-
-```javascript
-// Batch multiple requests
-const results = await Promise.all([
-    callBackend('get_users'),
-    callBackend('get_products'),
-    callBackend('get_orders')
-]);
-```
-
-### Debouncing
-
-Frequent events are debounced:
-
-```typescript
-const debouncedSearch = debounce(async (query) => {
-    const results = await callBackend('search', { query });
-    displayResults(results);
-}, 300);
-```
-
-## Monitoring and Logging
-
-### Backend Logging
-
-All communication is logged:
-
-```
-INFO [Communication] Frontend -> Backend (get_users): JSON payload received
-INFO [Communication] Backend -> Frontend: JSON response sent
-```
-
-### Frontend Logging
-
-Frontend events are logged to console and backend:
-
-```typescript
-logger.info('Calling backend: get_users', { params });
-```
+- [Architecture](02-architecture.md) - Complete communication flow
+- [Error Handling Guide](../ERROR_HANDLING_GUIDE.md) - Error patterns
+- [DevTools Component](../frontend/src/views/devtools/devtools.component.ts) - Implementation

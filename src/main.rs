@@ -159,24 +159,35 @@ fn main() {
     let db_path = config.get_db_path();
     info!("Database path: {}", db_path);
 
-    // Initialize SQLite database
+    // Initialize SQLite database with connection pooling
     let db = match Database::new(db_path) {
         Ok(db) => {
-            info!("Database initialized successfully");
+            info!("Database connection pool initialized successfully");
             if let Err(e) = db.init() {
-                eprintln!("Failed to initialize database schema: {}", e);
+                error_handler::record_error(
+                    error_handler::ErrorSeverity::Critical,
+                    "MAIN",
+                    ErrorCode::DbQueryFailed,
+                    format!("Failed to initialize database schema: {}", e),
+                    None,
+                );
                 return;
             }
             if config.should_create_sample_data() {
                 if let Err(e) = db.insert_sample_data() {
-                    eprintln!("Failed to insert sample data: {}", e);
+                    error_handler::record_app_error("MAIN", &e);
                     return;
                 }
                 info!("Sample data created (if not exists)");
             }
+            // Log pool stats
+            let stats = db.pool_stats();
+            info!("Database pool stats: connections={}, idle={}", 
+                  stats.connections, stats.idle_connections);
             Arc::new(db)
         }
         Err(e) => {
+            error_handler::record_app_error("MAIN", &e);
             eprintln!("Failed to initialize database: {}", e);
             return;
         }
@@ -190,6 +201,7 @@ fn main() {
 
     // Initialize database handlers with the database instance
     presentation::db_handlers::init_database(Arc::clone(&db));
+    presentation::error_handlers::init_database_monitoring(Arc::clone(&db));
 
     // Demonstrate utility usage
     run_utilities_demo();
@@ -222,6 +234,8 @@ fn main() {
     presentation::event_bus_handlers::setup_event_bus_handlers(&mut my_window);
     presentation::window_state_handler::setup_window_state_handlers(&mut my_window);
     presentation::error_handlers::setup_error_handlers(&mut my_window);
+    presentation::error_handlers::setup_db_monitoring_handlers(&mut my_window);
+    presentation::error_handlers::setup_devtools_handlers(&mut my_window);
 
     // Get window settings from config
     let window_title = config.get_window_title();

@@ -141,11 +141,19 @@
                 <span class="bottom-tabs__label">{{ tab.label }}</span>
               </button>
             }
+            <button type="button" class="bottom-tabs__tab"
+                    [class.active]="activeBottomTab() === 'devtools'"
+                    (click)="selectBottomTab('devtools', $event)">
+              <span class="bottom-tabs__icon">🛠️</span>
+              <span class="bottom-tabs__label">DevTools</span>
+            </button>
           </div>
-          
+
           <!-- Tab Content -->
           <div class="bottom-tabs__content">
-            @if (activeBottomTab() === 'overview') {
+            @if (activeBottomTab() === 'devtools') {
+              <app-devtools></app-devtools>
+            } @else if (activeBottomTab() === 'overview') {
               <div class="tab-panel">
                 <div class="info-card">
                   <span class="info-card__label">Runtime</span>

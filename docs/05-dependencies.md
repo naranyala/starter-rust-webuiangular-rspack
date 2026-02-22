@@ -1,338 +1,220 @@
 # Dependencies
 
+> **Note**: For current dependency information, check:
+> - `Cargo.toml` (root) - Rust dependencies
+> - `frontend/package.json` - Frontend dependencies
+> - [Getting Started](07-getting-started.md) - Installation requirements
+
 ## Backend Dependencies (Rust)
 
 ### Core Dependencies
 
-#### WebUI
-- **Package**: webui-rs
-- **Version**: main branch (git)
-- **Purpose**: Embed web browser in desktop application
-- **Usage**: Window creation, event binding, JavaScript execution
+| Package | Version | Purpose |
+|---------|---------|---------|
+| `webui-rs` | git/main | WebUI desktop windowing |
+| `rusqlite` | 0.32 | SQLite database |
+| `r2d2` | 0.8 | Connection pooling |
+| `r2d2_sqlite` | 0.25 | SQLite pool manager |
+| `serde` | 1.0 | Serialization framework |
+| `serde_json` | 1.0 | JSON serialization |
+| `log` | 0.4 | Logging facade |
+| `backtrace` | 0.3 | Stack traces |
 
-#### Serialization
-- **Package**: serde (1.0)
-- **Features**: derive
-- **Purpose**: Serialization/deserialization framework
+### Serialization
 
-- **Package**: serde_json (1.0)
-- **Purpose**: JSON serialization
+| Package | Version | Purpose |
+|---------|---------|---------|
+| `serde_yaml` | 0.9 | YAML serialization |
+| `rmp-serde` | 1.3 | MessagePack |
+| `serde_cbor` | 0.11 | CBOR format |
+| `toml` | 0.8 | TOML parsing |
+| `chrono` | 0.4 | Date/time with serde |
 
-- **Package**: rmp-serde (1.3)
-- **Purpose**: MessagePack serialization (alternative to JSON)
+### Database
 
-- **Package**: serde_cbor (0.11)
-- **Purpose**: CBOR serialization (alternative to JSON)
+| Package | Version | Purpose |
+|---------|---------|---------|
+| `rusqlite` | 0.32 | SQLite bindings |
+| `r2d2` | 0.8 | Connection pool |
+| `r2d2_sqlite` | 0.25 | SQLite pool |
 
-- **Package**: toml (0.8)
-- **Purpose**: TOML configuration parsing
+### Error Handling
 
-- **Package**: serde_yaml (0.9)
-- **Purpose**: YAML serialization support
+| Package | Version | Purpose |
+|---------|---------|---------|
+| `anyhow` | 1.0 | Easy error handling |
+| `thiserror` | 1.0 | Custom error types |
+| `backtrace` | 0.3 | Stack traces |
 
-#### Database
-- **Package**: rusqlite (0.32)
-- **Features**: bundled
-- **Purpose**: SQLite database operations
+### Utilities
 
-#### Logging
-- **Package**: log (0.4)
-- **Purpose**: Logging facade
+| Package | Version | Purpose |
+|---------|---------|---------|
+| `lazy_static` | 1.4 | Static variables |
+| `dirs` | 5.0 | Directory paths |
+| `tempfile` | 3.8 | Temporary files |
+| `notify` | 6.1 | File watching |
+| `open` | 5.0 | Open files/URLs |
+| `hostname` | 0.3 | Get hostname |
+| `whoami` | 2.1 | User information |
+| `num_cpus` | 1.17 | CPU count |
 
-- **Package**: env_logger (0.11)
-- **Purpose**: Logging implementation
+### Cryptography
 
-#### Error Handling
-- **Package**: anyhow (1.0)
-- **Purpose**: Flexible error handling
+| Package | Version | Purpose |
+|---------|---------|---------|
+| `base64` | 0.21 | Base64 encoding |
+| `hmac` | 0.12 | HMAC |
+| `sha2` | 0.10 | SHA-2 hash |
+| `rand` | 0.8 | Random numbers |
+| `jsonwebtoken` | 9.0 | JWT tokens |
+| `hex` | 0.4 | Hex encoding |
+| `md5` | 0.7 | MD5 hash |
 
-- **Package**: thiserror (1.0)
-- **Purpose**: Derive macro for error types
+### Network
 
-#### Date/Time
-- **Package**: chrono (0.4)
-- **Features**: serde
-- **Purpose**: Date and time operations
-
-#### Utilities
-- **Package**: lazy_static (1.4)
-- **Purpose**: Lazy static initialization
-
-### Security Dependencies
-
-#### Cryptography
-- **Package**: base64 (0.21)
-- **Purpose**: Base64 encoding/decoding
-
-- **Package**: hmac (0.12)
-- **Purpose**: HMAC functions
-
-- **Package**: sha2 (0.10)
-- **Purpose**: SHA-2 hash functions
-
-- **Package**: rand (0.8)
-- **Purpose**: Random number generation
-
-- **Package**: hex (0.4)
-- **Purpose**: Hex encoding/decoding
-
-- **Package**: md5 (0.7)
-- **Purpose**: MD5 hashing
-
-#### Authentication
-- **Package**: jsonwebtoken (9.0)
-- **Purpose**: JWT token handling
-
-- **Package**: url (2.5)
-- **Purpose**: URL parsing and validation
-
-### Network Dependencies
-
-- **Package**: reqwest (0.12)
-- **Features**: blocking
-- **Purpose**: HTTP client
-
-### File Operations
-
-- **Package**: walkdir (2.3)
-- **Purpose**: Directory traversal
-
-- **Package**: dirs (5.0)
-- **Purpose**: Directory paths
-
-- **Package**: tempfile (3.8)
-- **Purpose**: Temporary files
-
-- **Package**: notify (6.1)
-- **Purpose**: File system watching
-
-- **Package**: open (5.0)
-- **Purpose**: Open files/URLs with default application
+| Package | Version | Purpose |
+|---------|---------|---------|
+| `url` | 2.5 | URL parsing |
+| `reqwest` | 0.12 | HTTP client |
 
 ### Compression
 
-- **Package**: flate2 (1.0)
-- **Purpose**: Gzip compression
+| Package | Version | Purpose |
+|---------|---------|---------|
+| `flate2` | 1.0 | Gzip/Deflate |
+| `zstd` | 0.13 | Zstandard |
+| `brotli` | 8.0 | Brotli |
+| `lz4_flex` | 0.11 | LZ4 |
+| `snap` | 1.1 | Snappy |
 
-- **Package**: zstd (0.13)
-- **Purpose**: Zstandard compression
+### File Operations
 
-- **Package**: brotli (8.0)
-- **Purpose**: Brotli compression
+| Package | Version | Purpose |
+|---------|---------|---------|
+| `walkdir` | 2.3 | Directory traversal |
+| `image` | 0.24 | Image processing |
+| `arboard` | 3.4 | Clipboard |
+| `ini` | 1.3 | INI parsing |
+| `zip` | 0.6 | ZIP archives |
+| `tar` | 0.4 | TAR archives |
 
-- **Package**: lz4_flex (0.11)
-- **Purpose**: LZ4 compression
+### System
 
-- **Package**: snap (1.1)
-- **Purpose**: Snappy compression
+| Package | Version | Purpose |
+|---------|---------|---------|
+| `sysctl` | 0.5 | System control |
+| `humantime` | 2.1 | Human-readable time |
 
-### Archive Formats
+### Build Dependencies
 
-- **Package**: zip (0.6)
-- **Purpose**: ZIP archive handling
+| Package | Version | Purpose |
+|---------|---------|---------|
+| `cc` | 1.0 | C compilation |
+| `walkdir` | 2.3 | File traversal |
+| `toml` | 0.8 | TOML parsing |
 
-- **Package**: tar (0.4)
-- **Purpose**: TAR archive handling
+## Frontend Dependencies (Angular)
 
-### Image Processing
+### Core Dependencies
 
-- **Package**: image (0.24)
-- **Purpose**: Image processing
+| Package | Version | Purpose |
+|---------|---------|---------|
+| `@angular/core` | 21.1.5 | Angular framework |
+| `@angular/common` | 21.1.5 | Common directives |
+| `@angular/compiler` | 21.1.5 | Template compiler |
+| `@angular/forms` | 21.1.5 | Forms handling |
+| `@angular/platform-browser` | 21.1.5 | Browser platform |
+| `@angular/router` | 21.1.5 | Routing |
+| `rxjs` | 7.8.2 | Reactive extensions |
+| `zone.js` | 0.15.1 | Change detection |
+| `tslib` | 2.8.1 | TypeScript helpers |
+| `winbox` | 0.2.82 | Window management |
 
-### Clipboard
+### Development Dependencies
 
-- **Package**: arboard (3.4)
-- **Purpose**: Clipboard access
+| Package | Version | Purpose |
+|---------|---------|---------|
+| `@angular/cli` | 21.1.4 | Angular CLI |
+| `@angular/build` | 21.1.4 | Angular build |
+| `@rspack/core` | 1.7.6 | Rspack bundler |
+| `@rspack/cli` | 1.7.6 | Rspack CLI |
+| `@biomejs/biome` | 2.4.4 | Linter/formatter |
+| `typescript` | 5.9.0 | TypeScript |
+| `esbuild-loader` | 4.4.2 | Fast TS compilation |
+| `sass` | 1.97.3 | SCSS preprocessor |
+| `css-loader` | 7.1.4 | CSS processing |
+| `style-loader` | 4.0.0 | Style injection |
 
-### Configuration
+### Testing Dependencies
 
-- **Package**: ini (1.3)
-- **Purpose**: INI file parsing
+| Package | Version | Purpose |
+|---------|---------|---------|
+| `protractor` | 7.0.0 | E2E testing |
+| `ts-node` | 10.9.2 | TypeScript execution |
 
-### System Information
+## Build Tools
 
-- **Package**: sysctl (0.5)
-- **Purpose**: System control information
+| Tool | Version | Purpose |
+|------|---------|---------|
+| Rust | 1.93+ | Backend language |
+| Cargo | - | Rust package manager |
+| Bun | 1.3+ | Frontend package manager |
+| Node.js | 18+ | JavaScript runtime (optional) |
+| Angular CLI | 21.1.4 | Angular build tool |
+| Rspack | 1.7.6 | Bundler |
+| Biome | 2.4.4 | Linter/formatter |
 
-- **Package**: hostname (0.3)
-- **Purpose**: Hostname retrieval
+## Platform Dependencies
 
-- **Package**: whoami (2.1)
-- **Purpose**: User information
+### Linux
 
-- **Package**: num_cpus (1.17)
-- **Purpose**: CPU count
+| Package | Purpose |
+|---------|---------|
+| `libwebkit2gtk-4.1-dev` | WebKit for WebUI |
+| `build-essential` | Build tools |
+| `pkg-config` | Package config |
+| `libssl-dev` | SSL/TLS |
+| `libsqlite3-dev` | SQLite |
 
-### Encoding
+### macOS
 
-- **Package**: ascii85 (0.2)
-- **Purpose**: Ascii85 encoding
+| Package | Purpose |
+|---------|---------|
+| Xcode Command Line Tools | Build tools |
+| WebKit | Built-in |
 
-- **Package**: punycode (0.4)
-- **Purpose**: Punycode encoding
+### Windows
 
-### Time Formatting
+| Package | Purpose |
+|---------|---------|
+| Visual Studio Build Tools | C++ compiler |
+| WebView2 | Built-in (Windows 10+) |
 
-- **Package**: humantime (2.1)
-- **Purpose**: Human-readable time formatting
+## Dependency Updates
 
-### Platform-Specific Dependencies
+### Check for Updates
 
-#### Windows
-- **Package**: winapi (0.3)
-- **Features**: winuser, shellapi, processthreadsapi, etc.
-- **Purpose**: Windows API access
-
-- **Package**: windows (0.57)
-- **Features**: Win32_UI_WindowsAndMessaging, etc.
-- **Purpose**: Modern Windows API
-
-- **Package**: winreg (0.52)
-- **Purpose**: Windows registry access
-
-#### macOS
-- **Package**: objc2 (0.6)
-- **Purpose**: Objective-C runtime
-
-- **Package**: objc2-app-kit (0.3)
-- **Purpose**: AppKit framework
-
-- **Package**: objc2-foundation (0.3)
-- **Purpose**: Foundation framework
-
-## Frontend Dependencies (TypeScript/JavaScript)
-
-### Framework
-- **Package**: @angular/core (19.x)
-- **Purpose**: Angular framework
-
-- **Package**: @angular/common (19.x)
-- **Purpose**: Angular common module
-
-- **Package**: @angular/forms (19.x)
-- **Purpose**: Angular forms module
-
-- **Package**: @angular/platform-browser (19.x)
-- **Purpose**: Angular platform browser
-
-- **Package**: @angular/router (19.x)
-- **Purpose**: Angular router
-
-### Build Tools
-
-- **Package**: typescript
-- **Purpose**: TypeScript compiler
-
-- **Package**: @angular-devkit/build-angular
-- **Purpose**: Angular build system
-
-- **Package**: @angular/cli
-- **Purpose**: Angular CLI
-
-### Development Tools
-
-- **Package**: @biomejs/biome
-- **Purpose**: Linter and formatter
-
-### Runtime Libraries
-
-- **Package**: winbox
-- **Purpose**: Window management library
-
-## Build Dependencies
-
-### Rust Build
-
-- **Package**: cc (1.0)
-- **Purpose**: C compilation for build.rs
-
-- **Package**: walkdir (2.3)
-- **Purpose**: File watching in build.rs
-
-- **Package**: toml (0.8)
-- **Purpose**: Config parsing in build.rs
-
-## Dependency Organization
-
-### By Functionality
-
-#### Core Application
-- webui-rs
-- serde, serde_json
-- log, env_logger
-
-#### Data Layer
-- rusqlite
-- chrono
-
-#### Security
-- hmac, sha2, rand
-- jsonwebtoken
-
-#### System Integration
-- sysctl, hostname, whoami
-- notify, open, dirs
-
-#### Compression/Archives
-- flate2, zstd, brotli
-- zip, tar
-
-### Optional Features
-
-Dependencies that could be feature-flagged:
-- Image processing (image)
-- Archive formats (zip, tar)
-- Compression algorithms (zstd, brotli, lz4_flex, snap)
-- Clipboard access (arboard)
-- Platform-specific (winapi, objc2-*)
-
-## Dependency Management
-
-### Version Pinning
-
-All dependencies are pinned in Cargo.lock for reproducible builds.
-
-### Updates
-
-To update dependencies:
 ```bash
-# Update all dependencies
+# Rust
+cargo outdated  # Requires cargo-outdated
+
+# Frontend
+bun outdated
+```
+
+### Update Dependencies
+
+```bash
+# Rust
 cargo update
 
-# Update specific dependency
-cargo update -p serde
-
-# Check for updates
-cargo outdated
+# Frontend
+bun update
 ```
 
-### Security Audits
+## Related Documentation
 
-```bash
-# Install cargo-audit
-cargo install cargo-audit
-
-# Run security audit
-cargo audit
-```
-
-## Dependency Graph
-
-### Core Flow
-```
-main.rs
-  -> core/domain (entities, traits)
-  -> core/application (handlers, services)
-  -> core/infrastructure (config, database, di, event_bus, logging)
-  -> core/presentation (webui handlers)
-  -> utils (utilities)
-```
-
-### External Services
-```
-Application
-  -> WebUI (window management)
-  -> SQLite (data persistence)
-  -> Event Bus (messaging)
-  -> Logger (logging)
-```
+- [Getting Started](07-getting-started.md) - Installation
+- [Build System](03-build-system.md) - Build process
+- [README.md](../README.md) - Quick reference

@@ -3,258 +3,673 @@
 ## Repository Layout
 
 ```
-.
-+-- src/                    # Active Rust application (main entry)
-+-- frontend/               # Active Angular workspace (MVVM)
-+-- core/                   # Reusable backend/frontend core packages
-+-- plugins/                # Plugin extension area
-+-- apps/                   # Application entrypoint crates
-+-- shared/                 # Shared protocol/type boundaries
-+-- config/                 # Runtime configuration
-+-- static/                 # Runtime static JS/CSS assets
-+-- frontend-origin/        # Historical frontend reference
-+-- frontend/src-origin/    # Pre-MVVM frontend snapshot
-+-- thirdparty/             # Vendored upstream sources
-+-- dist/                   # Distribution output
-+-- target/                 # Cargo build output
-+-- docs/                   # Documentation
-+-- .gitignore              # Git ignore rules
-+-- Cargo.toml              # Rust project manifest
-+-- Cargo.lock              # Locked dependency versions
-+-- build.rs                # Rust build script
-+-- run.sh                  # Master build/run script
-+-- build-dist.sh           # Distribution builder
-+-- build-frontend.js       # Frontend build orchestration
-+-- post-build.sh           # Post-build processing
-+-- app.config.toml         # Application configuration
-+-- app.db                  # SQLite database file
-+-- application.log         # Runtime log file
-+-- README.md               # This file (table of contents)
+starter-rust-webuiangular-rspack/
+│
+├── 📄 Configuration Files
+│   ├── Cargo.toml                 # Rust package manifest
+│   ├── Cargo.lock                 # Dependency lock file
+│   ├── package.json               # Frontend dependencies
+│   ├── bun.lock                   # Bun lock file
+│   ├── angular.json               # Angular CLI config
+│   ├── rspack.config.js           # Rspack bundler config
+│   ├── biome.json                 # Biome linter config
+│   ├── tsconfig.json              # TypeScript config
+│   └── app.config.toml            # Application config
+│
+├── 📂 src/                        # Rust Backend
+│   ├── main.rs                    # Entry point
+│   ├── utils_demo.rs              # Utility demos
+│   └── core/                      # Clean Architecture
+│       ├── domain/                # Business entities
+│       ├── application/           # Use cases
+│       ├── infrastructure/        # External concerns
+│       └── presentation/          # WebUI integration
+│
+├── 📂 frontend/                   # Angular Frontend
+│   ├── src/
+│   │   ├── main.ts                # Entry point
+│   │   ├── views/                 # Components
+│   │   ├── viewmodels/            # State management
+│   │   ├── core/                  # Services
+│   │   ├── models/                # Types
+│   │   └── devtools/              # DevTools panel
+│   ├── angular.json
+│   ├── rspack.config.js
+│   └── biome.json
+│
+├── 📂 docs/                       # Documentation
+│   ├── 01-introduction.md
+│   ├── 02-architecture.md
+│   ├── 03-build-system.md
+│   ├── 04-communication.md
+│   ├── 05-dependencies.md
+│   ├── 06-improvements.md
+│   ├── 07-getting-started.md
+│   ├── 08-project-structure.md
+│   ├── 09-errors-as-values.md
+│   └── REFACTORING_CONNECTION_POOLING.md
+│
+├── 📂 config/                     # Runtime Config
+│   └── app.config.toml
+│
+├── 📂 static/                     # Static Assets (runtime)
+│   ├── js/
+│   └── css/
+│
+├── 📂 thirdparty/                 # Third-party
+│   └── webui-c-src/               # WebUI C source
+│
+└── 📂 target/                     # Build output
+    ├── debug/
+    └── release/
 ```
 
-## Rust Backend: src/
+---
 
-### Entrypoint
+## Backend Structure (Rust)
 
-- src/main.rs: Application bootstrap and runtime startup
+### src/
 
-### Core Architecture (src/core/)
+#### `main.rs` - Application Entry Point
 
-This follows a layered model (Domain-Driven Design inspired):
+**Purpose**: Bootstrap application, initialize DI container, create window
 
-- src/core/domain/: Domain entities and domain-level traits
-- src/core/application/: Use-case orchestration and app handlers
-  - src/core/application/handlers/: Focused handler modules (UI, DB, API, sysinfo, window_state)
-- src/core/infrastructure/: Concrete implementations and external integrations
-  - src/core/infrastructure/database/: Connection, models, user persistence
-  - src/core/infrastructure/logging/: Logger config, formatter, and output behavior
-  - src/core/infrastructure/config.rs: Config loading
-  - src/core/infrastructure/di.rs: Dependency wiring
-  - src/core/infrastructure/event_bus.rs: Backend event dispatch plumbing
-- src/core/presentation/: Presentation boundary
-  - src/core/presentation/webui/: WebUI-facing handlers and bridge surface
-- src/core/error.rs: Centralized error types
+**Key Responsibilities**:
+- Initialize error handling with panic hook
+- Load configuration from TOML
+- Initialize logging system
+- Create DI container
+- Initialize database with connection pooling
+- Register WebUI event handlers
+- Create and show window
+- Enter event loop
 
-### Utilities (src/utils/)
-
-- compression/: Compression utilities
-- crypto/: Cryptography functions
-- encoding/: Encoding/decoding
-- file_ops/: File operations
-- network/: Network utilities
-- security/: Security utilities
-- serialization/: Serialization helpers
-- system/: System information
-- validation/: Validation utilities
-
-These modules keep infrastructure-level helper logic out of business layers.
-
-## Frontend App: frontend/ (MVVM Pattern)
-
-### Primary Runtime Source (frontend/src/)
-
-```
-frontend/src/
-+-- main.ts                    # Angular bootstrap and global startup wiring
-+-- winbox-loader.ts           # WinBox runtime loader
-+-- environments/              # Environment configs (dev/prod)
-+-- types/                     # TypeScript declarations
-+-- polyfills.ts               # Angular polyfills
-+-- test.ts                    # Test configuration
-|
-+-- models/                    # M - Data interfaces and types
-|   +-- index.ts               # Barrel export
-|   +-- card.model.ts          # Card entity interfaces
-|   +-- window.model.ts        # Window state interfaces
-|   +-- log.model.ts           # Logging interfaces
-|   +-- error.model.ts         # Error handling types
-|   +-- api.model.ts           # API client types
-|
-+-- viewmodels/                # VM - Business logic and state management
-|   +-- index.ts               # Barrel export
-|   +-- logging.viewmodel.ts   # Logging backend service
-|   +-- logger.ts              # Logger facade API
-|   +-- event-bus.viewmodel.ts # Event bus implementation
-|   +-- window-state.viewmodel.ts # Window state management
-|   +-- api-client.ts          # Backend API client
-|
-+-- views/                     # V - Angular components
-|   +-- app.component.ts       # Main shell component
-|   +-- app.module.ts          # Angular module
-|   +-- app-routing.module.ts  # Routing configuration
-|   +-- home/
-|   |   +-- home.component.ts
-|   +-- demo/
-|   |   +-- demo.component.ts
-|   |   +-- error-handling-demo.component.ts
-|   +-- shared/
-|       +-- error-modal.component.ts
-|
-+-- core/                      # Shared infrastructure
-    +-- index.ts
-    +-- global-error.service.ts
-    +-- global-error.handler.ts
-    +-- errors/
-        +-- result.ts
+**Code Flow**:
+```rust
+fn main() {
+    // 1. Initialize error handling
+    error_handler::init_error_handling();
+    
+    // 2. Initialize DI container
+    di::init_container()?;
+    
+    // 3. Load configuration
+    let config = AppConfig::load()?;
+    
+    // 4. Initialize logging
+    logging::init_logging_with_config(...)?;
+    
+    // 5. Initialize database
+    let db = Database::new(config.db_path)?;
+    
+    // 6. Register handlers
+    setup_ui_handlers(&mut window);
+    setup_db_handlers(&mut window);
+    setup_error_handlers(&mut window);
+    setup_devtools_handlers(&mut window);
+    
+    // 7. Show window
+    window.show("index.html");
+    
+    // 8. Enter event loop
+    webui::wait();
+}
 ```
 
-### MVVM Pattern Explanation
+#### `utils_demo.rs` - Utility Demonstrations
 
-**Models (models/):**
-- Pure data interfaces and type definitions
-- No business logic, only data shape contracts
-- Examples: Card, WindowEntry, LogEntry
+**Purpose**: Showcase available utility modules
 
-**ViewModels (viewmodels/):**
-- Business logic and state management services
-- Angular services decorated with @Injectable
-- Handle data transformation, state, and communication
-- Examples: LoggingViewModel, EventBusViewModel, WindowStateViewModel
+**Modules Demonstrated**:
+- Compression (gzip, zstd, brotli, lz4, snap)
+- Cryptography (SHA256, HMAC, MD5, base64, hex)
+- Encoding (base64, punycode, ASCII85)
+- File operations (read, write, copy, delete)
+- Network (get local IP)
+- Security (password hashing, email validation)
+- Serialization (JSON, MessagePack, CBOR, YAML)
+- System (hostname, CPU count, PID, admin check)
+- Validation (email, URL)
 
-**Views (views/):**
-- Angular components (presentation layer)
-- Handle UI rendering and user interaction
-- Consume ViewModels via dependency injection
-- Examples: AppComponent, DemoComponent, HomeComponent
+#### `core/` - Clean Architecture Implementation
 
-**Core (core/):**
-- Cross-cutting concerns
-- Error handling infrastructure
-- Shared utilities that don't fit in other layers
+##### `domain/` - Business Entities
 
-### Frontend Tooling and Build Config
+**Purpose**: Pure business logic with zero external dependencies
 
-- frontend/package.json: Scripts and dependencies
-- frontend/angular.json: Angular build/serve configuration
-- frontend/tsconfig.json, frontend/tsconfig.app.json, frontend/tsconfig.spec.json: TypeScript configs
-- frontend/biome.json: Lint/format policy
-- frontend/e2e/: End-to-end testing config
+**Structure**:
+```
+domain/
+├── entities/
+│   └── mod.rs          # Entity definitions
+├── traits/
+│   └── mod.rs          # Domain interfaces
+└── mod.rs              # Module exports
+```
 
-### Frontend Generated Directories
+**Example Entity**:
+```rust
+// src/core/domain/entities/mod.rs
+pub struct User {
+    pub id: i64,
+    pub name: String,
+    pub email: String,
+    pub role: Role,
+    pub status: UserStatus,
+    pub created_at: String,
+}
 
-- frontend/dist/: Compiled frontend output
-- frontend/.angular/: Angular cache
-- frontend/node_modules/: Installed JS dependencies
+pub enum Role {
+    Admin,
+    User,
+    Guest,
+}
+```
 
-## Core Packages: core/
+##### `application/` - Use Cases
 
-### core/backend/
+**Purpose**: Implement business use cases and handlers
 
-A reusable Rust backend core library with its own layered architecture:
+**Structure**:
+```
+application/
+├── handlers/
+│   ├── mod.rs
+│   ├── db_handlers.rs      # Database operations
+│   ├── api_handlers.rs     # API endpoints
+│   └── ui_handlers.rs      # UI interactions
+└── mod.rs
+```
 
-- core/backend/src/lib.rs: Package entrypoint
-- core/backend/src/domain/, application/, infrastructure/, presentation/
-- core/backend/src/error/: Normalized error model and handler abstractions
-- core/backend/src/plugin/: Plugin context, metadata, registry, and traits
+**Responsibilities**:
+- Orchestrate domain entities
+- Validate input
+- Handle application logic
+- Return `Result<T, AppError>`
 
-### core/frontend/
+##### `infrastructure/` - External Concerns
 
-A reusable TypeScript frontend core package:
+**Structure**:
+```
+infrastructure/
+├── database/
+│   ├── mod.rs
+│   ├── connection.rs    # r2d2 connection pool
+│   ├── models.rs        # Database models
+│   └── users.rs         # User repository
+├── logging/
+│   ├── mod.rs
+│   ├── config.rs        # Logging config
+│   ├── formatter.rs     # Log formatting
+│   └── logger.rs        # Logger implementation
+├── config.rs            # TOML configuration
+├── di.rs                # Dependency injection
+├── event_bus.rs         # Event bus implementation
+└── error_handler.rs     # Enhanced error handling
+```
 
-- core/frontend/src/core/models.ts: Common model primitives
-- core/frontend/src/core/viewmodel.ts: Viewmodel base behavior
-- core/frontend/src/core/events.ts: Core event bus utility
-- core/frontend/src/core/plugin.ts: Plugin abstractions
-- core/frontend/src/core/service.ts: Service base patterns
-- core/frontend/src/error/: Frontend error value model
-- core/frontend/src/index.ts: Package export surface
+**Key Components**:
 
-## Plugins: plugins/
+1. **Database** (`database/connection.rs`):
+   - r2d2 connection pool
+   - Prepared statements
+   - Transaction support
+   - Pool statistics
 
-- plugins/backend/plugin-database/: Backend plugin example
-  - Cargo.toml, plugin.json, src/lib.rs
-- plugins/frontend/: Frontend plugin extension area scaffold
+2. **Logging** (`logging/`):
+   - JSON file logging
+   - Colored console output
+   - Log rotation
+   - Configurable levels
 
-## Application Entrypoints: apps/
+3. **Error Handler** (`error_handler.rs`):
+   - Panic hook
+   - Error tracking
+   - Terminal output
+   - Statistics
 
-- apps/desktop/: Desktop application wrapper crate
-  - apps/desktop/Cargo.toml
-  - apps/desktop/src/main.rs
+4. **DI Container** (`di.rs`):
+   - Type-safe registration
+   - Singleton support
+   - Arc-based sharing
 
-## Shared Contracts: shared/
+##### `presentation/` - WebUI Integration
 
-- shared/protocol/: Cross-boundary protocol scaffolding
-- shared/types/: Shared type contract scaffolding
+**Structure**:
+```
+presentation/
+├── webui/
+│   ├── mod.rs
+│   └── handlers/
+│       ├── mod.rs
+│       ├── db_handlers.rs         # Database handlers
+│       ├── sysinfo_handlers.rs    # System info handlers
+│       ├── logging_handlers.rs    # Log handlers
+│       ├── event_bus_handlers.rs  # Event bus handlers
+│       ├── window_state_handler.rs # Window management
+│       ├── error_handlers.rs      # Error tracking
+│       └── devtools_handlers.rs   # DevTools support
+└── mod.rs
+```
 
-## Configuration: config/
+**Handler Pattern**:
+```rust
+pub fn setup_db_handlers(window: &mut webui::Window) {
+    window.bind("get_users", |event| {
+        let db = get_db().unwrap();
+        let users = db.get_all_users().unwrap();
+        
+        let response = json!({
+            "success": true,
+            "data": users
+        });
+        
+        dispatch_event(window, "db_response", &response);
+    });
+}
+```
 
-- config/app.config.toml: Runtime configuration source
+---
 
-Typical configuration domains include app metadata, window behavior, database settings, and logging options.
+## Frontend Structure (Angular)
 
-## Runtime Static Assets: static/
+### frontend/
 
-- static/js/: Runtime JavaScript assets (including WebUI bridge files)
-- static/css/: Runtime stylesheets
+#### `src/` - Application Source
 
-These assets are consumed by runtime HTML and desktop WebUI rendering.
+##### `main.ts` - Entry Point
 
-## Legacy Frontend Snapshots
+**Purpose**: Bootstrap Angular application with error handling
 
-### frontend-origin/
+**Key Code**:
+```typescript
+// Setup global error interception
+setupGlobalErrorInterception();
 
-Historical frontend implementation retained for migration safety and comparison:
+// Bootstrap Angular
+bootstrapApplication(AppComponent, {
+  providers: [{ 
+    provide: ErrorHandler, 
+    useClass: GlobalErrorHandler 
+  }],
+})
+.then(appRef => {
+  // Setup global error listeners
+  window.addEventListener('error', ...);
+  window.addEventListener('unhandledrejection', ...);
+})
+.catch(err => {
+  // Bootstrap failed
+  document.body.innerHTML = `<h1>Error: ${err.message}</h1>`;
+});
+```
 
-- Independent source tree
-- Standalone configs
-- Historical event bus and bridge experiments
+##### `views/` - Components (View Layer)
 
-### frontend/src-origin/
+**Structure**:
+```
+views/
+├── app.component.ts       # Root component
+├── app.component.html
+├── app.component.css
+├── app.module.ts          # Root module (if needed)
+├── app-routing.module.ts  # Routing config
+│
+├── home/
+│   ├── home.component.ts
+│   └── home.component.html
+│
+├── demo/
+│   ├── demo.component.ts
+│   └── error-handling-demo.component.ts
+│
+├── devtools/
+│   └── devtools.component.ts    # DevTools panel
+│
+└── shared/
+    ├── error-modal.component.ts
+    └── ...
+```
 
-Pre-MVVM restructuring snapshot kept for reference during transition.
+**Component Pattern**:
+```typescript
+@Component({
+  selector: 'app-root',
+  standalone: true,
+  imports: [CommonModule, ErrorModalComponent, DevtoolsComponent],
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css'],
+})
+export class AppComponent implements OnInit, OnDestroy {
+  // Inject services
+  readonly globalErrorService = inject(GlobalErrorService);
+  
+  // Signals
+  searchQuery = signal('');
+  windowEntries = signal<WindowEntry[]>([]);
+  
+  // Computed
+  filteredCards = computed(() => {
+    const query = this.searchQuery().toLowerCase();
+    return this.cards.filter(c => c.title.toLowerCase().includes(query));
+  });
+  
+  ngOnInit(): void {
+    // Initialize
+  }
+}
+```
 
-## Vendor Sources: thirdparty/
+##### `viewmodels/` - State Management (ViewModel Layer)
 
-- thirdparty/webui-c-src/: Vendored WebUI C source and examples
+**Structure**:
+```
+viewmodels/
+├── event-bus.viewmodel.ts    # Pub/sub event bus
+├── logging.viewmodel.ts      # Logging backend
+├── logger.viewmodel.ts       # Logger facade
+├── window-state.viewmodel.ts # Window management
+├── api-client.viewmodel.ts   # Backend API client
+└── error-dashboard.viewmodel.ts # Error tracking
+```
 
-## Build Output Directories
+**ViewModel Pattern**:
+```typescript
+@Injectable({ providedIn: 'root' })
+export class WindowStateViewModel {
+  private readonly windowEntries = signal<WindowEntry[]>([]);
+  
+  readonly minimizedCount = computed(() => 
+    this.windowEntries().filter(e => e.minimized).length
+  );
+  
+  readonly hasFocused = computed(() => 
+    this.windowEntries().some(e => e.focused)
+  );
+  
+  addWindow(entry: WindowEntry): void {
+    this.windowEntries.update(entries => [...entries, entry]);
+  }
+  
+  removeWindow(id: string): void {
+    this.windowEntries.update(entries => 
+      entries.filter(e => e.id !== id)
+    );
+  }
+}
+```
 
-### target/
+##### `core/` - Services (Infrastructure)
 
-Cargo build output:
-- target/debug/: Debug builds
-- target/release/: Release builds
-- target/debug/app: Debug executable
-- target/release/app: Release executable
+**Structure**:
+```
+core/
+├── index.ts
+├── global-error.handler.ts   # Angular ErrorHandler
+├── global-error.service.ts   # Error state management
+├── error-interceptor.ts      # Error interception
+├── winbox.service.ts         # WinBox window service
+│
+├── plugins/
+│   ├── plugin.interface.ts   # Plugin interface
+│   └── plugin-registry.ts    # Plugin registry
+│
+└── base/
+    ├── service.base.ts       # Base service class
+    └── viewmodel.base.ts     # Base ViewModel class
+```
 
-### dist/
+**Error Handler Pattern**:
+```typescript
+export class GlobalErrorHandler implements ErrorHandler {
+  private readonly injector = inject(Injector);
+  
+  handleError(error: unknown): void {
+    const errorService = this.injector.get(GlobalErrorService);
+    const errorValue = this.extractErrorValue(error);
+    
+    errorService.report(errorValue, {
+      source: 'angular',
+      title: this.extractTitle(error),
+    });
+  }
+  
+  private extractErrorValue(error: unknown): ErrorValue {
+    // Convert to structured ErrorValue
+  }
+}
+```
 
-Distribution output:
-- dist/index.html: Main HTML file
-- dist/static/js/: Compiled JavaScript
-- dist/static/css/: Compiled CSS
+##### `models/` - Data Types (Model Layer)
 
-## Documentation: docs/
+**Structure**:
+```
+models/
+├── index.ts
+├── card.model.ts         # Card entity
+├── window.model.ts       # Window state
+├── log.model.ts          # Logging types
+├── error.model.ts        # Error types
+└── api.model.ts          # API types
+```
 
-- 01-introduction.md: Project overview
-- 02-architecture.md: Architecture details
-- 03-build-system.md: Build instructions
-- 04-communication.md: Communication patterns
-- 05-dependencies.md: Dependency reference
-- 06-improvements.md: Suggested enhancements
-- 07-getting-started.md: Getting started guide
-- 08-project-structure.md: This file
-- 09-errors-as-values.md: Error handling guide
-- ERRORS_AS_VALUES.md: Legacy error handling doc
-- ARCHITECTURE.md: Legacy architecture doc
-- PROJECT_STRUCTURE.md: Legacy structure doc
+**Model Pattern**:
+```typescript
+// error.model.ts
+export interface ErrorValue {
+  code: ErrorCode;
+  message: string;
+  details?: string;
+  field?: string;
+  cause?: string;
+  context?: Record<string, string>;
+}
+
+export enum ErrorCode {
+  DbConnectionFailed = 'DB_CONNECTION_FAILED',
+  DbQueryFailed = 'DB_QUERY_FAILED',
+  ValidationFailed = 'VALIDATION_FAILED',
+  ResourceNotFound = 'RESOURCE_NOT_FOUND',
+  InternalError = 'INTERNAL_ERROR',
+  Unknown = 'UNKNOWN',
+}
+```
+
+##### `types/` - TypeScript Definitions
+
+**Structure**:
+```
+types/
+├── index.ts
+├── error.types.ts        # Error type definitions
+├── error.types.test.ts   # Type tests
+└── winbox.d.ts           # WinBox type declarations
+```
+
+##### `environments/` - Environment Configs
+
+**Structure**:
+```
+environments/
+├── environment.ts        # Development config
+└── environment.prod.ts   # Production config
+```
+
+**Pattern**:
+```typescript
+export const environment = {
+  production: false,
+  logging: {
+    level: 'debug',
+    console: true,
+    backend: true,
+  },
+};
+```
+
+---
+
+## Configuration Files
+
+### Cargo.toml (Rust)
+
+```toml
+[package]
+name = "rustwebui-app"
+version = "1.0.0"
+edition = "2021"
+
+[dependencies]
+webui-rs = { git = "https://github.com/webui-dev/rust-webui" }
+rusqlite = { version = "0.32", features = ["bundled"] }
+r2d2 = "0.8"
+r2d2_sqlite = "0.25"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+log = "0.4"
+backtrace = "0.3"
+
+[profile.release]
+opt-level = 3
+lto = true
+```
+
+### package.json (Frontend)
+
+```json
+{
+  "name": "angular-rspack-demo",
+  "scripts": {
+    "dev": "bun run rspack serve",
+    "build:rspack": "bun run rspack build",
+    "lint": "biome check",
+    "lint:fix": "biome check --write",
+    "format": "biome format",
+    "format:fix": "biome format --write"
+  },
+  "dependencies": {
+    "@angular/core": "^21.1.5",
+    "@angular/common": "^21.1.5",
+    "rxjs": "~7.8.2",
+    "zone.js": "~0.15.1"
+  },
+  "devDependencies": {
+    "@rspack/core": "^1.7.6",
+    "@biomejs/biome": "^2.4.4",
+    "typescript": "~5.9.0"
+  }
+}
+```
+
+### app.config.toml
+
+```toml
+[app]
+name = "Rust WebUI SQLite Demo"
+version = "1.0.0"
+
+[window]
+title = "Rust WebUI Application"
+width = 1280
+height = 800
+
+[database]
+path = "app.db"
+create_sample_data = true
+
+[logging]
+level = "info"
+file = "logs/application.log"
+append = true
+
+[communication]
+transport = "webview_ffi"
+serialization = "json"
+```
+
+---
+
+## Build Output Structure
+
+### target/ (Rust)
+
+```
+target/
+├── debug/
+│   ├── app              # Debug executable
+│   ├── app.d            # Debug info
+│   └── deps/            # Dependencies
+├── release/
+│   └── app              # Optimized executable
+└── build/               # Build cache
+```
+
+### frontend/dist/ (Angular)
+
+```
+dist/
+├── browser/
+│   ├── index.html       # Main HTML
+│   ├── main.<hash>.js   # Bundled JS
+│   └── styles.<hash>.css # Bundled CSS
+└── static/
+    ├── js/
+    │   ├── main.js      # Copied main JS
+    │   ├── winbox.min.js # WinBox library
+    │   └── webui.js     # WebUI bridge
+    └── css/
+        └── winbox.min.css # WinBox styles
+```
+
+---
+
+## Runtime Files
+
+### Generated at Runtime
+
+```
+./
+├── app.db                    # SQLite database
+├── application.log           # Application log
+├── logs/
+│   └── application.log       # Log file (if configured)
+└── static/
+    ├── js/                   # Copied JS assets
+    └── css/                  # Copied CSS assets
+```
+
+### .gitignore
+
+Files excluded from version control:
+- `target/` (Rust build output)
+- `frontend/node_modules/` (NPM packages)
+- `frontend/dist/` (Build output)
+- `frontend/.angular/` (Angular cache)
+- `*.log` (Log files)
+- `app.db` (Database)
+- `bun.lock` (Package lock)
+
+---
+
+## File Naming Conventions
+
+### Rust
+- **Modules**: `snake_case.rs` (e.g., `error_handler.rs`)
+- **Structs**: `PascalCase` (e.g., `Database`)
+- **Functions**: `snake_case` (e.g., `get_all_users`)
+- **Traits**: `PascalCase` (e.g., `Repository`)
+
+### TypeScript
+- **Components**: `kebab-case.component.ts` (e.g., `error-modal.component.ts`)
+- **Services**: `kebab-case.service.ts` (e.g., `winbox.service.ts`)
+- **ViewModels**: `kebab-case.viewmodel.ts` (e.g., `event-bus.viewmodel.ts`)
+- **Models**: `kebab-case.model.ts` (e.g., `window.model.ts`)
+- **Types**: `kebab-case.types.ts` (e.g., `error.types.ts`)
+
+---
+
+## Related Documentation
+
+- [Architecture](02-architecture.md) - Design patterns
+- [Build System](03-build-system.md) - Build process
+- [Getting Started](07-getting-started.md) - Setup guide

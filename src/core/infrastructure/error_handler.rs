@@ -5,13 +5,14 @@ use log::{error, info, warn};
 use std::collections::VecDeque;
 use std::sync::{Arc, Mutex};
 use std::time::{SystemTime, UNIX_EPOCH};
-use crate::core::error::{ErrorCode, ErrorValue};
+use crate::core::error::ErrorCode;
 
 /// Maximum errors to keep in memory
 const MAX_ERROR_HISTORY: usize = 100;
 
 /// Error severity levels for terminal output
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[allow(dead_code)]
 pub enum ErrorSeverity {
     Info,
     Warning,
